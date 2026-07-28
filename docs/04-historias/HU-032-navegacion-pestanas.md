@@ -9,6 +9,8 @@ estado: lista
 
 # Navegar entre Inicio, Historial y Etiquetas
 
+**Construcción**: `openspec_change: plataforma-base-navegacion-tema-offline` (rama `feature/ep-005-plataforma-base-navegacion-tema-offline`).
+
 ## Historia
 
 Como **trader de forex**,

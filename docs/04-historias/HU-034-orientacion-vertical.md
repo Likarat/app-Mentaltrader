@@ -9,6 +9,8 @@ estado: lista
 
 # Mantener orientación vertical en el resto de la app
 
+**Construcción**: `openspec_change: plataforma-base-navegacion-tema-offline` (rama `feature/ep-005-plataforma-base-navegacion-tema-offline`).
+
 ## Historia
 
 Como **trader de forex**,

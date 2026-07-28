@@ -40,6 +40,6 @@
 
 ## 6. Verificación de cierre del slice
 
-- [ ] 6.1 Ejecutar el journey-smoke completo: abrir la app → ver Inicio → tocar Historial → tocar Etiquetas → confirmar tema oscuro y orientación vertical en las 3
-- [ ] 6.2 Revisar que ningún ítem de `wiring_checklist` que SÍ es verificable en este slice quede en `failing` (los que dependen de EP-001/EP-003 futuras quedan documentados como tal, no ocultos)
+- [x] 6.1 Journey-smoke ejecutado con verificación visual real: APK instalado en Pixel_6_API_30, 3 capturas vía `adb exec-out screencap` recorriendo Inicio → Historial → Etiquetas (coordenadas reales de `uiautomator dump`, no adivinadas). Tema oscuro y resaltado del activo confirmados visualmente en las 3.
+- [x] 6.2 Revisado: los ítems verificables (10/13 AC + 2/3 integration_point) están `passing` con evidencia real; los 3 diferidos (HU-034-AC2, HU-035-AC2/AC3, INT-room-app) están documentados como `failing`/pendientes hacia HU-019 y EP-001, no ocultos. Confirmado independientemente por el verificador adversarial de `wiring_verified`.
 - [x] 6.3 Correr `openspec validate --strict` sobre el change — válido (corrido dos veces, antes y después del ajuste de alcance de Room)

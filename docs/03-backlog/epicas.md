@@ -151,6 +151,8 @@
 
 ## EP-005 — Plataforma base: navegación, tema y almacenamiento offline
 
+**Construcción**: `openspec_change: plataforma-base-navegacion-tema-offline` (rama `feature/ep-005-plataforma-base-navegacion-tema-offline`) — primer slice construido del proyecto.
+
 **Resumen**: cubre las capacidades transversales que sostienen a las demás épicas — navegación inferior de 3 pestañas, tema oscuro por defecto, orientación de pantalla, permisos de dispositivo bajo demanda, y almacenamiento 100% local/offline sin pérdida de datos.
 
 **Justificación**: sostiene directamente el objetivo #4 del PRD (100% offline, sin pérdida de datos) y contribuye al objetivo #5 (eficiencia de almacenamiento) al definir cómo se resuelven las consultas de agrupamiento/métricas a nivel de base de datos sin cargar todo a memoria. Es una épica de infraestructura/plataforma, no de feature visible aislada, pero condiciona el resto del producto.

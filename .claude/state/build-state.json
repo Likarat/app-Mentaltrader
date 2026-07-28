@@ -25,20 +25,20 @@
     ],
     "openspec_change": "plataforma-base-navegacion-tema-offline",
     "branch": "feature/ep-005-plataforma-base-navegacion-tema-offline",
-    "phase": "smoke",
+    "phase": "dod",
     "gates": {
       "dor": true,
       "tdd": true,
-      "journey_smoke": false,
+      "journey_smoke": true,
       "coherence_link": true,
-      "data": false,
-      "fidelity": false,
+      "data": true,
+      "fidelity": true,
       "api": null,
-      "wiring_verified": false,
-      "dod": false
+      "wiring_verified": true,
+      "dod": true
     },
-    "updated_at": "2026-07-28T18:48:14.367876+00:00",
-    "updated_by": "build-orchestrator",
+    "updated_at": "2026-07-28T20:05:00.000000+00:00",
+    "updated_by": "dor-dod-gatekeeper",
     "notes": "DoR PASA para EP-005 (primer slice del proyecto, walking skeleton fundacional). Gate de tamano (criterio 8): 4 HU > umbral por defecto de 3, pero se abre como slice unico (no se trocea en sub_slices) por juicio justificado: las 4 HU son complejidad S, 13 escenarios AC en total, y tocan ~2 capas (presentacion: navegacion+tema+orientacion; datos: Room/offline), no >=3. Son plomeria de arranque fuertemente acoplada (sin tema+navegacion+persistencia minima simultaneos no hay app ejecutable que mostrar) — partir en sub-slices con journey_smoke entre cada uno no reduce riesgo real, solo fragmenta un esqueleto atomico. Documentado aqui para trazabilidad; sub_slices[] queda vacio. Cimiento (criterio 7): EP-005 es la epica fundacional en si misma (layer=foundational); no depende de EP-001..EP-004 (de negocio) — es al reves, ellas dependen de esta (HU-008/EP-001 declara orden HU-032->HU-008 en backlog.md). Caveat detectado y a vigilar en wiring_checklist: HU-034 Escenario 2 referencia HU-019 (EP-003, aun no construida) para ser plenamente verificable 'en vivo' — el propio archivo HU-034 ya declara el orden HU-019->HU-034 como nota de secuenciacion, no como bloqueo estructural; se verificara con un trigger instrumentado que simule el regreso desde landscape en vez de esperar a HU-019. HU-035 (Escenarios 1 y 3) es en parte una historia de verificacion transversal que se reconfirmara con datos reales una vez existan HU-001..HU-007; la primera pasada usa una entidad Room minima/seed para probar persistencia y ausencia de red de forma aislada. Ninguno de los dos casos bloquea abrir el DoR de EP-005 hoy.",
     "layer": "foundational",
     "files_scope": [
@@ -176,6 +176,26 @@
         "at": "2026-07-28T18:33:19.613222+00:00",
         "by": "build-orchestrator",
         "note": "Fase TDD completa para las 4 capabilities de EP-005. Implementado: Destino (sealed class + NavHost/NavigationBar), MentaltraderTheme (paleta oscura fija, sin parámetros de tema claro/dinámico), screenOrientation=portrait en el manifest, y verificación estática de ausencia de red (sin permiso INTERNET, sin dependencia HTTP). Bug real encontrado y corregido: Destino.items eager-init referenciando data objects hermanos resolvía null (orden de inicialización estática JVM sealed-class+companion) — fix: `by lazy`. Curso corregido durante la implementación: Room NO se instancia en este slice (KSP rechaza @Database(entities=[])); las Requirements de persistencia de offline-local-persistence quedan declaradas pero diferidas a EP-001, documentado en specs/offline-local-persistence/spec.md, design.md y tasks.md — no se creó ninguna entidad dummy para forzar el cierre. 7/7 tests instrumentados PASSED en emulador real (Pixel_6_API_30) + 3/3 tests unitarios PASSED (JVM). Pendiente antes de dod: journey-smoke manual/visual (fase smoke) y wiring-adversarial-verifier."
+      },
+      {
+        "at": "2026-07-28T19:05:37.537059+00:00",
+        "by": "build-orchestrator",
+        "note": "Fase smoke completa con verificación visual REAL (no por inspección): APK debug instalado y lanzado en emulador real (Pixel_6_API_30, AVD), 3 capturas de pantalla reales vía 'adb exec-out screencap' recorriendo el journey completo Inicio -> Historial -> Etiquetas (navegación real por tap, coordenadas obtenidas de 'adb shell uiautomator dump', no adivinadas). Confirmado visualmente: paleta oscura consistente en las 3 pantallas, resaltado correcto del destino activo en cada tap, apertura por defecto en Inicio. gates.journey_smoke=true. gates.fidelity=true: design_source.applies=true pero confirmed con fuente descriptiva (sin mockup visual, ver design_source.notes) — la fidelidad se evalúa contra la descripción textual del PRD/spec (tema oscuro, 3 pestañas, resaltado de activo), no contra un export pixel-a-pixel; las 3 capturas satisfacen esa descripción. No aplica MCP chrome-devtools (app nativa, no web)."
+      },
+      {
+        "at": "2026-07-28T19:08:39.748631+00:00",
+        "by": "data-consistency-checker",
+        "note": "gates.data=true por vacuidad de superficie aplicable, verificado leyendo el código real (no por inspección del resumen): sin entidades de dominio, sin capa de decisión determinista, sin servicio externo/IA, sin persistencia real todavía (core/data/ vacío, Room configurado pero no instanciado). La única invariante tangencial (ausencia de red, HU-035 Esc.1) ya está verificada con evidencia ejecutable (PermissionsTest.kt). Persistencia diferida a EP-001 queda documentada en design.md, no oculta. api=null se mantiene (sin endpoints, N/A)."
+      },
+      {
+        "at": "2026-07-28T19:34:40.347104+00:00",
+        "by": "wiring-adversarial-verifier",
+        "note": "Verificación adversarial independiente (contexto virgen, agente general-purpose con mandato explícito de refutar) re-ejecutó todo: testDebugUnitTest --rerun (3/3 PASSED, timestamp fresco), connectedDebugAndroidTest --rerun (7/7 PASSED, timestamp fresco), openspec validate --strict (valid). Confirmó sin colisión de ambigüedad en AppNavigationTest (pantallas usan 'Pantalla de X (placeholder)', distinto del label del nav bar). Confirmó HU-034-AC2 y HU-035-AC2/AC3 correctamente marcados failing/diferidos (no passing engañoso). Sin referencias huérfanas a AppDatabase/MentaltraderApplication (grep limpio). screenOrientation=portrait confirmado en el manifest real (no solo en el diseño). Conteo 1:1 de 13 escenarios AC vs wiring_checklist, sin huecos ni excedentes. Único hallazgo no bloqueante: tasks.md 6.1/6.2 desincronizados del estado real — corregido. Veredicto: wiring_verified=true, sin stubs ni cableado falso."
+      },
+      {
+        "at": "2026-07-28T20:05:00.000000+00:00",
+        "by": "dor-dod-gatekeeper",
+        "note": "DoD re-verificado tras corregir el unico bloqueante previo (back-ref del openspec_change ausente). Releidos los 5 archivos: HU-032, HU-033, HU-034 y HU-035 ahora tienen la linea Construccion con openspec_change=plataforma-base-navegacion-tema-offline y la rama; epicas.md seccion EP-005 tiene la misma referencia. Resto de gates (tdd, journey_smoke, coherence_link, data, fidelity, wiring_verified) ya estaban en true con evidencia real de pasadas previas, no re-auditados aqui salvo lectura de tasks.md (6/6 secciones con items completados o explicitamente diferidos/descartados con justificacion documentada en design.md, ninguno oculto). sub_slices[] ausente = N/A (epica se mantuvo atomica, justificado en notes). Sin hallazgos nuevos. gates.dod=true. phase se mantiene en dod (transicion a pr es paso posterior, no de este gate)."
       }
     ]
   },
