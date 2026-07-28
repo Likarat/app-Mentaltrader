@@ -1,0 +1,8 @@
+{
+  "context": {
+    "warning_pct": 35,
+    "critical_pct": 25,
+    "auto_checkpoint": false,
+    "stale_seconds": 60
+  }
+}

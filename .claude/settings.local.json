@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find \"C:\\\\Users\\\\migue\\\\AppData\\\\Roaming\\\\npm\\\\node_modules\\\\@trycore\" -maxdepth 2 2>&1)",
+      "Read(//c/Users/migue/AppData/Roaming/npm/node_modules/@trycore/**)",
+      "Bash(command -v python3)",
+      "Bash(python3 -)",
+      "Bash(python -)",
+      "Bash(pip install *)",
+      "Bash(python -c \"import jsonschema, json; jsonschema.Draft202012Validator\\(json.load\\(open\\('.claude/state/build-state.schema.json', encoding='utf-8'\\)\\)\\).validate\\(json.load\\(open\\('.claude/state/build-state.json', encoding='utf-8'\\)\\)\\); print\\('SCHEMA_OK'\\)\")",
+      "Bash(grep -v \"^\\\\./docs\\\\|^\\\\./\\\\.claude\\\\|^\\\\./\\\\.$\")",
+      "Bash(ls -la \"/c/Users/migue/AndroidStudioProjects/mentaltrader\" 2>&1)",
+      "Read(//c/Users/migue/AndroidStudioProjects/mentaltrader/**)",
+      "Bash(git -C \"c:\\\\Users\\\\migue\\\\Desktop\\\\automatizacion proyectos\\\\App Mentaltrader\" status)",
+      "Bash(mv /c/Users/migue/AndroidStudioProjects/mentaltrader/.gitignore 'c:/Users/migue/Desktop/automatizacion proyectos/App Mentaltrader/.gitignore')",
+      "Bash(mv /c/Users/migue/AndroidStudioProjects/mentaltrader/app 'c:/Users/migue/Desktop/automatizacion proyectos/App Mentaltrader/app')",
+      "Bash(mv /c/Users/migue/AndroidStudioProjects/mentaltrader/build.gradle.kts 'c:/Users/migue/Desktop/automatizacion proyectos/App Mentaltrader/build.gradle.kts')",
+      "Bash(mv /c/Users/migue/AndroidStudioProjects/mentaltrader/gradle 'c:/Users/migue/Desktop/automatizacion proyectos/App Mentaltrader/gradle')",
+      "Bash(mv /c/Users/migue/AndroidStudioProjects/mentaltrader/gradle.properties 'c:/Users/migue/Desktop/automatizacion proyectos/App Mentaltrader/gradle.properties')",
+      "Bash(git init *)",
+      "Bash(git branch *)",
+      "Bash(git add *)"
+    ]
+  }
+}

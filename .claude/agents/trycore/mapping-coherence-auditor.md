@@ -1,0 +1,1 @@
+C:/Users/migue/AppData/Roaming/npm/node_modules/@trycore/spec-product-flow/agents/mapping-coherence-auditor.md

@@ -1,0 +1,14 @@
+{
+  "_comment": "Allowlist de dependencias del proyecto. Derivada de la sección de requisitos técnicos del PRD. El hook stack-guard.sh bloquea dependencias fuera de `allow` al editar package.json.",
+  "source": "docs\\01-prd\\bitacora-trading-forex.md",
+  "version": "1.0",
+  "runtime": {
+    "node": ">=18.18",
+    "packageManager": "npm"
+  },
+  "allow": [
+    "segun documentacion del proyecto"
+  ],
+  "deny_examples": [],
+  "rationale": {}
+}

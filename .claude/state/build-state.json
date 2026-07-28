@@ -1,0 +1,21 @@
+{
+  "version": "1.0",
+  "harness_phase": "authoring",
+  "scaffold": {
+    "confirmed": true,
+    "confirmed_by": "usuario (Miguel Torres)",
+    "confirmed_at": "2026-07-28T15:37:01.234395+00:00",
+    "notes": "Proyecto Android creado en Android Studio (Empty Activity / Compose, Kotlin, minSdk 27, Kotlin DSL build.gradle.kts). Ejecutado (Run) y corre sin error, vacío."
+  },
+  "design_source": {
+    "applies": true,
+    "confirmed": true,
+    "confirmed_by": "usuario (Miguel Torres)",
+    "confirmed_at": "2026-07-28T04:20:56.245220+00:00",
+    "source": "Sin mockups formales — decisión de producto explícita (Especificacion_Bitacora_Trading.md §1: \"No hay mockups previos; la UI se ajusta de forma iterativa durante el desarrollo\"). Fuente de verdad visual: PRD/spec descriptivos (tema oscuro por defecto, layout de una columna, orden de campos ya fijado).",
+    "notes": "gate fidelity (fase smoke) se evalúa contra la descripción textual del PRD/spec, no contra un export visual (no aplica MCP chrome-devtools screenshot-vs-prototipo en el sentido estricto; se evalúa consistencia con la descripción)."
+  },
+  "active_slice": null,
+  "history": [],
+  "releases": []
+}
