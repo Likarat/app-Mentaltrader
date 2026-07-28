@@ -9,6 +9,8 @@ estado: lista
 
 # Operar 100% offline sin pérdida de datos entre sesiones
 
+**Construcción**: `openspec_change: plataforma-base-navegacion-tema-offline` (rama `feature/ep-005-plataforma-base-navegacion-tema-offline`). Escenarios 2 y 3 (persistencia Room) diferidos a la construcción de EP-001 — ver `openspec/changes/plataforma-base-navegacion-tema-offline/design.md`.
+
 ## Historia
 
 Como **trader de forex**,

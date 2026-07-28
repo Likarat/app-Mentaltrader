@@ -1,14 +1,41 @@
 {
-  "_comment": "Allowlist de dependencias del proyecto. Derivada de la sección de requisitos técnicos del PRD. El hook stack-guard.sh bloquea dependencias fuera de `allow` al editar package.json.",
-  "source": "docs\\01-prd\\bitacora-trading-forex.md",
-  "version": "1.0",
+  "_comment": "Allowlist de dependencias del proyecto. Derivada de la sección de requisitos técnicos de Especificacion_Bitacora_Trading.md §2 (el PRD one-pager delega el detalle técnico ahí). Proyecto Android nativo (Gradle/Kotlin), no Node — el hook stack-guard.sh se adapta a build.gradle.kts / gradle/libs.versions.toml en vez de package.json.",
+  "source": "Especificacion_Bitacora_Trading.md#2-decisiones-técnicas-y-stack",
+  "version": "1.1",
   "runtime": {
-    "node": ">=18.18",
-    "packageManager": "npm"
+    "platform": "android",
+    "minSdk": 27,
+    "language": "kotlin",
+    "buildTool": "gradle (kts)"
   },
   "allow": [
-    "segun documentacion del proyecto"
+    "androidx.compose.*",
+    "androidx.activity:activity-compose",
+    "androidx.navigation:navigation-compose",
+    "androidx.room:*",
+    "androidx.datastore:datastore-preferences",
+    "androidx.paging:paging-compose",
+    "androidx.paging:paging-runtime",
+    "androidx.lifecycle:*",
+    "androidx.core:core-ktx",
+    "io.coil-kt:coil-compose",
+    "com.google.devtools.ksp",
+    "junit:junit",
+    "androidx.test.*",
+    "androidx.compose.ui:ui-test-*"
   ],
-  "deny_examples": [],
-  "rationale": {}
+  "deny_examples": [
+    "retrofit2:retrofit (sin backend en v1, spec §1/§9 — sin llamadas de red)",
+    "com.squareup.okhttp3:okhttp",
+    "com.google.dagger:hilt-android (inyección manual en v1, spec §2)",
+    "cualquier gráfica \"pesada\" (spec §2: \"librería ligera, evitando soluciones pesadas\")"
+  ],
+  "rationale": {
+    "androidx.navigation:navigation-compose": "Navegación por pestañas, spec §2",
+    "androidx.room:*": "Base de datos local, spec §2",
+    "androidx.datastore:datastore-preferences": "Preferencias simples persistentes (filtros), spec §2",
+    "androidx.paging:*": "Listas grandes en Historial (3,000-5,000 operaciones), spec §2",
+    "io.coil-kt:coil-compose": "Carga de imágenes en UI, spec §2",
+    "com.google.devtools.ksp": "Annotation processing de Room (compilador), reemplaza kapt"
+  }
 }
