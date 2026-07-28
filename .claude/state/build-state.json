@@ -15,7 +15,149 @@
     "source": "Sin mockups formales — decisión de producto explícita (Especificacion_Bitacora_Trading.md §1: \"No hay mockups previos; la UI se ajusta de forma iterativa durante el desarrollo\"). Fuente de verdad visual: PRD/spec descriptivos (tema oscuro por defecto, layout de una columna, orden de campos ya fijado).",
     "notes": "gate fidelity (fase smoke) se evalúa contra la descripción textual del PRD/spec, no contra un export visual (no aplica MCP chrome-devtools screenshot-vs-prototipo en el sentido estricto; se evalúa consistencia con la descripción)."
   },
-  "active_slice": null,
+  "active_slice": {
+    "epica": "EP-005",
+    "hus": [
+      "HU-032",
+      "HU-033",
+      "HU-034",
+      "HU-035"
+    ],
+    "openspec_change": "plataforma-base-navegacion-tema-offline",
+    "branch": "feature/ep-005-plataforma-base-navegacion-tema-offline",
+    "phase": "change",
+    "gates": {
+      "dor": true,
+      "tdd": false,
+      "journey_smoke": false,
+      "coherence_link": true,
+      "data": false,
+      "fidelity": false,
+      "api": null,
+      "wiring_verified": false,
+      "dod": false
+    },
+    "updated_at": "2026-07-28T16:31:28.602022+00:00",
+    "updated_by": "build-orchestrator",
+    "notes": "DoR PASA para EP-005 (primer slice del proyecto, walking skeleton fundacional). Gate de tamano (criterio 8): 4 HU > umbral por defecto de 3, pero se abre como slice unico (no se trocea en sub_slices) por juicio justificado: las 4 HU son complejidad S, 13 escenarios AC en total, y tocan ~2 capas (presentacion: navegacion+tema+orientacion; datos: Room/offline), no >=3. Son plomeria de arranque fuertemente acoplada (sin tema+navegacion+persistencia minima simultaneos no hay app ejecutable que mostrar) — partir en sub-slices con journey_smoke entre cada uno no reduce riesgo real, solo fragmenta un esqueleto atomico. Documentado aqui para trazabilidad; sub_slices[] queda vacio. Cimiento (criterio 7): EP-005 es la epica fundacional en si misma (layer=foundational); no depende de EP-001..EP-004 (de negocio) — es al reves, ellas dependen de esta (HU-008/EP-001 declara orden HU-032->HU-008 en backlog.md). Caveat detectado y a vigilar en wiring_checklist: HU-034 Escenario 2 referencia HU-019 (EP-003, aun no construida) para ser plenamente verificable 'en vivo' — el propio archivo HU-034 ya declara el orden HU-019->HU-034 como nota de secuenciacion, no como bloqueo estructural; se verificara con un trigger instrumentado que simule el regreso desde landscape en vez de esperar a HU-019. HU-035 (Escenarios 1 y 3) es en parte una historia de verificacion transversal que se reconfirmara con datos reales una vez existan HU-001..HU-007; la primera pasada usa una entidad Room minima/seed para probar persistencia y ausencia de red de forma aislada. Ninguno de los dos casos bloquea abrir el DoR de EP-005 hoy.",
+    "layer": "foundational",
+    "files_scope": [
+      "app/src/main/java/**/navigation/**",
+      "app/src/main/java/**/ui/theme/**",
+      "app/src/main/java/**/data/**",
+      "app/src/main/AndroidManifest.xml"
+    ],
+    "wiring_checklist": [
+      {
+        "id": "HU-032-AC1",
+        "kind": "hu_ac",
+        "ref": "HU-032#Escenario1",
+        "status": "failing"
+      },
+      {
+        "id": "HU-032-AC2",
+        "kind": "hu_ac",
+        "ref": "HU-032#Escenario2",
+        "status": "failing"
+      },
+      {
+        "id": "HU-032-AC3",
+        "kind": "hu_ac",
+        "ref": "HU-032#Escenario3",
+        "status": "failing"
+      },
+      {
+        "id": "HU-032-AC4",
+        "kind": "hu_ac",
+        "ref": "HU-032#Escenario4",
+        "status": "failing"
+      },
+      {
+        "id": "HU-033-AC1",
+        "kind": "hu_ac",
+        "ref": "HU-033#Escenario1",
+        "status": "failing"
+      },
+      {
+        "id": "HU-033-AC2",
+        "kind": "hu_ac",
+        "ref": "HU-033#Escenario2",
+        "status": "failing"
+      },
+      {
+        "id": "HU-033-AC3",
+        "kind": "hu_ac",
+        "ref": "HU-033#Escenario3",
+        "status": "failing"
+      },
+      {
+        "id": "HU-034-AC1",
+        "kind": "hu_ac",
+        "ref": "HU-034#Escenario1",
+        "status": "failing"
+      },
+      {
+        "id": "HU-034-AC2",
+        "kind": "hu_ac",
+        "ref": "HU-034#Escenario2",
+        "status": "failing"
+      },
+      {
+        "id": "HU-034-AC3",
+        "kind": "hu_ac",
+        "ref": "HU-034#Escenario3",
+        "status": "failing"
+      },
+      {
+        "id": "HU-035-AC1",
+        "kind": "hu_ac",
+        "ref": "HU-035#Escenario1",
+        "status": "failing"
+      },
+      {
+        "id": "HU-035-AC2",
+        "kind": "hu_ac",
+        "ref": "HU-035#Escenario2",
+        "status": "failing"
+      },
+      {
+        "id": "HU-035-AC3",
+        "kind": "hu_ac",
+        "ref": "HU-035#Escenario3",
+        "status": "failing"
+      },
+      {
+        "id": "INT-navhost-screens",
+        "kind": "integration_point",
+        "ref": "navigation(NavHost)->presentation(Inicio/Historial/Etiquetas)",
+        "status": "failing"
+      },
+      {
+        "id": "INT-theme-app",
+        "kind": "integration_point",
+        "ref": "theme(MaterialTheme oscuro)->presentation(root Activity/NavHost)",
+        "status": "failing"
+      },
+      {
+        "id": "INT-room-app",
+        "kind": "integration_point",
+        "ref": "persistencia(Room DB)->datos(Application/DI, verificacion offline HU-035)",
+        "status": "failing"
+      }
+    ],
+    "progress_log": [
+      {
+        "at": "2026-07-28T16:07:59.572097+00:00",
+        "by": "dor-dod-gatekeeper",
+        "note": "DoR validado y aprobado para EP-005 (HU-032, HU-033, HU-034, HU-035). scaffold.confirmed=true y design_source.confirmed=true verificados en build-state.json. Slice abierto en phase=dor, todos los gates de inner loop en false (api=null, sin endpoints). wiring_checklist inicializado con 13 items hu_ac + 3 integration_point, todos failing. Proximo paso: opsx:new para crear el change 'plataforma-base-navegacion-tema-offline' y arrancar TDD (red) sobre HU-032 primero (es la HU sin ninguna dependencia entrante, base para las demas)."
+      },
+      {
+        "at": "2026-07-28T16:31:28.602022+00:00",
+        "by": "coherence-link-auditor",
+        "note": "Gate coherence_link verificado y aprobado: proposal.md tiene bloque ## Trazabilidad (EP-005, HU-032..035) sin YAML frontmatter; EP-005 existe en epicas.md; las 4 HU existen con epica: EP-005 en frontmatter y cubren exactamente hus[]; openspec validate --strict pasa; las 4 capabilities nuevas mapean 1:1 sin huecos ni excedentes contra las HU. Pendiente no bloqueante: back-reference (openspec_change) ausente en EP-005/HU-032..035."
+      }
+    ]
+  },
   "history": [],
   "releases": []
 }
