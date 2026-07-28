@@ -25,10 +25,10 @@
     ],
     "openspec_change": "plataforma-base-navegacion-tema-offline",
     "branch": "feature/ep-005-plataforma-base-navegacion-tema-offline",
-    "phase": "change",
+    "phase": "smoke",
     "gates": {
       "dor": true,
-      "tdd": false,
+      "tdd": true,
       "journey_smoke": false,
       "coherence_link": true,
       "data": false,
@@ -37,7 +37,7 @@
       "wiring_verified": false,
       "dod": false
     },
-    "updated_at": "2026-07-28T16:31:28.602022+00:00",
+    "updated_at": "2026-07-28T18:48:14.367876+00:00",
     "updated_by": "build-orchestrator",
     "notes": "DoR PASA para EP-005 (primer slice del proyecto, walking skeleton fundacional). Gate de tamano (criterio 8): 4 HU > umbral por defecto de 3, pero se abre como slice unico (no se trocea en sub_slices) por juicio justificado: las 4 HU son complejidad S, 13 escenarios AC en total, y tocan ~2 capas (presentacion: navegacion+tema+orientacion; datos: Room/offline), no >=3. Son plomeria de arranque fuertemente acoplada (sin tema+navegacion+persistencia minima simultaneos no hay app ejecutable que mostrar) — partir en sub-slices con journey_smoke entre cada uno no reduce riesgo real, solo fragmenta un esqueleto atomico. Documentado aqui para trazabilidad; sub_slices[] queda vacio. Cimiento (criterio 7): EP-005 es la epica fundacional en si misma (layer=foundational); no depende de EP-001..EP-004 (de negocio) — es al reves, ellas dependen de esta (HU-008/EP-001 declara orden HU-032->HU-008 en backlog.md). Caveat detectado y a vigilar en wiring_checklist: HU-034 Escenario 2 referencia HU-019 (EP-003, aun no construida) para ser plenamente verificable 'en vivo' — el propio archivo HU-034 ya declara el orden HU-019->HU-034 como nota de secuenciacion, no como bloqueo estructural; se verificara con un trigger instrumentado que simule el regreso desde landscape en vez de esperar a HU-019. HU-035 (Escenarios 1 y 3) es en parte una historia de verificacion transversal que se reconfirmara con datos reales una vez existan HU-001..HU-007; la primera pasada usa una entidad Room minima/seed para probar persistencia y ausencia de red de forma aislada. Ninguno de los dos casos bloquea abrir el DoR de EP-005 hoy.",
     "layer": "foundational",
@@ -52,97 +52,113 @@
         "id": "HU-032-AC1",
         "kind": "hu_ac",
         "ref": "HU-032#Escenario1",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "AppNavigationTest.laAppAbreEnInicio — PASSED en Pixel_6_API_30 (connectedDebugAndroidTest, BUILD SUCCESSFUL, 7/7 tests)"
       },
       {
         "id": "HU-032-AC2",
         "kind": "hu_ac",
         "ref": "HU-032#Escenario2",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "AppNavigationTest.tocarHistorialMuestraLaPantallaDeHistorialInmediatamente / tocarEtiquetasMuestraLaPantallaDeEtiquetas — PASSED"
       },
       {
         "id": "HU-032-AC3",
         "kind": "hu_ac",
         "ref": "HU-032#Escenario3",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "AppNavigationTest.elDestinoActivoQuedaMarcadoComoSeleccionadoYLosDemasNo (assertIsSelected/assertIsNotSelected) — PASSED"
       },
       {
         "id": "HU-032-AC4",
         "kind": "hu_ac",
         "ref": "HU-032#Escenario4",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "DestinoTest.hay_exactamente_3_destinos (JUnit JVM, testDebugUnitTest) — PASSED"
       },
       {
         "id": "HU-033-AC1",
         "kind": "hu_ac",
         "ref": "HU-033#Escenario1",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "ThemeTest.elTemaSiempreExponeLaPaletaOscuraFija — PASSED en emulador real; MaterialTheme.colorScheme.background == DarkBackground"
       },
       {
         "id": "HU-033-AC2",
         "kind": "hu_ac",
         "ref": "HU-033#Escenario2",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "Garantía estructural: MentaltraderTheme() no tiene parámetro darkTheme/dynamicColor — no hay código que pueda variar el esquema según el SO. Verificado por lectura de Theme.kt + ThemeTest en verde."
       },
       {
         "id": "HU-033-AC3",
         "kind": "hu_ac",
         "ref": "HU-033#Escenario3",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "Garantía estructural: una única MentaltraderTheme envuelve MentaltraderApp (root), las 3 pantallas comparten el mismo ColorScheme — no hay theming por pantalla que pueda divergir."
       },
       {
         "id": "HU-034-AC1",
         "kind": "hu_ac",
         "ref": "HU-034#Escenario1",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "OrientationTest.laActividadPrincipalEstaFijadaEnVertical — PASSED (ActivityInfo.screenOrientation == SCREEN_ORIENTATION_PORTRAIT vía PackageManager)"
       },
       {
         "id": "HU-034-AC2",
         "kind": "hu_ac",
         "ref": "HU-034#Escenario2",
-        "status": "failing"
+        "status": "failing",
+        "evidence": "DIFERIDO: depende de HU-019 (visor de imagen, EP-003), no construida todavía. No se puede verificar 'retorno a vertical tras salir del visor' sin esa pantalla. Documentado en design.md Open Questions."
       },
       {
         "id": "HU-034-AC3",
         "kind": "hu_ac",
         "ref": "HU-034#Escenario3",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "OrientationTest.laActividadPrincipalEstaFijadaEnVertical — mismo mecanismo (screenOrientation=portrait fijo) satisface tanto el uso general como el rechazo de forzado horizontal: el SO nunca ofrece landscape a esta Activity."
       },
       {
         "id": "HU-035-AC1",
         "kind": "hu_ac",
         "ref": "HU-035#Escenario1",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "PermissionsTest.laAppNoDeclaraElPermisoDeInternet — PASSED en emulador real (PackageManager.GET_PERMISSIONS no incluye INTERNET)"
       },
       {
         "id": "HU-035-AC2",
         "kind": "hu_ac",
         "ref": "HU-035#Escenario2",
-        "status": "failing"
+        "status": "failing",
+        "evidence": "DIFERIDO a EP-001: Room rechaza @Database(entities=[]) en compilación (KSP: 'must specify list of entities'). No se puede instanciar AppDatabase sin al menos una entidad real. Dependencias Room/KSP ya configuradas y resueltas (build real en verde)."
       },
       {
         "id": "HU-035-AC3",
         "kind": "hu_ac",
         "ref": "HU-035#Escenario3",
-        "status": "failing"
+        "status": "failing",
+        "evidence": "DIFERIDO a EP-001, misma razón que AC2."
       },
       {
         "id": "INT-navhost-screens",
         "kind": "integration_point",
         "ref": "navigation(NavHost)->presentation(Inicio/Historial/Etiquetas)",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "AppNavigationTest completo (4 tests) — PASSED: NavHost realmente conmuta entre InicioScreen/HistorialScreen/EtiquetasScreen"
       },
       {
         "id": "INT-theme-app",
         "kind": "integration_point",
         "ref": "theme(MaterialTheme oscuro)->presentation(root Activity/NavHost)",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "ThemeTest — PASSED: MaterialTheme(colorScheme=MentaltraderDarkColorScheme) envuelve la raíz de MentaltraderApp"
       },
       {
         "id": "INT-room-app",
         "kind": "integration_point",
         "ref": "persistencia(Room DB)->datos(Application/DI, verificacion offline HU-035)",
-        "status": "failing"
+        "status": "failing",
+        "evidence": "DIFERIDO a EP-001: no existe AppDatabase todavía (ver HU-035-AC2/AC3)."
       }
     ],
     "progress_log": [
@@ -155,6 +171,11 @@
         "at": "2026-07-28T16:31:28.602022+00:00",
         "by": "coherence-link-auditor",
         "note": "Gate coherence_link verificado y aprobado: proposal.md tiene bloque ## Trazabilidad (EP-005, HU-032..035) sin YAML frontmatter; EP-005 existe en epicas.md; las 4 HU existen con epica: EP-005 en frontmatter y cubren exactamente hus[]; openspec validate --strict pasa; las 4 capabilities nuevas mapean 1:1 sin huecos ni excedentes contra las HU. Pendiente no bloqueante: back-reference (openspec_change) ausente en EP-005/HU-032..035."
+      },
+      {
+        "at": "2026-07-28T18:33:19.613222+00:00",
+        "by": "build-orchestrator",
+        "note": "Fase TDD completa para las 4 capabilities de EP-005. Implementado: Destino (sealed class + NavHost/NavigationBar), MentaltraderTheme (paleta oscura fija, sin parámetros de tema claro/dinámico), screenOrientation=portrait en el manifest, y verificación estática de ausencia de red (sin permiso INTERNET, sin dependencia HTTP). Bug real encontrado y corregido: Destino.items eager-init referenciando data objects hermanos resolvía null (orden de inicialización estática JVM sealed-class+companion) — fix: `by lazy`. Curso corregido durante la implementación: Room NO se instancia en este slice (KSP rechaza @Database(entities=[])); las Requirements de persistencia de offline-local-persistence quedan declaradas pero diferidas a EP-001, documentado en specs/offline-local-persistence/spec.md, design.md y tasks.md — no se creó ninguna entidad dummy para forzar el cierre. 7/7 tests instrumentados PASSED en emulador real (Pixel_6_API_30) + 3/3 tests unitarios PASSED (JVM). Pendiente antes de dod: journey-smoke manual/visual (fase smoke) y wiring-adversarial-verifier."
       }
     ]
   },

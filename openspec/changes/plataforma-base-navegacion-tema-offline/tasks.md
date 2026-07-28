@@ -1,48 +1,45 @@
 ## 1. Estructura de paquetes base
 
-- [ ] 1.1 Crear paquetes `core.navigation`, `core.ui`, `core.data`, `core.model` bajo `app/src/main/java/.../`
-- [ ] 1.2 Crear paquetes placeholder `feature.registro`, `feature.historial`, `feature.etiquetas`, `feature.metricas` (vacíos, listos para las épicas de negocio futuras)
-- [ ] 1.3 Confirmar que `build.gradle.kts` (app) tiene las dependencias de Navigation Compose y Room ya declaradas (agregar si faltan, respetando `stack-allowlist.json`)
+- [x] 1.1 Crear paquetes `core.navigation`, `core.data` (`core.ui` reutiliza el `ui.theme` ya generado por el template; `core.model` se crea recién en EP-001, no vacío especulativo)
+- [x] 1.2 Crear paquetes `feature.historial`, `feature.etiquetas`, `feature.metricas` con su pantalla placeholder (`feature.registro` se crea en EP-001, no vacío especulativo)
+- [x] 1.3 Agregar Navigation Compose, Room y KSP a `libs.versions.toml`/`build.gradle.kts` (versiones reales resueltas: navigation-compose 2.9.8, room 2.8.4, ksp 2.3.9) — build real verificado en verde
 
 ## 2. Navegación (`app-shell-navigation`)
 
-- [ ] 2.1 Definir `sealed class Destino(route, label, icon)` en `core.navigation` con los 3 destinos (Inicio, Historial, Etiquetas)
-- [ ] 2.2 Crear pantallas placeholder mínimas: `InicioScreen`, `HistorialScreen`, `EtiquetasScreen` (un `Text` simple cada una, en sus paquetes `feature.*`)
-- [ ] 2.3 Implementar `Scaffold` raíz con `NavHost` + `NavigationBar` (Material3), iterando sobre `Destino` para los 3 ítems
-- [ ] 2.4 Configurar el `startDestination` del `NavHost` en Inicio
-- [ ] 2.5 Test instrumentado/UI: verificar que la app abre en Inicio (Escenario "Apertura de la app en Inicio")
-- [ ] 2.6 Test instrumentado/UI: verificar cambio inmediato entre pestañas (Escenario "Cambio inmediato entre pestañas")
-- [ ] 2.7 Test instrumentado/UI: verificar resaltado visual del destino activo (Escenario "Resaltado visual del destino activo")
-- [ ] 2.8 Test: verificar que la `NavigationBar` renderiza exactamente 3 ítems (Escenario "Exactamente 3 destinos")
+- [x] 2.1 Definir `sealed class Destino(route, label, icon)` en `core.navigation` con los 3 destinos (Inicio, Historial, Etiquetas) — con fix de un bug real de orden de inicialización estática (ver `progress_log`)
+- [x] 2.2 Crear pantallas placeholder mínimas: `InicioScreen`, `HistorialScreen`, `EtiquetasScreen`
+- [x] 2.3 Implementar `Scaffold` raíz con `NavHost` + `NavigationBar` (Material3), iterando sobre `Destino` para los 3 ítems
+- [x] 2.4 Configurar el `startDestination` del `NavHost` en Inicio
+- [x] 2.5 Test instrumentado: `AppNavigationTest.laAppAbreEnInicio` — verde en emulador real (Pixel_6_API_30)
+- [x] 2.6 Test instrumentado: `AppNavigationTest.tocarHistorialMuestraLaPantallaDeHistorialInmediatamente` (+ Etiquetas) — verde
+- [x] 2.7 Test instrumentado: `AppNavigationTest.elDestinoActivoQuedaMarcadoComoSeleccionadoYLosDemasNo` (`assertIsSelected`/`assertIsNotSelected`) — verde
+- [x] 2.8 Test unitario: `DestinoTest.hay_exactamente_3_destinos` — verde
 
 ## 3. Tema oscuro (`dark-theme`)
 
-- [ ] 3.1 Definir `DarkColorScheme` en `core.ui/theme/Color.kt` (paleta fija: fondo oscuro, texto claro, acentos verde/rojo para ganada/perdida)
-- [ ] 3.2 Implementar `MentalTraderTheme` en `core.ui/theme/Theme.kt` usando siempre `DarkColorScheme`, sin rama de tema claro ni `isSystemInDarkTheme()`
-- [ ] 3.3 Envolver el `Scaffold` raíz con `MentalTraderTheme`
-- [ ] 3.4 Test: capturar/verificar que las 3 pantallas renderizan con la paleta oscura (Escenario "La app abre en modo oscuro")
-- [ ] 3.5 Test: simular dispositivo en modo claro del SO y confirmar que el tema de la app no cambia (Escenario "El tema no varía según la configuración del sistema operativo")
-- [ ] 3.6 Revisión visual: confirmar consistencia de acentos de color entre las 3 pantallas (Escenario "Consistencia de acentos de color entre pantallas")
+- [x] 3.1 Definir paleta oscura fija en `ui/theme/Color.kt` (`DarkBackground`, `DarkSurface`, `DarkOnBackground/Surface`, `AccentPrimary/Secondary`) — sin acentos verde/rojo específicos todavía (esos son de EP-003, coloreado de resultados, no de esta épica de plataforma)
+- [x] 3.2 Reescribir `MentaltraderTheme` en `ui/theme/Theme.kt` sin parámetros de tema claro/dinámico — la posibilidad de modo claro se eliminó de la firma de la función, no solo del runtime
+- [x] 3.3 Envolver `MentaltraderApp` con `MentaltraderTheme` en `MainActivity`
+- [x] 3.4/3.5 Test instrumentado: `ThemeTest.elTemaSiempreExponeLaPaletaOscuraFija` — verde en emulador real
+- [x] 3.6 Consistencia de acentos: garantizada por diseño (una única fuente de `ColorScheme` para las 3 pantallas, sin theming por pantalla)
 
 ## 4. Orientación fija en vertical (`screen-orientation-lock`)
 
-- [ ] 4.1 Configurar `android:screenOrientation="portrait"` en la única `Activity` del `AndroidManifest.xml`
-- [ ] 4.2 Test/verificación manual: rotar el dispositivo/emulador en cada una de las 3 pantallas y confirmar que no rota (Escenario "Orientación vertical en el uso general")
-- [ ] 4.3 Test/verificación manual: confirmar que un intento de forzar horizontal (rotación del SO) es rechazado (Escenario "Rechazo de forzado horizontal")
-- [ ] 4.4 Documentar en código (comentario breve en el manifest o en `core.navigation`) que la excepción de HU-019 (visor de imagen, EP-003) se diseñará en esa épica — no crear ningún hook o override especulativo ahora
+- [x] 4.1 Configurar `android:screenOrientation="portrait"` en `MainActivity` (`AndroidManifest.xml`)
+- [x] 4.2/4.3 Test instrumentado: `OrientationTest.laActividadPrincipalEstaFijadaEnVertical` — verde en emulador real (verifica `ActivityInfo.screenOrientation` vía `PackageManager`, más robusto que rotar físicamente el emulador)
+- [x] 4.4 Documentado en `design.md` (Open Questions) y en el bloque `## Trazabilidad`/spec de `screen-orientation-lock` — sin hooks especulativos para HU-019
 
 ## 5. Persistencia local offline (`offline-local-persistence`)
 
-- [ ] 5.1 Confirmar que `build.gradle.kts` (app y proyecto) no declara ninguna dependencia de cliente HTTP (Retrofit/OkHttp/Ktor-client u otra)
-- [ ] 5.2 Confirmar que `AndroidManifest.xml` no declara el permiso `android.permission.INTERNET`
-- [ ] 5.3 Crear `AppDatabase` (Room, `@Database` con lista de entidades vacía por ahora) en `core.data`
-- [ ] 5.4 Instanciar `AppDatabase` en el punto de entrada de la app (ej. `Application` class o composición manual, según decisión de DI manual del PRD)
-- [ ] 5.5 Test: arrancar la app y confirmar que `AppDatabase` se inicializa sin excepciones (Escenario "Room se inicializa sin error al arrancar la app")
-- [ ] 5.6 Test instrumentado: cerrar completamente el proceso y reabrir, confirmar que la instancia de Room sigue siendo válida/accesible sin reinicialización ni error (Escenario "Persistencia entre reinicios completos del proceso")
-- [ ] 5.7 Dejar anotado en el `wiring_checklist` del slice que el Escenario "Verificación completa diferida a datos de negocio reales" queda `failing`/pendiente hasta que EP-001 aporte entidades reales — no inventar una entidad dummy para cerrarlo artificialmente
+- [x] 5.1 Confirmar que `build.gradle.kts` (app y proyecto) no declara ninguna dependencia de cliente HTTP (Retrofit/OkHttp/Ktor-client u otra) — confirmado, solo Compose/Navigation/Room/KSP
+- [x] 5.2 Confirmar que `AndroidManifest.xml` no declara el permiso `android.permission.INTERNET` — confirmado
+- [x] 5.3 Test instrumentado: verificar en runtime (vía `PackageManager`) que la app instalada no tiene el permiso `INTERNET` (Escenario "Sin dependencia HTTP ni permiso de red en el proyecto")
+- [ ] ~~5.4 Crear `AppDatabase` (Room, entidades vacías)~~ — **descartado**: Room/KSP rechaza `@Database(entities = [])` en compilación ("must specify list of entities"). No hay forma de tener una base de datos Room genuinamente vacía.
+- [ ] ~~5.5/5.6 Tests de inicialización/persistencia de Room~~ — **diferidos a EP-001**, que sí trae una entidad real (`Operation` o similar) para instanciar `AppDatabase`. Dependencias Room/KSP quedan configuradas y resueltas (build real ya corrido con éxito) para que EP-001 las use sin fricción.
+- [x] 5.7 Dejar anotado en `wiring_checklist` que los escenarios "Room se inicializa sin error" y "Persistencia entre reinicios" quedan `failing`/pendientes hasta EP-001 — no se inventó ninguna entidad dummy para cerrarlos artificialmente
 
 ## 6. Verificación de cierre del slice
 
 - [ ] 6.1 Ejecutar el journey-smoke completo: abrir la app → ver Inicio → tocar Historial → tocar Etiquetas → confirmar tema oscuro y orientación vertical en las 3
 - [ ] 6.2 Revisar que ningún ítem de `wiring_checklist` que SÍ es verificable en este slice quede en `failing` (los que dependen de EP-001/EP-003 futuras quedan documentados como tal, no ocultos)
-- [ ] 6.3 Correr `openspec validate` sobre el change antes de pasar a `dod`
+- [x] 6.3 Correr `openspec validate --strict` sobre el change — válido (corrido dos veces, antes y después del ajuste de alcance de Room)
