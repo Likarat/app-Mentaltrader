@@ -77,7 +77,8 @@
       "Bash(rm -f 'C:\\\\Users\\\\migue/.android/avd/Pixel_6_API_30.avd/multiinstance.lock')",
       "Bash(rm -rf 'C:\\\\Users\\\\migue/.android/avd/Pixel_6_API_30.avd/hardware-qemu.ini.lock')",
       "Bash(./gradlew.bat testDebugUnitTest assembleDebug --console=plain)",
-      "Bash(./gradlew.bat compileDebugAndroidTestKotlin --console=plain)"
+      "Bash(./gradlew.bat compileDebugAndroidTestKotlin --console=plain)",
+      "Bash(command -v python)"
     ]
   }
 }
