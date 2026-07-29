@@ -30,20 +30,20 @@
     ],
     "openspec_change": "registro-rapido-operaciones",
     "branch": "feature/ep-001-registro-rapido-operaciones",
-    "phase": "change",
+    "phase": "dod",
     "gates": {
       "dor": true,
-      "tdd": false,
-      "journey_smoke": false,
+      "tdd": true,
+      "journey_smoke": true,
       "coherence_link": true,
-      "data": false,
-      "fidelity": false,
+      "data": true,
+      "fidelity": true,
       "api": null,
       "wiring_verified": false,
       "dod": false
     },
-    "updated_at": "2026-07-29T00:00:00.000000+00:00",
-    "updated_by": "claude (sesion de construccion)",
+    "updated_at": "2026-07-29T15:15:00.000000+00:00",
+    "updated_by": "claude (cierre de sesion, evidencia real acumulada)",
     "layer": "business",
     "files_scope": [
       "app/src/main/java/**/data/**",
@@ -66,8 +66,8 @@
           "HU-002",
           "HU-003"
         ],
-        "status": "pending",
-        "journey_smoke": false
+        "status": "done",
+        "journey_smoke": true
       },
       {
         "id": "EP-001-b",
@@ -76,8 +76,8 @@
           "HU-004",
           "HU-005"
         ],
-        "status": "pending",
-        "journey_smoke": false
+        "status": "done",
+        "journey_smoke": true
       },
       {
         "id": "EP-001-c",
@@ -86,8 +86,8 @@
           "HU-006",
           "HU-007"
         ],
-        "status": "pending",
-        "journey_smoke": false
+        "status": "done",
+        "journey_smoke": true
       },
       {
         "id": "EP-001-d",
@@ -96,8 +96,8 @@
           "HU-008",
           "HU-009"
         ],
-        "status": "pending",
-        "journey_smoke": false
+        "status": "done",
+        "journey_smoke": true
       }
     ],
     "wiring_checklist": [
