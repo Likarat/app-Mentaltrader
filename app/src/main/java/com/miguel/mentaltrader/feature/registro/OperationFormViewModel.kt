@@ -169,8 +169,8 @@ class OperationFormViewModel(
             )
             return
         }
-        val riskPercentage = current.riskPercentageText.toFloatOrNull()
-        val resultInRMagnitude = current.resultInRText.toFloatOrNull()
+        val riskPercentage = parseDecimal(current.riskPercentageText)
+        val resultInRMagnitude = parseDecimal(current.resultInRText)
         val resultInR = resultInRMagnitude?.let {
             if (current.resultInRSign == OperationFormState.SIGN_NEGATIVE) -it else it
         }
@@ -181,7 +181,7 @@ class OperationFormViewModel(
                     dateTime = dateTimeMillis,
                     assetId = current.assetId!!,
                     direction = current.direction!!,
-                    quality = current.qualityText.toFloatOrNull() ?: 0f,
+                    quality = parseDecimal(current.qualityText) ?: 0f,
                     emotionBeforeId = current.emotionBeforeId!!,
                     emotionBeforeReason = current.emotionBeforeReason.ifBlank { null },
                     emotionAfterId = current.emotionAfterId!!,
@@ -230,7 +230,7 @@ class OperationFormViewModel(
         if (s.qualityText.isBlank()) {
             errors[OperationFormState.FIELD_QUALITY] = "Campo obligatorio"
         } else {
-            val quality = s.qualityText.toFloatOrNull()
+            val quality = parseDecimal(s.qualityText)
             if (quality == null || quality < 0f || quality > 10f) {
                 errors[OperationFormState.FIELD_QUALITY] = "Debe estar entre 0.0 y 10.0"
             }
@@ -242,15 +242,27 @@ class OperationFormViewModel(
         if (s.result == null) errors[OperationFormState.FIELD_RESULT] = "Campo obligatorio"
 
         if (s.riskPercentageText.isNotBlank()) {
-            val risk = s.riskPercentageText.toFloatOrNull()
+            val risk = parseDecimal(s.riskPercentageText)
             if (risk == null || risk < 0f || risk > 100f) {
                 errors[OperationFormState.FIELD_RISK] = "Debe estar entre 0 y 100"
             }
         }
 
+        // Bug real reportado por el usuario: el campo aceptaba cualquier texto (ej.
+        // "hhahajajkfkg") sin ningun aviso. Formato esperado tipo "1:2" o "1.5:2".
+        if (s.plannedRatio.isNotBlank() && !RATIO_PATTERN.matches(s.plannedRatio.trim())) {
+            errors[OperationFormState.FIELD_RATIO] = "Formato inválido, ej. 1:2"
+        }
+
         if (s.entryDescription.isBlank()) errors[OperationFormState.FIELD_DESCRIPTION] = "Campo obligatorio"
         return errors
     }
+
+    /** Bug real reportado por el usuario: el teclado numérico en configuración regional
+     * español muestra coma como separador decimal, pero `String.toFloatOrNull()` solo entiende
+     * punto — un valor como "7,5" se leía como inválido de forma silenciosa (el campo se veía
+     * "lleno" pero seguía bloqueando el guardado). Se normaliza coma -> punto antes de parsear. */
+    private fun parseDecimal(text: String): Float? = text.replace(',', '.').toFloatOrNull()
 
     private fun parseDateTime(dateText: String, timeText: String): Long? {
         return try {
@@ -265,6 +277,10 @@ class OperationFormViewModel(
     companion object {
         val DATE_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
         val TIME_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
+
+        /** "Ratio planeado": dos números (con decimales opcionales, coma o punto) separados por
+         * ":" — ej. "1:2", "1,5:2". */
+        private val RATIO_PATTERN = Regex("""^\d+([.,]\d+)?:\d+([.,]\d+)?$""")
     }
 
     class Factory(

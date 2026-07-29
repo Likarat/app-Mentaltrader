@@ -241,6 +241,87 @@ class OperationFormViewModelTest {
         assertTrue(viewModel.state.value.fieldErrors.containsKey(OperationFormState.FIELD_DATE))
     }
 
+    // Bug real reportado por el usuario (2026-07-29): teclado en configuración regional
+    // español usa coma como separador decimal; "7,5" se leía como inválido en silencio y el
+    // guardado quedaba bloqueado aunque el campo se viera completo.
+    @Test
+    fun `calidad y riesgo con coma como separador decimal se guardan correctamente`() = runTest {
+        val assetId = catalogItemDao.seed(CatalogType.ASSET, "XAUUSD")
+        val emotionId = catalogItemDao.seed(CatalogType.EMOTION, "Confianza")
+        val errorId = catalogItemDao.seed(CatalogType.ERROR, "Ninguno")
+        val viewModel = createViewModel()
+        viewModel.fillMinimalRequiredFields(assetId, emotionId, emotionId, errorId)
+        viewModel.onQualityChange("7,5")
+        viewModel.onRiskPercentageChange("2,5")
+        viewModel.onResultInRChange("1,5")
+
+        viewModel.save()
+
+        assertTrue(viewModel.state.value.fieldErrors.isEmpty())
+        assertTrue(viewModel.state.value.isSaved)
+        val saved = operationDao.inserted.single()
+        assertEquals(7.5f, saved.quality)
+        assertEquals(2.5f, saved.riskPercentage)
+        assertEquals(1.5f, saved.resultInR)
+    }
+
+    // Bug real reportado por el usuario: "Ratio planeado" aceptaba cualquier texto sin
+    // ningún aviso (ej. "hhahajajkfkg").
+    @Test
+    fun `ratio planeado con formato invalido bloquea el guardado`() = runTest {
+        val assetId = catalogItemDao.seed(CatalogType.ASSET, "XAUUSD")
+        val emotionId = catalogItemDao.seed(CatalogType.EMOTION, "Confianza")
+        val errorId = catalogItemDao.seed(CatalogType.ERROR, "Ninguno")
+        val viewModel = createViewModel()
+        viewModel.fillMinimalRequiredFields(assetId, emotionId, emotionId, errorId)
+        viewModel.onPlannedRatioChange("hhahajajkfkg")
+
+        viewModel.save()
+
+        assertEquals(0, operationDao.inserted.size)
+        assertTrue(viewModel.state.value.fieldErrors.containsKey(OperationFormState.FIELD_RATIO))
+    }
+
+    @Test
+    fun `ratio planeado con formato valido se guarda correctamente`() = runTest {
+        val assetId = catalogItemDao.seed(CatalogType.ASSET, "XAUUSD")
+        val emotionId = catalogItemDao.seed(CatalogType.EMOTION, "Confianza")
+        val errorId = catalogItemDao.seed(CatalogType.ERROR, "Ninguno")
+        val viewModel = createViewModel()
+        viewModel.fillMinimalRequiredFields(assetId, emotionId, emotionId, errorId)
+        viewModel.onPlannedRatioChange("1:2")
+
+        viewModel.save()
+
+        assertTrue(viewModel.state.value.isSaved)
+        assertEquals("1:2", operationDao.inserted.single().plannedRatio)
+    }
+
+    // Bug real reportado por el usuario: Dirección sin seleccionar no mostraba ningún error.
+    @Test
+    fun `direccion sin seleccionar bloquea el guardado y resalta el campo`() = runTest {
+        val assetId = catalogItemDao.seed(CatalogType.ASSET, "XAUUSD")
+        val emotionId = catalogItemDao.seed(CatalogType.EMOTION, "Confianza")
+        val errorId = catalogItemDao.seed(CatalogType.ERROR, "Ninguno")
+        val viewModel = createViewModel()
+
+        viewModel.onDateChange("28/07/2026")
+        viewModel.onTimeChange("10:30")
+        viewModel.onAssetSelected(assetId)
+        // Dirección queda sin seleccionar a propósito.
+        viewModel.onQualityChange("8.5")
+        viewModel.onEmotionBeforeSelected(emotionId)
+        viewModel.onEmotionAfterSelected(emotionId)
+        viewModel.onErrorSelected(errorId)
+        viewModel.onResultSelected(ResultType.WIN)
+        viewModel.onDescriptionChange("texto")
+
+        viewModel.save()
+
+        assertEquals(0, operationDao.inserted.size)
+        assertTrue(viewModel.state.value.fieldErrors.containsKey(OperationFormState.FIELD_DIRECTION))
+    }
+
     // HU-004 Escenario 1: valores dentro de rango se guardan sin error.
     @Test
     fun `guardar con calidad riesgo y R dentro de rango no muestra ningun error`() = runTest {

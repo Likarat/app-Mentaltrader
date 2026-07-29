@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
@@ -29,6 +30,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -67,17 +69,37 @@ fun OperationFormScreen(
         if (state.isSaved) onSaved()
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .verticalScroll(rememberScrollState())
-            // Bug real reportado por el usuario: con enableEdgeToEdge() + targetSdk 36,
-            // windowSoftInputMode="adjustResize" ya no redimensiona la ventana solo — hay que
-            // reservar el espacio del teclado a mano para poder scrollear los campos que tapa.
-            .imePadding()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
+    Column(modifier = modifier.fillMaxSize()) {
+        // Bug real reportado por el usuario: un campo obligatorio sin completar (ej. Dirección)
+        // podía bloquear "Guardar" sin ningún aviso visible si el usuario ya había scrolleado
+        // más abajo — el resaltado por campo no alcanza si no está a la vista. Este banner fijo
+        // (no se scrollea) queda siempre visible mientras haya errores pendientes.
+        if (state.fieldErrors.isNotEmpty()) {
+            Surface(
+                color = MaterialTheme.colorScheme.errorContainer,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    "No se pudo guardar: hay ${state.fieldErrors.size} campo(s) obligatorio(s) sin " +
+                        "completar o con un valor inválido. Revisá los campos marcados en rojo.",
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    modifier = Modifier.padding(12.dp)
+                )
+            }
+        }
+
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                // Bug real reportado por el usuario: con enableEdgeToEdge() + targetSdk 36,
+                // windowSoftInputMode="adjustResize" ya no redimensiona la ventana solo — hay que
+                // reservar el espacio del teclado a mano para poder scrollear los campos que tapa.
+                .imePadding()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
         FormSectionCard(title = "Identificación") {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
@@ -115,6 +137,12 @@ fun OperationFormScreen(
                         label = { Text(if (direction == Direction.BUY) "Compra" else "Venta") }
                     )
                 }
+            }
+            if (state.fieldErrors.containsKey(OperationFormState.FIELD_DIRECTION)) {
+                Text(
+                    state.fieldErrors[OperationFormState.FIELD_DIRECTION] ?: "",
+                    color = MaterialTheme.colorScheme.error
+                )
             }
         }
 
@@ -232,6 +260,8 @@ fun OperationFormScreen(
                 value = state.plannedRatio,
                 onValueChange = viewModel::onPlannedRatioChange,
                 label = { Text("Ratio planeado (opcional, ej. 1:2)") },
+                isError = state.fieldErrors.containsKey(OperationFormState.FIELD_RATIO),
+                supportingText = { Text(state.fieldErrors[OperationFormState.FIELD_RATIO] ?: "") },
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -257,6 +287,7 @@ fun OperationFormScreen(
         }
 
         GradientButton(text = "Guardar", onClick = viewModel::save, modifier = Modifier.fillMaxWidth())
+        }
     }
 }
 

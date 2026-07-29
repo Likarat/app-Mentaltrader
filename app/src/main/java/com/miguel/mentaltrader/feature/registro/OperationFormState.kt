@@ -41,6 +41,7 @@ data class OperationFormState(
         const val FIELD_ERROR = "error"
         const val FIELD_RESULT = "result"
         const val FIELD_RISK = "risk"
+        const val FIELD_RATIO = "ratio"
         const val FIELD_DESCRIPTION = "description"
 
         // HU-004: el signo de "Resultado en R" se define solo por este dropdown, nunca como
@@ -51,7 +52,8 @@ data class OperationFormState(
         /** "Resultado en R" con signo aplicado y sufijo "R" fijo, para mostrar en toda la UI
          * (HU-004 Esc.4). Null si la magnitud está vacía o no es numérica. */
         fun formatResultInR(sign: String, magnitudeText: String): String? {
-            val magnitude = magnitudeText.toFloatOrNull() ?: return null
+            // Teclado en configuración regional español: coma como separador decimal.
+            val magnitude = magnitudeText.replace(',', '.').toFloatOrNull() ?: return null
             val signed = if (sign == SIGN_NEGATIVE) -magnitude else magnitude
             return "${if (signed >= 0) "+" else ""}${signed}R"
         }
