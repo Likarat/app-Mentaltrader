@@ -22,7 +22,8 @@
     "com.google.devtools.ksp",
     "junit:junit",
     "androidx.test.*",
-    "androidx.compose.ui:ui-test-*"
+    "androidx.compose.ui:ui-test-*",
+    "org.jetbrains.kotlinx:kotlinx-coroutines-test"
   ],
   "deny_examples": [
     "retrofit2:retrofit (sin backend en v1, spec §1/§9 — sin llamadas de red)",
@@ -36,6 +37,7 @@
     "androidx.datastore:datastore-preferences": "Preferencias simples persistentes (filtros), spec §2",
     "androidx.paging:*": "Listas grandes en Historial (3,000-5,000 operaciones), spec §2",
     "io.coil-kt:coil-compose": "Carga de imágenes en UI, spec §2",
-    "com.google.devtools.ksp": "Annotation processing de Room (compilador), reemplaza kapt"
+    "com.google.devtools.ksp": "Annotation processing de Room (compilador), reemplaza kapt",
+    "org.jetbrains.kotlinx:kotlinx-coroutines-test": "testImplementation únicamente: sustituye Dispatchers.Main en tests JVM de ViewModels que usan viewModelScope/StateFlow (EP-001, OperationFormViewModel)"
   }
 }

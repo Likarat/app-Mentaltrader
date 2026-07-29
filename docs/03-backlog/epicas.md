@@ -25,6 +25,8 @@
 
 ## EP-001 — Registro rápido de operaciones
 
+**Construcción**: `openspec_change: registro-rapido-operaciones` (rama `feature/ep-001-registro-rapido-operaciones`).
+
 **Resumen**: cubre el formulario de "Nueva operación" completo — sus 16 campos, el orden de layout, los controles especializados por tipo de dato, los valores por defecto (fecha/hora actual, XAUUSD), las validaciones de rango/obligatoriedad, y el adjuntado de hasta 2 imágenes comprimidas. Es el punto de entrada de todo el dato que luego se estudia en Historial e Inicio.
 
 **Justificación**: es la épica que sostiene directamente el objetivo #1 del PRD (registro en ≤30s) — la prioridad #1 declarada en la Introducción del PRD ("rapidez de registro"). También contribuye al objetivo #5 (imágenes comprimidas) al definir dónde y cómo se adjuntan.

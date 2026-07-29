@@ -1,5 +1,6 @@
 package com.miguel.mentaltrader
 
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -23,8 +24,14 @@ class AppNavigationTest {
 
     @Test
     fun tocarHistorialMuestraLaPantallaDeHistorialInmediatamente() {
+        // Desde EP-001 (registro-rapido-operaciones), Historial ya muestra contenido real
+        // (o su estado vacío) en vez del placeholder de EP-005 — ver HistorialScreen.kt. El
+        // dispositivo real puede tener operaciones guardadas de pruebas manuales previas, así
+        // que se acepta cualquiera de los dos: estado vacío o al menos una operación listada.
         composeTestRule.onNodeWithText("Historial").performClick()
-        composeTestRule.onNodeWithText("Pantalla de Historial (placeholder)").assertExists()
+        composeTestRule
+            .onNode(hasText("Todavía no registraste ninguna operación") or hasText("Operación #", substring = true))
+            .assertExists()
     }
 
     @Test
