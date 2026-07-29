@@ -15,7 +15,363 @@
     "source": "Sin mockups formales — decisión de producto explícita (Especificacion_Bitacora_Trading.md §1: \"No hay mockups previos; la UI se ajusta de forma iterativa durante el desarrollo\"). Fuente de verdad visual: PRD/spec descriptivos (tema oscuro por defecto, layout de una columna, orden de campos ya fijado).",
     "notes": "gate fidelity (fase smoke) se evalúa contra la descripción textual del PRD/spec, no contra un export visual (no aplica MCP chrome-devtools screenshot-vs-prototipo en el sentido estricto; se evalúa consistencia con la descripción)."
   },
-  "active_slice": null,
+  "active_slice": {
+    "epica": "EP-001",
+    "hus": [
+      "HU-001",
+      "HU-002",
+      "HU-003",
+      "HU-004",
+      "HU-005",
+      "HU-006",
+      "HU-007",
+      "HU-008",
+      "HU-009"
+    ],
+    "openspec_change": "registro-rapido-operaciones",
+    "branch": "feature/ep-001-registro-rapido-operaciones",
+    "phase": "change",
+    "gates": {
+      "dor": true,
+      "tdd": false,
+      "journey_smoke": false,
+      "coherence_link": true,
+      "data": false,
+      "fidelity": false,
+      "api": null,
+      "wiring_verified": false,
+      "dod": false
+    },
+    "updated_at": "2026-07-28T23:48:07.802858+00:00",
+    "updated_by": "coherence-link-auditor",
+    "layer": "business",
+    "files_scope": [
+      "app/src/main/java/**/data/**",
+      "app/src/main/java/**/domain/**",
+      "app/src/main/java/**/ui/operacion/**"
+    ],
+    "sub_slices": [
+      {
+        "id": "EP-001-a",
+        "title": "Registro completo de campos (minimos + catalogo + descripcion) y persistencia base",
+        "hus": [
+          "HU-001",
+          "HU-002",
+          "HU-003"
+        ],
+        "status": "pending",
+        "journey_smoke": false
+      },
+      {
+        "id": "EP-001-b",
+        "title": "Validaciones de rango/fecha y valores por defecto",
+        "hus": [
+          "HU-004",
+          "HU-005"
+        ],
+        "status": "pending",
+        "journey_smoke": false
+      },
+      {
+        "id": "EP-001-c",
+        "title": "Adjuntar y procesar imagenes (camara/galeria, compresion, miniatura)",
+        "hus": [
+          "HU-006",
+          "HU-007"
+        ],
+        "status": "pending",
+        "journey_smoke": false
+      },
+      {
+        "id": "EP-001-d",
+        "title": "Entrada rapida (FAB) y salvaguarda de salida del formulario",
+        "hus": [
+          "HU-008",
+          "HU-009"
+        ],
+        "status": "pending",
+        "journey_smoke": false
+      }
+    ],
+    "wiring_checklist": [
+      {
+        "id": "HU-001-AC1",
+        "kind": "hu_ac",
+        "ref": "HU-001#Escenario1",
+        "status": "failing"
+      },
+      {
+        "id": "HU-001-AC2",
+        "kind": "hu_ac",
+        "ref": "HU-001#Escenario2",
+        "status": "failing"
+      },
+      {
+        "id": "HU-001-AC3",
+        "kind": "hu_ac",
+        "ref": "HU-001#Escenario3",
+        "status": "failing"
+      },
+      {
+        "id": "HU-001-AC4",
+        "kind": "hu_ac",
+        "ref": "HU-001#Escenario4",
+        "status": "failing"
+      },
+      {
+        "id": "HU-001-AC5",
+        "kind": "hu_ac",
+        "ref": "HU-001#Escenario5",
+        "status": "failing"
+      },
+      {
+        "id": "HU-002-AC1",
+        "kind": "hu_ac",
+        "ref": "HU-002#Escenario1",
+        "status": "failing"
+      },
+      {
+        "id": "HU-002-AC2",
+        "kind": "hu_ac",
+        "ref": "HU-002#Escenario2",
+        "status": "failing"
+      },
+      {
+        "id": "HU-002-AC3",
+        "kind": "hu_ac",
+        "ref": "HU-002#Escenario3",
+        "status": "failing"
+      },
+      {
+        "id": "HU-002-AC4",
+        "kind": "hu_ac",
+        "ref": "HU-002#Escenario4",
+        "status": "failing"
+      },
+      {
+        "id": "HU-002-AC5",
+        "kind": "hu_ac",
+        "ref": "HU-002#Escenario5",
+        "status": "failing"
+      },
+      {
+        "id": "HU-003-AC1",
+        "kind": "hu_ac",
+        "ref": "HU-003#Escenario1",
+        "status": "failing"
+      },
+      {
+        "id": "HU-003-AC2",
+        "kind": "hu_ac",
+        "ref": "HU-003#Escenario2",
+        "status": "failing"
+      },
+      {
+        "id": "HU-003-AC3",
+        "kind": "hu_ac",
+        "ref": "HU-003#Escenario3",
+        "status": "failing"
+      },
+      {
+        "id": "HU-004-AC1",
+        "kind": "hu_ac",
+        "ref": "HU-004#Escenario1",
+        "status": "failing"
+      },
+      {
+        "id": "HU-004-AC2",
+        "kind": "hu_ac",
+        "ref": "HU-004#Escenario2",
+        "status": "failing"
+      },
+      {
+        "id": "HU-004-AC3",
+        "kind": "hu_ac",
+        "ref": "HU-004#Escenario3",
+        "status": "failing"
+      },
+      {
+        "id": "HU-004-AC4",
+        "kind": "hu_ac",
+        "ref": "HU-004#Escenario4",
+        "status": "failing"
+      },
+      {
+        "id": "HU-005-AC1",
+        "kind": "hu_ac",
+        "ref": "HU-005#Escenario1",
+        "status": "failing"
+      },
+      {
+        "id": "HU-005-AC2",
+        "kind": "hu_ac",
+        "ref": "HU-005#Escenario2",
+        "status": "failing"
+      },
+      {
+        "id": "HU-005-AC3",
+        "kind": "hu_ac",
+        "ref": "HU-005#Escenario3",
+        "status": "failing"
+      },
+      {
+        "id": "HU-005-AC4",
+        "kind": "hu_ac",
+        "ref": "HU-005#Escenario4",
+        "status": "failing"
+      },
+      {
+        "id": "HU-005-AC5",
+        "kind": "hu_ac",
+        "ref": "HU-005#Escenario5",
+        "status": "failing"
+      },
+      {
+        "id": "HU-006-AC1",
+        "kind": "hu_ac",
+        "ref": "HU-006#Escenario1",
+        "status": "failing"
+      },
+      {
+        "id": "HU-006-AC2",
+        "kind": "hu_ac",
+        "ref": "HU-006#Escenario2",
+        "status": "failing"
+      },
+      {
+        "id": "HU-006-AC3",
+        "kind": "hu_ac",
+        "ref": "HU-006#Escenario3",
+        "status": "failing"
+      },
+      {
+        "id": "HU-007-AC1",
+        "kind": "hu_ac",
+        "ref": "HU-007#Escenario1",
+        "status": "failing"
+      },
+      {
+        "id": "HU-007-AC2",
+        "kind": "hu_ac",
+        "ref": "HU-007#Escenario2",
+        "status": "failing"
+      },
+      {
+        "id": "HU-007-AC3",
+        "kind": "hu_ac",
+        "ref": "HU-007#Escenario3",
+        "status": "failing"
+      },
+      {
+        "id": "HU-008-AC1",
+        "kind": "hu_ac",
+        "ref": "HU-008#Escenario1",
+        "status": "failing"
+      },
+      {
+        "id": "HU-008-AC2",
+        "kind": "hu_ac",
+        "ref": "HU-008#Escenario2",
+        "status": "failing"
+      },
+      {
+        "id": "HU-008-AC3",
+        "kind": "hu_ac",
+        "ref": "HU-008#Escenario3",
+        "status": "failing"
+      },
+      {
+        "id": "HU-008-AC4",
+        "kind": "hu_ac",
+        "ref": "HU-008#Escenario4",
+        "status": "failing"
+      },
+      {
+        "id": "HU-009-AC1",
+        "kind": "hu_ac",
+        "ref": "HU-009#Escenario1",
+        "status": "failing"
+      },
+      {
+        "id": "HU-009-AC2",
+        "kind": "hu_ac",
+        "ref": "HU-009#Escenario2",
+        "status": "failing"
+      },
+      {
+        "id": "HU-009-AC3",
+        "kind": "hu_ac",
+        "ref": "HU-009#Escenario3",
+        "status": "failing"
+      },
+      {
+        "id": "HU-009-AC4",
+        "kind": "hu_ac",
+        "ref": "HU-009#Escenario4",
+        "status": "failing"
+      },
+      {
+        "id": "HU-009-AC5",
+        "kind": "hu_ac",
+        "ref": "HU-009#Escenario5",
+        "status": "failing"
+      },
+      {
+        "id": "INT-room-real-entities",
+        "kind": "integration_point",
+        "ref": "persistencia(Room AppDatabase con entidades reales Operation/CatalogItem/OperationImage) -> datos: completa HU-035-AC2/AC3 diferidos de EP-005",
+        "status": "failing"
+      },
+      {
+        "id": "INT-form-persistencia",
+        "kind": "integration_point",
+        "ref": "presentacion(formulario Nueva Operacion) -> datos(Room, guardado real via DAO)",
+        "status": "failing"
+      },
+      {
+        "id": "INT-form-listado-minimo",
+        "kind": "integration_point",
+        "ref": "datos(Operation guardada) -> presentacion(listado principal provisional, orden por fecha); NO es la vista agrupada por mes/dia completa de EP-003/HU-015, solo lo minimo para verificar HU-001-AC1",
+        "status": "failing"
+      },
+      {
+        "id": "INT-catalog-seed-emotion",
+        "kind": "integration_point",
+        "ref": "datos(migracion/seed Room de CatalogItem type=EMOTION, 8 valores) -> presentacion(selects Emocion antes/despues de HU-002)",
+        "status": "failing"
+      },
+      {
+        "id": "INT-fab-navhost",
+        "kind": "integration_point",
+        "ref": "presentacion(FAB HU-008) -> navigation(NavHost de EP-005, ya archivado) -> presentacion(formulario Nueva Operacion)",
+        "status": "failing"
+      },
+      {
+        "id": "INT-permisos-camara-galeria",
+        "kind": "integration_point",
+        "ref": "presentacion(HU-006 selector camara/galeria) -> plataforma(Android runtime permissions, degradacion graceful si se rechaza)",
+        "status": "failing"
+      },
+      {
+        "id": "INT-imagen-pipeline-coil",
+        "kind": "integration_point",
+        "ref": "datos/archivo(compresion+miniatura cacheada HU-007) -> presentacion(Coil renderiza miniatura sin recalcular)",
+        "status": "failing"
+      }
+    ],
+    "progress_log": [
+      {
+        "at": "2026-07-28T23:16:16.459222+00:00",
+        "by": "dor-dod-gatekeeper",
+        "note": "DoR evaluado y APROBADO para EP-001 (Registro rapido de operaciones), con troceo obligatorio en sub_slices[]. Checklist DoR: (1) epica existe en epicas.md con trazabilidad a Obj.1/Obj.5 del PRD -- OK. (2) 9 HU enumeradas y listadas en hus[] -- OK (HU-001..HU-009, coinciden con epicas.md y backlog.md). (3) Frontmatter completo + estado:lista en las 9 -- OK, verificado archivo por archivo. (4) AC en G/W/T proporcional a complejidad -- OK: M(HU-001,002,006,007)=5/5/3/3 escenarios, S(HU-003,004,005,008,009)=3/4/5/4/5 escenarios, todas cubren happy+error+edge reales existentes, ninguna infla escenarios de mas. (5) INVEST 6/6 en las 9 -- OK, checklist propio de cada HU revisado y consistente (dependencias intra-epica declaradas explicitamente, ej. HU-002/003/004/005/006/007/008/009 dependen secuencialmente de HU-001 dentro de la misma epica, lo cual NO rompe Independent). (6) Dependencias externas: HU-008 depende de HU-032 (EP-005, navegacion) -- EP-005 ya esta en history[] archivada con dor=dod=true. Sin mas dependencias cruzadas de epica. (7) Cimiento (criterio duro): EP-001 es layer=business. Su unica dependencia fundacional es EP-005 (navegacion/tema/orientacion/verificacion offline estatica), ya construida y archivada. Caveat detectado y NO bloqueante: EP-005 dejo Room sin instanciar (Database no admite entities vacio) y documento explicitamente en openspec/specs/offline-local-persistence/spec.md que las entidades reales (Operation, CatalogItem, OperationImage) pertenecen a EP-001 y que el change de EP-001 debera incluir un delta MODIFIED Requirements alli marcando estos escenarios como satisfechos (HU-035-AC2/AC3, hoy failing en el wiring_checklist archivado de EP-005). Esto NO es cimiento no construido que bloquee el DoR: es la propia EP-001 la duenia de completar esa pieza de plomeria de datos como parte de su propio alcance (crear la entidad Operation ya es parte literal de HU-001). Se agrega INT-room-real-entities al wiring_checklist para no perder este hilo y se dejara constancia en el proximo change.md (delta a offline-local-persistence). (8) Tamano: 9 HU muy por encima del umbral de 3 -- NO entra como slice unico. Se decompone en sub_slices[] (4 grupos, de a uno con journey_smoke verde entre cada uno): EP-001-a=HU-001+002+003 (registro completo de campos + Room Operation/CatalogItem, walking skeleton de la epica, PRIMERO a construir); EP-001-b=HU-004+005 (validaciones+prellenado, bajo riesgo, sin capas nuevas, protege calidad de dato antes de seguir); EP-001-c=HU-006+007 (pipeline de imagenes: permisos+camara/galeria+compresion+miniatura, la capa mas nueva/aislada, ya venia pre-particionada verticalmente en epicas.md); EP-001-d=HU-008+009 (FAB+confirmar salida, pura navegacion/UX-glue sobre el formulario ya completo -- se deja ultimo a proposito porque el dirty-check de HU-009 debe cubrir TODOS los campos incluida la imagen de HU-006/007, asi que conviene construirlo cuando el formulario ya esta completo). Orden de construccion: a -> b -> c -> d. Cada sub-slice cierra su propio journey_smoke antes de arrancar el siguiente; dod de la epica no cierra hasta que los 4 esten status=done (criterio 6-bis del DoD). (9) Fuente de diseno: design_source.confirmed=true (fuente descriptiva PRD/spec, sin mockups, decision de producto ya registrada en design_source.notes) -- criterio satisfecho, mismo tratamiento aplicado que en EP-005. scaffold.confirmed=true y design_source.confirmed=true verificados en build-state.json antes de continuar. gates iniciales: dor=true, resto en false, api=null (app nativa sin backend/endpoints), fidelity=false (toca UI), wiring_verified=false. wiring_checklist inicializado con 37 items hu_ac (uno por escenario AC de las 9 HU) + 7 integration_point, todos failing. Proximo paso: opsx:new para crear el change registro-rapido-operaciones y arrancar TDD (red) sobre HU-001 (sub_slice EP-001-a), sin tocar HU-004..009 todavia."
+      },
+      {
+        "at": "2026-07-28T23:48:07.802858+00:00",
+        "by": "coherence-link-auditor",
+        "note": "Gate coherence_link verificado y APROBADO para EP-001 (registro-rapido-operaciones). Checklist: (1) proposal.md tiene bloque ## Trazabilidad (Epica: EP-001, 9 HU listadas HU-001..HU-009) sin YAML frontmatter, mismo formato ya aceptado en EP-005 -- OK. (2) EP-001 existe en docs/03-backlog/epicas.md con su seccion completa (Resumen/Justificacion/Capabilities/Historias previstas) -- OK. (3) Las 9 HU (HU-001..HU-009) existen en docs/04-historias/ con frontmatter epica: EP-001, y la lista \"Historias previstas\" de EP-001 coincide 1:1 con hus[] y con el bloque Trazabilidad del proposal (sin HU de otra epica, sin omisiones) -- OK. (4) Coherencia de alcance: cada bullet de Why/What Changes traza a una HU concreta (16 campos = 5 HU-001 + 2 HU-001(Riesgo%/R) + 4 HU-002(catalogo) + 3 HU-002(motivos) + 1 HU-003(descripcion) + 1 imagen HU-006/007; validaciones=HU-004; prellenado=HU-005; imagenes=HU-006/HU-007; FAB=HU-008; confirmar salida=HU-009). Verificado a nivel Requirement en specs/*/spec.md: operation-entry-form agrupa 6 HU (HU-001,002,003,005,008,009) pero cada una tiene su propio Requirement con conteo de escenarios identico al AC de su HU (27 escenarios = 5+5+3+5+4+5); el agrupamiento es razonable (una sola pantalla/formulario con concerns distintos: campos, prellenado, entry-point, exit-guard) y NO diluye la trazabilidad porque el mapeo 1:1 se preserva a nivel Requirement, no a nivel capability. operation-field-validation (HU-004, 4/4 escenarios) y operation-image-attachment (HU-006+HU-007, 6/6 escenarios) 1:1 limpios. offline-local-persistence (modificada) cierra HU-035-AC2/AC3 diferidos de EP-005 (documentado explicitamente en Why/Impact), no un HU nuevo de EP-001 -- consistente con el propio wiring_checklist. Total escenarios HU-001..009 = 37, coincide exacto con los 37 items hu_ac del wiring_checklist. Sin excedente ni hueco. (5) openspec validate registro-rapido-operaciones --type change --strict --json -> valid:true, 0 issues. (6) Back-reference: NO presente todavia -- ni EP-001 en epicas.md ni HU-001..009 tienen linea Construccion/openspec_change (a diferencia de EP-005, que la agrego recien en su gate DoD). No bloqueante para este gate; sugerido agregarla antes del DoD de este slice, mismo patron que EP-005. Veredicto: COHERENTE. gates.coherence_link=true, phase=change."
+      }
+    ]
+  },
   "history": [
     {
       "epica": "EP-005",

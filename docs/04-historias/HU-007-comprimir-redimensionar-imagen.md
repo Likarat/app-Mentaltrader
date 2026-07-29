@@ -9,6 +9,8 @@ estado: lista
 
 # Comprimir, redimensionar y generar miniatura cacheada al guardar
 
+**Construcción**: `openspec_change: registro-rapido-operaciones` (rama `feature/ep-001-registro-rapido-operaciones`).
+
 ## Historia
 
 Como **trader de forex**,
