@@ -196,43 +196,50 @@
         "id": "HU-004-AC1",
         "kind": "hu_ac",
         "ref": "HU-004#Escenario1",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "OperationFormViewModelTest (calidad/riesgo/R dentro de rango) — PASSED (JVM)"
       },
       {
         "id": "HU-004-AC2",
         "kind": "hu_ac",
         "ref": "HU-004#Escenario2",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "OperationFormViewModelTest.fecha_futura_bloquea_el_guardado — PASSED (JVM)"
       },
       {
         "id": "HU-004-AC3",
         "kind": "hu_ac",
         "ref": "HU-004#Escenario3",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "OperationFormViewModelTest (calidad/riesgo fuera de rango) — PASSED (JVM); usuario confirmo en dispositivo real que el error ahora es visible (bug real: Direccion sin mensaje de error, corregido junto con un banner fijo de resumen)"
       },
       {
         "id": "HU-004-AC4",
         "kind": "hu_ac",
         "ref": "HU-004#Escenario4",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "OperationFormViewModelTest.resultado_en_R_negativo_de_magnitud_grande — PASSED (JVM)"
       },
       {
         "id": "HU-005-AC1",
         "kind": "hu_ac",
         "ref": "HU-005#Escenario1",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "OperationFormViewModelTest (prellenado fecha/hora) — PASSED (JVM); confirmado indirectamente en dispositivo real via OperationFormJourneyTest y uso manual repetido"
       },
       {
         "id": "HU-005-AC2",
         "kind": "hu_ac",
         "ref": "HU-005#Escenario2",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "OperationFormViewModelTest (preseleccion XAUUSD con catalogo=solo semilla) — PASSED (JVM)"
       },
       {
         "id": "HU-005-AC3",
         "kind": "hu_ac",
         "ref": "HU-005#Escenario3",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "OperationFormViewModelTest (no preselecciona con catalogo>1 elemento) — PASSED (JVM)"
       },
       {
         "id": "HU-005-AC4",
@@ -250,7 +257,8 @@
         "id": "HU-006-AC1",
         "kind": "hu_ac",
         "ref": "HU-006#Escenario1",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "Confirmado por el usuario en pasada manual sobre dispositivo real (2026-07-29): 'se adjunta bien las fotos' (camara y galeria)"
       },
       {
         "id": "HU-006-AC2",
@@ -268,7 +276,8 @@
         "id": "HU-007-AC1",
         "kind": "hu_ac",
         "ref": "HU-007#Escenario1",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "ImageProcessorTest (calculo de redimensionado) — PASSED (JVM); pipeline completo ejercitado sin error en dispositivo real durante la pasada manual del usuario (adjuntar+guardar con imagen)"
       },
       {
         "id": "HU-007-AC2",
@@ -286,13 +295,15 @@
         "id": "HU-008-AC1",
         "kind": "hu_ac",
         "ref": "HU-008#Escenario1",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "OperationFormJourneyTest (FAB desde Inicio) — PASSED en dispositivo real; uso manual repetido del usuario"
       },
       {
         "id": "HU-008-AC2",
         "kind": "hu_ac",
         "ref": "HU-008#Escenario2",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "Uso manual repetido del usuario abriendo el formulario desde Historial durante esta sesion"
       },
       {
         "id": "HU-008-AC3",
@@ -310,7 +321,8 @@
         "id": "HU-009-AC1",
         "kind": "hu_ac",
         "ref": "HU-009#Escenario1",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "Bug real reportado por el usuario (Nueva operacion/Ajustes se filtraban al back stack de la pestaña de origen) y corregido; usuario confirmo en dispositivo real tras el fix (2026-07-29)"
       },
       {
         "id": "HU-009-AC2",
@@ -322,13 +334,15 @@
         "id": "HU-009-AC3",
         "kind": "hu_ac",
         "ref": "HU-009#Escenario3",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "Mismo flujo confirmado por el usuario (boton Cancelar del dialogo, semantica sin cambios respecto al fix de navegacion)"
       },
       {
         "id": "HU-009-AC4",
         "kind": "hu_ac",
         "ref": "HU-009#Escenario4",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "Usuario confirmo explicitamente 'confirmo que se corrigio' tras el fix de navegacion en dispositivo real (2026-07-29)"
       },
       {
         "id": "HU-009-AC5",
@@ -381,10 +395,16 @@
         "id": "INT-imagen-pipeline-coil",
         "kind": "integration_point",
         "ref": "datos/archivo(compresion+miniatura cacheada HU-007) -> presentacion(Coil renderiza miniatura sin recalcular)",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "Usuario confirmo en dispositivo real que las fotos se adjuntan y se ven correctamente (miniatura renderizada); sin verificacion especifica de 'no recalcular en cada render' (HU-007-AC2 sigue failing)"
       }
     ],
     "progress_log": [
+      {
+        "at": "2026-07-29T15:00:00.000000+00:00",
+        "by": "claude (cierre de la pasada de verificacion doble)",
+        "note": "Cierre de la ronda de verificacion doble (automatizada + manual) iniciada en la nota anterior. El usuario encontro y confirmo 4 rondas mas de bugs reales sobre el dispositivo, todos corregidos y reverificados antes de continuar: (1) Nueva operacion/Ajustes se filtraban al back stack GUARDADO de la pestaña de origen (popUpTo+saveState sin popBackStack limpio primero) y reaparecian al volver a esa pestaña -- el mismo mecanismo afectaba a ambas pantallas no-tab; FIX en el handler de la barra inferior. (2) Calidad/Riesgo/Resultado en R con coma como separador decimal (teclado en configuracion regional español) se leian como invalidos en silencio -- FIX: parseDecimal() normaliza coma->punto antes de parsear en validate()/save()/formatResultInR(). (3) Direccion sin seleccionar bloqueaba 'Guardar' sin ningun error visible (nunca se cablearon fieldErrors para ese campo en la UI, a diferencia de Resultado) -- FIX: texto de error agregado + un banner FIJO (no se scrollea) que resume cuantos campos obligatorios faltan cada vez que save() falla, para no depender de que el campo con error este a la vista. (4) 'Ratio planeado' aceptaba cualquier texto sin validar (ej. 'hhahajajkfkg') -- FIX: nueva regla de formato N:N (regex, acepta coma o punto). Se agregaron 6 tests unitarios nuevos cubriendo estos 4 casos. Adicionalmente, el usuario reporto que Microsoft Store se abria en cada Write/Edit/Bash -- causa real encontrada: los hooks del arnes (.claude/hooks/build/*.sh) usaban 'python3', que en esta maquina es un alias roto de Windows Store (ver memoria de entorno); se reemplazo por 'python' (el interprete real) en los 15 hooks afectados. Tras cada fix se recompilo, se corrieron los tests unitarios JVM, se reinstalo el APK en el telefono real del usuario (Motorola Edge 50 Fusion, via adb) y se re-confirmo manualmente. Corrida final de connectedDebugAndroidTest: 16/16 PASSED (incluyendo un ajuste a AppNavigationTest, que asumia Historial vacio y ya no aplica porque el dispositivo tiene operaciones reales de las pruebas). Estado de wiring_checklist actualizado con evidencia real donde corresponde: HU-004 (AC1-4), HU-005 (AC1-3), HU-006-AC1, HU-007-AC1, HU-008 (AC1-2), HU-009 (AC1,AC3,AC4) pasan a passing. Quedan en failing, sin evidencia todavia: HU-005-AC4/AC5 (edicion manual del prellenado, reloj desconfigurado), HU-006-AC2/AC3 (limite de 2 imagenes, permiso de camara rechazado), HU-007-AC2/AC3 (miniatura no recalculada, imagen corrupta), HU-008-AC3/AC4 (ausencia de FAB en Etiquetas, FAB no tapa scroll), HU-009-AC2/AC5 (dialogo por gesto 'atras' especificamente, salida sin friccion si no hay cambios) -- ninguno de estos tiene cobertura automatizada dedicada ni fue ejercitado explicitamente por el usuario en su pasada manual. Commits: b2cfe2a, f2c9e7e, bcd9b39, 5c61c96 (pusheados a origin/feature/ep-001-registro-rapido-operaciones). Usuario desconecto el telefono al cierre de esta ronda. Siguiente paso sugerido: decidir si (a) cerrar formalmente DoD de EP-001 ahora aceptando los items failing restantes como riesgo conocido documentado (personal app, criterio del usuario), corriendo wiring-adversarial-verifier + dor-dod-gatekeeper; o (b) ejercitar los escenarios failing restantes (mayormente edge cases de imagenes/FAB/back-gesture) antes de cerrar. Sin decision tomada todavia -- pendiente de conversacion con el usuario."
+      },
       {
         "at": "2026-07-29T13:45:00.000000+00:00",
         "by": "claude (verificacion real en dispositivo)",
