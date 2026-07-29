@@ -15,4 +15,12 @@ interface OperationImageDao {
 
     @Query("SELECT * FROM operation_image WHERE operationId = :operationId ORDER BY position ASC")
     fun getByOperationId(operationId: Long): Flow<List<OperationImage>>
+
+    /** "Borrar todo" (Ajustes): lista todas las imágenes para poder borrar sus archivos antes de
+     * eliminar las filas. */
+    @Query("SELECT * FROM operation_image")
+    suspend fun getAll(): List<OperationImage>
+
+    @Query("DELETE FROM operation_image")
+    suspend fun deleteAll()
 }

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -18,7 +19,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
@@ -46,6 +48,7 @@ import coil.compose.AsyncImage
 import com.miguel.mentaltrader.core.data.CatalogItem
 import com.miguel.mentaltrader.core.model.Direction
 import com.miguel.mentaltrader.core.model.ResultType
+import com.miguel.mentaltrader.ui.theme.GradientButton
 import java.io.File
 import java.util.UUID
 
@@ -68,182 +71,210 @@ fun OperationFormScreen(
         modifier = modifier
             .fillMaxWidth()
             .verticalScroll(rememberScrollState())
+            // Bug real reportado por el usuario: con enableEdgeToEdge() + targetSdk 36,
+            // windowSoftInputMode="adjustResize" ya no redimensiona la ventana solo — hay que
+            // reservar el espacio del teclado a mano para poder scrollear los campos que tapa.
+            .imePadding()
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedTextField(
-                value = state.dateText,
-                onValueChange = viewModel::onDateChange,
-                label = { Text("Fecha (dd/MM/aaaa)") },
-                isError = state.fieldErrors.containsKey(OperationFormState.FIELD_DATE),
-                supportingText = { Text(state.fieldErrors[OperationFormState.FIELD_DATE] ?: "") },
-                modifier = Modifier.weight(1f)
-            )
-            OutlinedTextField(
-                value = state.timeText,
-                onValueChange = viewModel::onTimeChange,
-                label = { Text("Hora (HH:mm)") },
-                isError = state.fieldErrors.containsKey(OperationFormState.FIELD_TIME),
-                supportingText = { Text(state.fieldErrors[OperationFormState.FIELD_TIME] ?: "") },
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        CatalogDropdown(
-            label = "Activo",
-            items = assets,
-            selectedId = state.assetId,
-            onSelected = viewModel::onAssetSelected,
-            errorText = state.fieldErrors[OperationFormState.FIELD_ASSET]
-        )
-
-        Text("Dirección")
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Direction.entries.forEach { direction ->
-                FilterChip(
-                    selected = state.direction == direction,
-                    onClick = { viewModel.onDirectionSelected(direction) },
-                    label = { Text(if (direction == Direction.BUY) "Compra" else "Venta") }
+        FormSectionCard(title = "Identificación") {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = state.dateText,
+                    onValueChange = viewModel::onDateChange,
+                    label = { Text("Fecha (dd/MM/aaaa)") },
+                    isError = state.fieldErrors.containsKey(OperationFormState.FIELD_DATE),
+                    supportingText = { Text(state.fieldErrors[OperationFormState.FIELD_DATE] ?: "") },
+                    modifier = Modifier.weight(1f)
                 )
+                OutlinedTextField(
+                    value = state.timeText,
+                    onValueChange = viewModel::onTimeChange,
+                    label = { Text("Hora (HH:mm)") },
+                    isError = state.fieldErrors.containsKey(OperationFormState.FIELD_TIME),
+                    supportingText = { Text(state.fieldErrors[OperationFormState.FIELD_TIME] ?: "") },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            CatalogDropdown(
+                label = "Activo",
+                items = assets,
+                selectedId = state.assetId,
+                onSelected = viewModel::onAssetSelected,
+                errorText = state.fieldErrors[OperationFormState.FIELD_ASSET]
+            )
+
+            Text("Dirección")
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Direction.entries.forEach { direction ->
+                    FilterChip(
+                        selected = state.direction == direction,
+                        onClick = { viewModel.onDirectionSelected(direction) },
+                        label = { Text(if (direction == Direction.BUY) "Compra" else "Venta") }
+                    )
+                }
             }
         }
 
-        OutlinedTextField(
-            value = state.qualityText,
-            onValueChange = viewModel::onQualityChange,
-            label = { Text("Calidad (0.0-10.0)") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            isError = state.fieldErrors.containsKey(OperationFormState.FIELD_QUALITY),
-            supportingText = { Text(state.fieldErrors[OperationFormState.FIELD_QUALITY] ?: "") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        CatalogDropdown(
-            label = "Emoción antes",
-            items = emotions,
-            selectedId = state.emotionBeforeId,
-            onSelected = viewModel::onEmotionBeforeSelected,
-            errorText = state.fieldErrors[OperationFormState.FIELD_EMOTION_BEFORE]
-        )
-        OutlinedTextField(
-            value = state.emotionBeforeReason,
-            onValueChange = viewModel::onEmotionBeforeReasonChange,
-            label = { Text("Motivo emoción antes (opcional)") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        CatalogDropdown(
-            label = "Emoción después",
-            items = emotions,
-            selectedId = state.emotionAfterId,
-            onSelected = viewModel::onEmotionAfterSelected,
-            errorText = state.fieldErrors[OperationFormState.FIELD_EMOTION_AFTER]
-        )
-        OutlinedTextField(
-            value = state.emotionAfterReason,
-            onValueChange = viewModel::onEmotionAfterReasonChange,
-            label = { Text("Motivo emoción después (opcional)") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        CatalogDropdown(
-            label = "Error",
-            items = errorsCatalog,
-            selectedId = state.errorId,
-            onSelected = viewModel::onErrorSelected,
-            errorText = state.fieldErrors[OperationFormState.FIELD_ERROR]
-        )
-        OutlinedTextField(
-            value = state.errorReason,
-            onValueChange = viewModel::onErrorReasonChange,
-            label = { Text("Motivo/descripción del error (opcional)") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Text("Resultado")
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            ResultType.entries.forEach { result ->
-                FilterChip(
-                    selected = state.result == result,
-                    onClick = { viewModel.onResultSelected(result) },
-                    label = {
-                        Text(
-                            when (result) {
-                                ResultType.WIN -> "Ganada"
-                                ResultType.LOSS -> "Perdida"
-                                ResultType.BREAK_EVEN -> "Break Even"
-                            }
-                        )
-                    }
-                )
-            }
-        }
-        if (state.fieldErrors.containsKey(OperationFormState.FIELD_RESULT)) {
-            Text(
-                state.fieldErrors[OperationFormState.FIELD_RESULT] ?: "",
-                color = MaterialTheme.colorScheme.error
-            )
-        }
-
-        OutlinedTextField(
-            value = state.riskPercentageText,
-            onValueChange = viewModel::onRiskPercentageChange,
-            label = { Text("Riesgo (%) (opcional)") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            isError = state.fieldErrors.containsKey(OperationFormState.FIELD_RISK),
-            supportingText = { Text(state.fieldErrors[OperationFormState.FIELD_RISK] ?: "") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Text("Resultado en R (opcional)")
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf(OperationFormState.SIGN_POSITIVE, OperationFormState.SIGN_NEGATIVE).forEach { sign ->
-                FilterChip(
-                    selected = state.resultInRSign == sign,
-                    onClick = { viewModel.onResultInRSignChange(sign) },
-                    label = { Text(sign) }
-                )
-            }
+        FormSectionCard(title = "Contexto emocional y errores") {
             OutlinedTextField(
-                value = state.resultInRText,
-                onValueChange = viewModel::onResultInRChange,
-                label = { Text("Magnitud") },
+                value = state.qualityText,
+                onValueChange = viewModel::onQualityChange,
+                label = { Text("Calidad (0.0-10.0)") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                modifier = Modifier.weight(1f)
+                isError = state.fieldErrors.containsKey(OperationFormState.FIELD_QUALITY),
+                supportingText = { Text(state.fieldErrors[OperationFormState.FIELD_QUALITY] ?: "") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            CatalogDropdown(
+                label = "Emoción antes",
+                items = emotions,
+                selectedId = state.emotionBeforeId,
+                onSelected = viewModel::onEmotionBeforeSelected,
+                errorText = state.fieldErrors[OperationFormState.FIELD_EMOTION_BEFORE]
+            )
+            OutlinedTextField(
+                value = state.emotionBeforeReason,
+                onValueChange = viewModel::onEmotionBeforeReasonChange,
+                label = { Text("Motivo emoción antes (opcional)") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            CatalogDropdown(
+                label = "Emoción después",
+                items = emotions,
+                selectedId = state.emotionAfterId,
+                onSelected = viewModel::onEmotionAfterSelected,
+                errorText = state.fieldErrors[OperationFormState.FIELD_EMOTION_AFTER]
+            )
+            OutlinedTextField(
+                value = state.emotionAfterReason,
+                onValueChange = viewModel::onEmotionAfterReasonChange,
+                label = { Text("Motivo emoción después (opcional)") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            CatalogDropdown(
+                label = "Error",
+                items = errorsCatalog,
+                selectedId = state.errorId,
+                onSelected = viewModel::onErrorSelected,
+                errorText = state.fieldErrors[OperationFormState.FIELD_ERROR]
+            )
+            OutlinedTextField(
+                value = state.errorReason,
+                onValueChange = viewModel::onErrorReasonChange,
+                label = { Text("Motivo/descripción del error (opcional)") },
+                modifier = Modifier.fillMaxWidth()
             )
         }
-        OperationFormState.formatResultInR(state.resultInRSign, state.resultInRText)?.let { formatted ->
-            Text(formatted, color = MaterialTheme.colorScheme.primary)
+
+        FormSectionCard(title = "Resultado") {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                ResultType.entries.forEach { result ->
+                    FilterChip(
+                        selected = state.result == result,
+                        onClick = { viewModel.onResultSelected(result) },
+                        label = {
+                            Text(
+                                when (result) {
+                                    ResultType.WIN -> "Ganada"
+                                    ResultType.LOSS -> "Perdida"
+                                    ResultType.BREAK_EVEN -> "Break Even"
+                                }
+                            )
+                        }
+                    )
+                }
+            }
+            if (state.fieldErrors.containsKey(OperationFormState.FIELD_RESULT)) {
+                Text(
+                    state.fieldErrors[OperationFormState.FIELD_RESULT] ?: "",
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+
+            OutlinedTextField(
+                value = state.riskPercentageText,
+                onValueChange = viewModel::onRiskPercentageChange,
+                label = { Text("Riesgo (%) (opcional)") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                isError = state.fieldErrors.containsKey(OperationFormState.FIELD_RISK),
+                supportingText = { Text(state.fieldErrors[OperationFormState.FIELD_RISK] ?: "") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Text("Resultado en R (opcional)")
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf(OperationFormState.SIGN_POSITIVE, OperationFormState.SIGN_NEGATIVE).forEach { sign ->
+                    FilterChip(
+                        selected = state.resultInRSign == sign,
+                        onClick = { viewModel.onResultInRSignChange(sign) },
+                        label = { Text(sign) }
+                    )
+                }
+                OutlinedTextField(
+                    value = state.resultInRText,
+                    onValueChange = viewModel::onResultInRChange,
+                    label = { Text("Magnitud") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.weight(1f)
+                )
+            }
+            OperationFormState.formatResultInR(state.resultInRSign, state.resultInRText)?.let { formatted ->
+                Text(formatted, color = MaterialTheme.colorScheme.primary)
+            }
+
+            OutlinedTextField(
+                value = state.plannedRatio,
+                onValueChange = viewModel::onPlannedRatioChange,
+                label = { Text("Ratio planeado (opcional, ej. 1:2)") },
+                modifier = Modifier.fillMaxWidth()
+            )
         }
 
-        OutlinedTextField(
-            value = state.plannedRatio,
-            onValueChange = viewModel::onPlannedRatioChange,
-            label = { Text("Ratio planeado (opcional, ej. 1:2)") },
-            modifier = Modifier.fillMaxWidth()
-        )
+        FormSectionCard(title = "Descripción e imágenes") {
+            OutlinedTextField(
+                value = state.entryDescription,
+                onValueChange = viewModel::onDescriptionChange,
+                label = { Text("Descripción entrada") },
+                isError = state.fieldErrors.containsKey(OperationFormState.FIELD_DESCRIPTION),
+                supportingText = { Text(state.fieldErrors[OperationFormState.FIELD_DESCRIPTION] ?: "") },
+                minLines = 3,
+                modifier = Modifier.fillMaxWidth()
+            )
 
-        OutlinedTextField(
-            value = state.entryDescription,
-            onValueChange = viewModel::onDescriptionChange,
-            label = { Text("Descripción entrada") },
-            isError = state.fieldErrors.containsKey(OperationFormState.FIELD_DESCRIPTION),
-            supportingText = { Text(state.fieldErrors[OperationFormState.FIELD_DESCRIPTION] ?: "") },
-            minLines = 3,
-            modifier = Modifier.fillMaxWidth()
-        )
+            ImageAttachmentSection(
+                pendingImages = state.pendingImages,
+                imageError = state.imageError,
+                onImageAdded = viewModel::onImageAdded,
+                onImageRemoved = viewModel::onImageRemoved,
+                onCameraPermissionDenied = viewModel::onCameraPermissionDenied
+            )
+        }
 
-        ImageAttachmentSection(
-            pendingImages = state.pendingImages,
-            imageError = state.imageError,
-            onImageAdded = viewModel::onImageAdded,
-            onImageRemoved = viewModel::onImageRemoved,
-            onCameraPermissionDenied = viewModel::onCameraPermissionDenied
-        )
+        GradientButton(text = "Guardar", onClick = viewModel::save, modifier = Modifier.fillMaxWidth())
+    }
+}
 
-        Button(onClick = viewModel::save, modifier = Modifier.fillMaxWidth()) {
-            Text("Guardar")
+@Composable
+private fun FormSectionCard(
+    title: String,
+    content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit
+) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+            content()
         }
     }
 }

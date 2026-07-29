@@ -51,9 +51,9 @@
       "app/src/main/java/**/ui/operacion/**"
     ],
     "session_continuity": {
-      "last_session": "2026-07-29T00:00:00.000000+00:00",
+      "last_session": "2026-07-29T13:45:00.000000+00:00",
       "stopped_at": null,
-      "resume_hint": "Todo el codigo de EP-001 (sub_slices a-d, HU-001..HU-009) esta escrito, compila (compileDebugKotlin OK) y los 25 tests unitarios JVM pasan (DestinoTest 3, OperationFormViewModelTest 16, ImageProcessorTest 6 -- 0 failures). Decision explicita del usuario (Miguel Torres, 2026-07-29): por ser app de uso personal, TODA la verificacion que requiere dispositivo (tests instrumentados, journey_smoke de los 4 sub_slices, fidelity visual) se hace en UNA sola pasada manual final en su telefono real, despues de tener el codigo completo -- no antes. Por eso ningun gate de dor/dod ni ningun item de wiring_checklist se marco true/passing en esta sesion: no hay evidencia de ejecucion en dispositivo todavia (regla dura del arnes: cierre verificado, no declarado). Proxima accion cuando el usuario reporte resultados de su pasada en el telefono: (1) si todo funciona, correr wiring-adversarial-verifier y cerrar wiring_checklist con evidencia real, marcar sub_slices a-d status=done y journey_smoke=true, gates.tdd/journey_smoke/data/wiring_verified/dod en true, tasks.md 1.12/2.5-2.6/3.8-3.9/4.4-4.5/5.1-5.2; (2) si el usuario reporta bugs, arreglarlos primero (con test de regresion solo si el fix toca logica, no exigir suite instrumentada completa por cada fix chico) y volver a pedir una pasada corta antes de cerrar dod.",
+      "resume_hint": "Estrategia de testing actualizada por el usuario (2026-07-29): la verificacion de EP-001 (como 'base de todo') ya no se difiere entera al final -- se corrio la suite real en dispositivo (Motorola Edge 50 Fusion) EN PARALELO con una pasada manual del usuario, para doble verificacion. Resultado con evidencia real: testDebugUnitTest 25/25 PASSED, connectedDebugAndroidTest 16/16 PASSED. 3 bugs reales encontrados por la corrida instrumentada + 2 bugs reportados por el usuario en su pasada manual, TODOS corregidos (ver progress_log 2026-07-29T13:45 para el detalle tecnico completo: CatalogSeeder idempotente, guard de la race del prellenado, TopAppBar sin flecha 'atras'/titulo duplicado, imePadding). wiring_checklist de HU-001/002/003 (sub-slice a) y sus integration points ya estan en 'passing' con evidencia real. PENDIENTE antes de gates.tdd/journey_smoke/wiring_verified/dod: (1) confirmar con el usuario que su pasada manual (en curso) no encontro mas bugs, especialmente en HU-004/005 (validaciones/prellenado) y HU-006/007 (camara/galeria con permisos reales, sin cobertura instrumentada dedicada todavia -- tasks.md 2.5/3.8/4.4 siguen pendientes); (2) si aparecen mas bugs, corregir y volver a pedir una pasada corta; (3) considerar escribir tests instrumentados dedicados para HU-004/005/006/007/009 antes de cerrar dod (hoy solo tienen cobertura JVM o ninguna); (4) correr wiring-adversarial-verifier antes de dor-dod-gatekeeper.",
       "critical_recorded": false,
       "auto_continue": false
     },
@@ -105,79 +105,92 @@
         "id": "HU-001-AC1",
         "kind": "hu_ac",
         "ref": "HU-001#Escenario1",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "OperationFormJourneyTest.crearUnaOperacionDePuntaAPuntaYVerlaEnElListadoMinimo — PASSED en Motorola Edge 50 Fusion (connectedDebugAndroidTest, 2026-07-29)"
       },
       {
         "id": "HU-001-AC2",
         "kind": "hu_ac",
         "ref": "HU-001#Escenario2",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "OperationFormPersistenceTest.guardarSinCampoObligatorio_noPersisteNadaEnRoom — PASSED en dispositivo real"
       },
       {
         "id": "HU-001-AC3",
         "kind": "hu_ac",
         "ref": "HU-001#Escenario3",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "OperationFormPersistenceTest.guardarConSoloValoresSemillaDeActivoEmocionYError_persisteConLosIdsSemilla — PASSED en dispositivo real"
       },
       {
         "id": "HU-001-AC4",
         "kind": "hu_ac",
         "ref": "HU-001#Escenario4",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "OperationFormViewModelTest (los campos opcionales completos...) — PASSED (JVM)"
       },
       {
         "id": "HU-001-AC5",
         "kind": "hu_ac",
         "ref": "HU-001#Escenario5",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "OperationFormViewModelTest (los campos opcionales vacios...) — PASSED (JVM)"
       },
       {
         "id": "HU-002-AC1",
         "kind": "hu_ac",
         "ref": "HU-002#Escenario1",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "OperationFormJourneyTest + OperationFormPersistenceTest.guardarOperacionCompleta_persisteEnRoomYApareceEnElListado — PASSED en dispositivo real"
       },
       {
         "id": "HU-002-AC2",
         "kind": "hu_ac",
         "ref": "HU-002#Escenario2",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "OperationFormPersistenceTest.guardarSinCampoObligatorio_noPersisteNadaEnRoom — PASSED en dispositivo real"
       },
       {
         "id": "HU-002-AC3",
         "kind": "hu_ac",
         "ref": "HU-002#Escenario3",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "AppDatabaseSeedTest.laBaseDeDatosRealSiembraLosCatalogosEnElPrimerArranque — PASSED en dispositivo real, tras corregir CatalogSeeder"
       },
       {
         "id": "HU-002-AC4",
         "kind": "hu_ac",
         "ref": "HU-002#Escenario4",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "AppDatabaseSeedTest — PASSED en dispositivo real (semilla Error 'Ninguno')"
       },
       {
         "id": "HU-002-AC5",
         "kind": "hu_ac",
         "ref": "HU-002#Escenario5",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "OperationFormPersistenceTest.guardarConMotivosEnTextoLibre_sePersistenTalCualEnRoom — PASSED en dispositivo real"
       },
       {
         "id": "HU-003-AC1",
         "kind": "hu_ac",
         "ref": "HU-003#Escenario1",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "OperationFormJourneyTest — PASSED en dispositivo real"
       },
       {
         "id": "HU-003-AC2",
         "kind": "hu_ac",
         "ref": "HU-003#Escenario2",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "OperationFormPersistenceTest.guardarConDescripcionVacia_noPersisteNadaEnRoom — PASSED en dispositivo real"
       },
       {
         "id": "HU-003-AC3",
         "kind": "hu_ac",
         "ref": "HU-003#Escenario3",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "OperationFormPersistenceTest.guardarDescripcionLargaConSaltosDeLinea_sePersisteCompletaSinTruncarEnRoom — PASSED en dispositivo real"
       },
       {
         "id": "HU-004-AC1",
@@ -327,31 +340,36 @@
         "id": "INT-room-real-entities",
         "kind": "integration_point",
         "ref": "persistencia(Room AppDatabase con entidades reales Operation/CatalogItem/OperationImage) -> datos: completa HU-035-AC2/AC3 diferidos de EP-005",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "AppDatabaseSeedTest + OperationFormPersistenceTest — PASSED en dispositivo real, AppDatabase v2 (bump por OperationImage) con fallbackToDestructiveMigration"
       },
       {
         "id": "INT-form-persistencia",
         "kind": "integration_point",
         "ref": "presentacion(formulario Nueva Operacion) -> datos(Room, guardado real via DAO)",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "OperationFormJourneyTest — PASSED en dispositivo real (Motorola Edge 50 Fusion, connectedDebugAndroidTest, 2026-07-29)"
       },
       {
         "id": "INT-form-listado-minimo",
         "kind": "integration_point",
         "ref": "datos(Operation guardada) -> presentacion(listado principal provisional, orden por fecha); NO es la vista agrupada por mes/dia completa de EP-003/HU-015, solo lo minimo para verificar HU-001-AC1",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "OperationFormJourneyTest (paso final: navega a Historial y verifica la descripcion) — PASSED en dispositivo real"
       },
       {
         "id": "INT-catalog-seed-emotion",
         "kind": "integration_point",
         "ref": "datos(migracion/seed Room de CatalogItem type=EMOTION, 8 valores) -> presentacion(selects Emocion antes/despues de HU-002)",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "AppDatabaseSeedTest — PASSED en dispositivo real, tras corregir CatalogSeeder (bug real: la siembra via RoomDatabase.Callback no era confiable tras la migracion destructiva)"
       },
       {
         "id": "INT-fab-navhost",
         "kind": "integration_point",
         "ref": "presentacion(FAB HU-008) -> navigation(NavHost de EP-005, ya archivado) -> presentacion(formulario Nueva Operacion)",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "OperationFormJourneyTest (paso 1: FAB abre el formulario) — PASSED en dispositivo real"
       },
       {
         "id": "INT-permisos-camara-galeria",
@@ -367,6 +385,11 @@
       }
     ],
     "progress_log": [
+      {
+        "at": "2026-07-29T13:45:00.000000+00:00",
+        "by": "claude (verificacion real en dispositivo)",
+        "note": "El usuario cambio la estrategia de testing en curso: en vez de diferir TODA la verificacion a una sola pasada final del usuario (nota anterior), pidio que el modelo corriera la suite instrumentada como 'la base de todo' (EP-001) AHORA, en paralelo con su propia pasada manual, para doble verificacion. Se agregaron ademas 2 features nuevas a pedido del usuario: paleta de color 'azul medianoche + turquesa' con superficies elevadas/Shapes redondeados/GradientButton (Color.kt, Theme.kt, GradientButton.kt nuevo) y feature 'Borrar todo' (Ajustes: engranaje en TopAppBar -> AjustesScreen -> DataResetService borra Operations+OperationImage, conserva catalogos, un solo AlertDialog de confirmacion). Intentos de emulador (Pixel_6_API_30) fallaron repetidamente (crash real del driver AEHD: 'aehd_set_phys_mem: error registering slot: Bad address', y luego desconexiones tras builds largos) -- se resolvio conectando el telefono real del usuario (Motorola Edge 50 Fusion) por USB. PRIMERA corrida real (connectedDebugAndroidTest) expuso 3 bugs reales: (1) AppDatabaseSeedTest fallo por timeout -- la siembra de catalogos via RoomDatabase.Callback.onCreate no era confiable tras el bump de version 1->2 (fallbackToDestructiveMigration); FIX: CatalogSeeder.ensureSeeded() idempotente (chequea count==0 antes de insertar) disparado explicitamente desde MentaltraderApplication.onCreate(), eliminando la dependencia del callback de Room. (2) OperationFormPersistenceTest fallo 3 veces (insertaba filas pese a campos obligatorios faltantes) -- condicion de carrera real: el init{} de OperationFormViewModel lanzaba una corrutina en Dispatchers.Main que podia pisar _state.value ya modificado por llamadas sincronas concurrentes (test o, en teoria, un usuario muy rapido); FIX: solo se aplica el prellenado si _state.value sigue siendo exactamente OperationFormState.INITIAL. (3) AppNavigationTest fallo (2 nodos 'Inicio': el titulo del TopAppBar duplicaba la etiqueta de la pestaña activa) y OperationFormJourneyTest fallaba en cadena por varias causas (test desactualizado: buscaba el FAB por texto en vez de contentDescription, no contemplaba que HU-005 ya preselecciona XAUUSD, y no hacia scrollTo() antes de clickear campos en el Column con verticalScroll) -- FIX de codigo: TopAppBar.title ya no repite la etiqueta del tab activo (muestra 'Mentaltrader'/'Ajustes'/'Nueva operacion' segun corresponda); FIX de tests: OperationFormJourneyTest actualizado (onNodeWithContentDescription para el FAB, se removieron los pasos de Fecha/Hora/Activo ya innecesarios por el prellenado, performScrollTo() antes de cada click en el formulario). Ademas, el usuario reporto 2 bugs propios de su pasada manual: no habia forma VISIBLE de volver desde Ajustes ni desde Nueva operacion (solo el gesto/boton 'atras' del sistema, poco descubrible, se sentia 'trabado' -- FIX: flecha 'atras' explicita en el TopAppBar via requestExit, mas launchSingleTop=true en la navegacion al gear) y el teclado tapaba campos del formulario sin poder scrollear (FIX: Modifier.imePadding() en la Column del formulario -- efecto de enableEdgeToEdge()+targetSdk 36 sobre windowSoftInputMode='adjustResize', que dejo de redimensionar la ventana solo). RESULTADO FINAL, con evidencia real de ejecucion: testDebugUnitTest 25/25 PASSED (JVM); connectedDebugAndroidTest 16/16 PASSED en Motorola Edge 50 Fusion (AppNavigationTest, ThemeTest, OrientationTest, PermissionsTest, AppDatabaseSeedTest, OperationFormJourneyTest, OperationFormPersistenceTest x5, DataResetServiceTest -- este ultimo nuevo, para la feature 'Borrar todo'). wiring_checklist actualizado: HU-001-AC1..5, HU-002-AC1..5, HU-003-AC1..3 y los integration points INT-room-real-entities/INT-form-persistencia/INT-form-listado-minimo/INT-catalog-seed-emotion/INT-fab-navhost pasan a passing con evidencia real. NO se tocaron los items de HU-004..HU-009 (validaciones/imagenes/exit-dialog en si): la cobertura instrumentada dedicada para esos ACs (tasks.md 2.5, 3.8, 4.4) todavia no existe -- los bugs de Ajustes/teclado se corrigieron pero sin test de regresion propio, solo verificacion manual repetida. Pendiente: pasada manual del usuario en curso (en paralelo) para confirmar visualmente los 2 fixes de UX y ejercitar camara/galeria con permisos reales."
+      },
       {
         "at": "2026-07-29T00:00:00.000000+00:00",
         "by": "claude (sesion de construccion, /build:resume)",

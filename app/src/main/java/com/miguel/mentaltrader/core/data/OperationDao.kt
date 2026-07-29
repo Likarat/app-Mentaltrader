@@ -15,4 +15,8 @@ interface OperationDao {
 
     @Query("SELECT * FROM operation WHERE id = :id")
     suspend fun getById(id: Long): Operation?
+
+    /** "Borrar todo" (Ajustes): elimina todas las operaciones, conserva los catálogos. */
+    @Query("DELETE FROM operation")
+    suspend fun deleteAll()
 }

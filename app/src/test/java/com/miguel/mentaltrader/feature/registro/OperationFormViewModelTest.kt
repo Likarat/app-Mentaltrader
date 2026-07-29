@@ -371,6 +371,10 @@ class OperationFormViewModelTest {
             MutableStateFlow(inserted.sortedByDescending { it.dateTime })
 
         override suspend fun getById(id: Long): Operation? = inserted.find { it.id == id }
+
+        override suspend fun deleteAll() {
+            inserted.clear()
+        }
     }
 
     private class FakeCatalogItemDao : CatalogItemDao {

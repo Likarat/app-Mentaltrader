@@ -71,7 +71,13 @@
       "Bash(./gradlew.bat testDebugUnitTest --console=plain)",
       "Bash(xargs -I{} sh -c 'grep -o \"tests=\\\\\"[0-9]*\\\\\" skipped=\\\\\"[0-9]*\\\\\" failures=\\\\\"[0-9]*\\\\\" errors=\\\\\"[0-9]*\\\\\"\" {} | head -1; basename {}')",
       "Bash(awk 'NR==155,NR==200' .claude/state/build-state.schema.json)",
-      "Bash(awk 'NR==130,NR==160' .claude/state/build-state.schema.json)"
+      "Bash(awk 'NR==130,NR==160' .claude/state/build-state.schema.json)",
+      "Bash(./gradlew.bat compileDebugKotlin compileDebugAndroidTestKotlin --console=plain)",
+      "Read(//c/Users/migue/.android/avd/Pixel_6_API_30.avd/hardware-qemu.ini.lock/**)",
+      "Bash(rm -f 'C:\\\\Users\\\\migue/.android/avd/Pixel_6_API_30.avd/multiinstance.lock')",
+      "Bash(rm -rf 'C:\\\\Users\\\\migue/.android/avd/Pixel_6_API_30.avd/hardware-qemu.ini.lock')",
+      "Bash(./gradlew.bat testDebugUnitTest assembleDebug --console=plain)",
+      "Bash(./gradlew.bat compileDebugAndroidTestKotlin --console=plain)"
     ]
   }
 }

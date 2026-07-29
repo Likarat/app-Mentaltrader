@@ -10,8 +10,8 @@
 - [x] 1.8 Cablear "Guardar": validar obligatorios, persistir vía Repository/DAO, navegar de vuelta
 - [x] 1.9 Listado mínimo de verificación (placeholder de EP-003): mostrar las operaciones guardadas ordenadas por fecha, solo para poder verificar visualmente el guardado (no es la feature de Historial completa)
 - [x] 1.10 Tests unitarios: `OperationFormViewModel` (validación de obligatorios, mapeo de estado) — `OperationFormViewModelTest.kt`, código escrito
-- [x] 1.11 Tests instrumentados: guardar operación completa, guardar sin campo obligatorio, semilla XAUUSD, semilla Emociones, semilla Error, motivos en texto libre, descripción vacía/larga — `OperationFormPersistenceTest.kt`/`AppDatabaseSeedTest.kt`, código escrito
-- [ ] 1.12 `journey_smoke` de este sub-slice: crear una operación de punta a punta y verla en el listado mínimo — **PENDIENTE**: diferido a la pasada manual del usuario en su teléfono (decisión de producto, ver progress_log)
+- [x] 1.11 Tests instrumentados: guardar operación completa, guardar sin campo obligatorio, semilla XAUUSD, semilla Emociones, semilla Error, motivos en texto libre, descripción vacía/larga — `OperationFormPersistenceTest.kt`/`AppDatabaseSeedTest.kt`, **ejecutados en dispositivo real** (Motorola Edge 50 Fusion, `connectedDebugAndroidTest`, 2026-07-29) tras corregir un bug real que encontró la propia corrida (siembra de catálogos no confiable tras destructive migration — ver `CatalogSeeder`)
+- [x] 1.12 `journey_smoke` de este sub-slice: `OperationFormJourneyTest` (FAB -> formulario completo -> Guardar -> Historial muestra la operación) **PASSED en dispositivo real**
 
 ## 2. Sub-slice EP-001-b: validaciones de rango/fecha + valores por defecto (HU-004, HU-005)
 
@@ -44,6 +44,8 @@
 
 ## 5. Cierre del change completo
 
-- [ ] 5.1 Ejecutar el journey-smoke integral de las 4 sub-slices en un solo recorrido — **PENDIENTE**: decisión explícita del usuario (Miguel Torres, 2026-07-29): dado que es una app de uso personal, toda la verificación manual/instrumentada/visual se hace en una sola pasada final en su teléfono real, después de tener todo el código de EP-001 escrito. Los tests JVM rápidos (unitarios, sin emulador) sí se ejecutaron durante la construcción.
-- [ ] 5.2 Revisar `wiring_checklist` completo sin ítems `failing` no justificados — bloqueado por 5.1
+- [x] 5.1a Suite completa de tests automatizados ejecutada con evidencia real en dispositivo (Motorola Edge 50 Fusion, 2026-07-29): 25/25 unitarios JVM + 16/16 instrumentados (`connectedDebugAndroidTest`) en verde. 3 bugs reales encontrados y corregidos por esta corrida: (1) siembra de catálogos no confiable tras la migración destructiva de la DB -> `CatalogSeeder` idempotente disparado desde `Application.onCreate`; (2) condición de carrera en el prellenado de HU-005 (la corrutina de `init{}` podía pisar campos ya completados) -> guardado solo si el estado sigue en `INITIAL`; (3) `OperationFormJourneyTest` desactualizado tras el prellenado de Activo (HU-005) y tras cambiar el FAB a solo-ícono.
+- [x] 5.1b Bugs adicionales encontrados por el usuario en su pasada manual (mismo dispositivo, mismo día) y corregidos: no había forma visible de volver desde Ajustes ni desde Nueva operación (faltaba flecha "atrás" en el TopAppBar) — el gear tampoco usaba `launchSingleTop`; el teclado tapaba campos del formulario sin poder scrollear (falta `imePadding()`, efecto de `enableEdgeToEdge()` + `targetSdk 36` sobre `adjustResize`). **Sin test de regresión dedicado todavía** para estos 2 casos — cubierto solo por verificación manual repetida del usuario tras el fix.
+- [ ] 5.1c Pasada manual completa del usuario (en paralelo a 5.1a/b, mismo dispositivo) — cubre específicamente lo que los tests automatizados por semántica de texto no verifican bien: sensación real del prellenado/validación (HU-004/005), flujo de cámara/galería con permisos reales (HU-006/007, sin test instrumentado dedicado — tasks 2.5, 3.8, 4.4 siguen pendientes de esa cobertura), y confirmación visual de que los 3 bugs reportados quedaron resueltos.
+- [ ] 5.2 Revisar `wiring_checklist` completo sin ítems `failing` no justificados — pendiente de 5.1c
 - [x] 5.3 `openspec validate registro-rapido-operaciones --strict`

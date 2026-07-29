@@ -73,8 +73,16 @@ class OperationFormViewModel(
                 timeText = now.format(TIME_FORMATTER),
                 assetId = prefillAssetId
             )
-            initialSnapshot = prefilled
-            _state.value = prefilled
+            // Bug real encontrado en la primera corrida instrumentada (2026-07-29): esta
+            // corrutina corre en Dispatchers.Main y compite con llamadas síncronas a los
+            // onXxx() (p.ej. desde un test o, en teoría, una interacción muy rápida del
+            // usuario) — sin este guard, un `_state.value = prefilled` incondicional podía
+            // pisar campos que ya se habían completado. Solo se prellena si el formulario
+            // sigue intacto.
+            if (_state.value == OperationFormState.INITIAL) {
+                _state.value = prefilled
+                initialSnapshot = prefilled
+            }
         }
     }
 
