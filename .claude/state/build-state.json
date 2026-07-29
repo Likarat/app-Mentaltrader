@@ -42,14 +42,21 @@
       "wiring_verified": false,
       "dod": false
     },
-    "updated_at": "2026-07-28T23:48:07.802858+00:00",
-    "updated_by": "coherence-link-auditor",
+    "updated_at": "2026-07-29T00:00:00.000000+00:00",
+    "updated_by": "claude (sesion de construccion)",
     "layer": "business",
     "files_scope": [
       "app/src/main/java/**/data/**",
       "app/src/main/java/**/domain/**",
       "app/src/main/java/**/ui/operacion/**"
     ],
+    "session_continuity": {
+      "last_session": "2026-07-29T00:00:00.000000+00:00",
+      "stopped_at": null,
+      "resume_hint": "Todo el codigo de EP-001 (sub_slices a-d, HU-001..HU-009) esta escrito, compila (compileDebugKotlin OK) y los 25 tests unitarios JVM pasan (DestinoTest 3, OperationFormViewModelTest 16, ImageProcessorTest 6 -- 0 failures). Decision explicita del usuario (Miguel Torres, 2026-07-29): por ser app de uso personal, TODA la verificacion que requiere dispositivo (tests instrumentados, journey_smoke de los 4 sub_slices, fidelity visual) se hace en UNA sola pasada manual final en su telefono real, despues de tener el codigo completo -- no antes. Por eso ningun gate de dor/dod ni ningun item de wiring_checklist se marco true/passing en esta sesion: no hay evidencia de ejecucion en dispositivo todavia (regla dura del arnes: cierre verificado, no declarado). Proxima accion cuando el usuario reporte resultados de su pasada en el telefono: (1) si todo funciona, correr wiring-adversarial-verifier y cerrar wiring_checklist con evidencia real, marcar sub_slices a-d status=done y journey_smoke=true, gates.tdd/journey_smoke/data/wiring_verified/dod en true, tasks.md 1.12/2.5-2.6/3.8-3.9/4.4-4.5/5.1-5.2; (2) si el usuario reporta bugs, arreglarlos primero (con test de regresion solo si el fix toca logica, no exigir suite instrumentada completa por cada fix chico) y volver a pedir una pasada corta antes de cerrar dod.",
+      "critical_recorded": false,
+      "auto_continue": false
+    },
     "sub_slices": [
       {
         "id": "EP-001-a",
@@ -360,6 +367,16 @@
       }
     ],
     "progress_log": [
+      {
+        "at": "2026-07-29T00:00:00.000000+00:00",
+        "by": "claude (sesion de construccion, /build:resume)",
+        "note": "Construido TODO el codigo pendiente de EP-001 sobre lo que ya existia de EP-001-a (HU-001/002/003, ya completo con codigo+tests desde antes de esta sesion, drift ahora reconciliado). Sub-slice EP-001-b (HU-004/HU-005): validacion de rango en OperationFormViewModel.validate() (Calidad 0.0-10.0, Riesgo 0-100, fecha/hora no futura comparada contra System.currentTimeMillis() en el momento de guardar, no de abrir), dropdown '+/-' agregado para el signo de Resultado en R (gap real encontrado: 1.7 solo tenia un campo de texto libre, violando la nota tecnica de HU-004 de que el signo va SOLO por dropdown) mas OperationFormState.formatResultInR() para el sufijo 'R' fijo en toda la UI; prellenado de Fecha/Hora actual y Activo=XAUUSD (solo si el catalogo tiene unicamente la semilla) en un bloque init{} del ViewModel, actualizando initialSnapshot junto con _state para que el prellenado no cuente como 'sucio' en el dirty-check de HU-009. Sub-slice EP-001-c (HU-006/HU-007): entidad Room OperationImage + OperationImageDao (bump AppDatabase version 1->2 con fallbackToDestructiveMigration, justificado por no haber datos reales todavia); ImageProcessor (core.image) con calculateResizedDimensions puro (testeable en JVM sin Robolectric) + canDecode (deteccion temprana de corrupcion via BitmapFactory.Options.inJustDecodeBounds, en el momento de adjuntar) + processAndSave (redimensionado ~2000px, JPEG 85%, miniatura ~300px, todo en Dispatchers.Default); UI de adjuntar con boton Camara (permiso runtime CAMERA + FileProvider + res/xml/file_paths.xml) y boton Galeria (ActivityResultContracts.PickVisualMedia, sin permiso runtime -- decision de diseno documentada); HistorialScreen (listado minimo) ahora muestra la miniatura cacheada via Coil. Sub-slice EP-001-d (HU-008/HU-009): HU-008 (FAB) ya estaba cableado en MainActivity de una sesion previa; se agrego el diálogo de salida de HU-009 -- estado hoisted formDirty/pendingExitAction en MentaltraderApp, BackHandler condicionado a la ruta del formulario, intercept de los taps de la barra inferior via AppBottomNavigationBar(onNavigate), AlertDialog de confirmacion. Verificacion realizada EN ESTA SESION (real, no por inspeccion): compileDebugKotlin BUILD SUCCESSFUL; testDebugUnitTest BUILD SUCCESSFUL con 25/25 tests en verde (DestinoTest 3, OperationFormViewModelTest 16 -- incluye 6 tests nuevos de rango/signo/prellenado, ImageProcessorTest 6 nuevos de redimensionado puro); openspec validate --strict valid:true. Verificacion NO realizada (decision explicita del usuario, no del modelo): ningun test instrumentado ni journey_smoke corrio en emulador/dispositivo -- el usuario pidio explicitamente diferir TODA la verificacion que requiere telefono a una sola pasada manual final, y arreglar bugs despues de esa pasada. Por eso ningun gate (tdd/journey_smoke/data/fidelity/wiring_verified/dod) se tocó y wiring_checklist sigue con sus items en failing: no hay evidencia real de dispositivo que respalde marcarlos passing. tasks.md actualizado reflejando exactamente este estado (items de codigo/unit tests tildados, items de instrumentado/journey_smoke marcados PENDIENTE con la razon). Añadido session_continuity.resume_hint con el proximo paso exacto para cuando el usuario reporte su pasada manual."
+      },
+      {
+        "at": "2026-07-28T23:55:00.000000+00:00",
+        "by": "/build:resume",
+        "note": "Reconciliacion ejecutada (reconcile-build-state.py, sin cambios que degradar). Rehidratado desde disco: no existe session_continuity.resume_hint. Drift detectado (no bloqueante, a verificar en TDD): existen archivos de codigo sin trackear en git status que no estan reflejados en gates ni en tasks.md -- core/model/Enums.kt, core/data/{AppDatabase,CatalogItem,CatalogItemDao,Operation,OperationDao,Converters}.kt, feature/registro/{OperationFormScreen,OperationFormState,OperationFormViewModel}.kt, mas MentaltraderApplication.kt, MainActivity.kt y AndroidManifest.xml modificados. tasks.md sub_slice EP-001-a (1.1-1.12) sigue con todos los checkboxes sin marcar y gates.tdd=false: el codigo parece cubrir 1.1-1.7 (enums, entidades Room, DAOs, AppDatabase con seed, ViewModel, UI del formulario) pero SIN evidencia de tests unitarios/instrumentados ejecutados (no se hallaron archivos de test para Operation/registro en app/src/test ni app/src/androidTest). No se asume completado: el gate tdd exige evidencia de ejecucion real, no la mera existencia de archivos. Siguiente accion: continuar el pipeline en phase=change hacia TDD del sub_slice EP-001-a (primer wiring_checklist item failing: HU-001-AC1), delegando en building-a-slice para verificar/completar 1.8-1.12 con tests reales antes de marcar cualquier checkbox o gate."
+      },
       {
         "at": "2026-07-28T23:16:16.459222+00:00",
         "by": "dor-dod-gatekeeper",

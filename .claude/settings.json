@@ -1,4 +1,16 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(openspec validate *)",
+      "Bash(openspec list *)",
+      "Bash(openspec show *)",
+      "Bash(git checkout *)",
+      "Bash(git pull *)",
+      "Bash(git branch *)",
+      "Bash(git push *)",
+      "Bash(git ls-remote *)"
+    ]
+  },
   "hooks": {
     "SessionStart": [
       {
@@ -96,13 +108,6 @@
           }
         ]
       }
-    ]
-  },
-  "permissions": {
-    "allow": [
-      "Bash(openspec validate *)",
-      "Bash(openspec list *)",
-      "Bash(openspec show *)"
     ]
   },
   "statusLine": {

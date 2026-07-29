@@ -23,8 +23,10 @@ class AppNavigationTest {
 
     @Test
     fun tocarHistorialMuestraLaPantallaDeHistorialInmediatamente() {
+        // Desde EP-001 (registro-rapido-operaciones), Historial ya muestra contenido real
+        // (o su estado vacío) en vez del placeholder de EP-005 — ver HistorialScreen.kt.
         composeTestRule.onNodeWithText("Historial").performClick()
-        composeTestRule.onNodeWithText("Pantalla de Historial (placeholder)").assertExists()
+        composeTestRule.onNodeWithText("Todavía no registraste ninguna operación").assertExists()
     }
 
     @Test
