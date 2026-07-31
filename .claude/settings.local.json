@@ -91,7 +91,9 @@
       "Bash(grep -n \"fun \\\\`\\\\|    fun \" app/src/test/java/com/miguel/mentaltrader/feature/registro/OperationFormViewModelTest.kt)",
       "Bash(adb devices *)",
       "Bash(./gradlew testDebugUnitTest --rerun)",
-      "Bash(xargs grep -h \"tests=\")"
+      "Bash(xargs grep -h \"tests=\")",
+      "Bash(openspec --help)",
+      "Bash(openspec archive *)"
     ]
   }
 }
