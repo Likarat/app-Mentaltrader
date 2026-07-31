@@ -93,7 +93,9 @@
       "Bash(./gradlew testDebugUnitTest --rerun)",
       "Bash(xargs grep -h \"tests=\")",
       "Bash(openspec --help)",
-      "Bash(openspec archive *)"
+      "Bash(openspec archive *)",
+      "Bash(sed 's/classname=\"com.miguel.mentaltrader.//')",
+      "Bash(./gradlew.bat assembleDebug --console=plain)"
     ]
   }
 }
