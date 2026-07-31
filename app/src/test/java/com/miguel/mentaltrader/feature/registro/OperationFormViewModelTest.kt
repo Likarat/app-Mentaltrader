@@ -1,12 +1,12 @@
 package com.miguel.mentaltrader.feature.registro
 
 import com.miguel.mentaltrader.core.data.CatalogItem
-import com.miguel.mentaltrader.core.data.CatalogItemDao
 import com.miguel.mentaltrader.core.data.Operation
 import com.miguel.mentaltrader.core.data.OperationDao
 import com.miguel.mentaltrader.core.model.CatalogType
 import com.miguel.mentaltrader.core.model.Direction
 import com.miguel.mentaltrader.core.model.ResultType
+import com.miguel.mentaltrader.testutil.FakeCatalogItemDao
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -502,34 +502,5 @@ class OperationFormViewModelTest {
         override suspend fun deleteAll() {
             inserted.clear()
         }
-    }
-
-    private class FakeCatalogItemDao : CatalogItemDao {
-        private val items = mutableListOf<CatalogItem>()
-        private var nextId = 1L
-
-        /** Atajo de test: siembra directamente un elemento de catálogo y devuelve su id. */
-        fun seed(type: CatalogType, name: String): Long {
-            val id = nextId++
-            items += CatalogItem(id = id, type = type, name = name, isDefault = true, createdAt = 0L, updatedAt = 0L)
-            return id
-        }
-
-        override suspend fun insert(item: CatalogItem): Long {
-            val id = nextId++
-            items += item.copy(id = id)
-            return id
-        }
-
-        override suspend fun insertAll(items: List<CatalogItem>) {
-            items.forEach { insert(it) }
-        }
-
-        override fun getByType(type: CatalogType): Flow<List<CatalogItem>> =
-            MutableStateFlow(items.filter { it.type == type })
-
-        override suspend fun countByType(type: CatalogType): Int = items.count { it.type == type }
-
-        override suspend fun getById(id: Long): CatalogItem? = items.find { it.id == id }
     }
 }

@@ -1,12 +1,12 @@
 ## 1. Sub-slice EP-002-a: agregar/editar/eliminar con protección de semillas (HU-010, HU-011)
 
-- [ ] 1.1 `CatalogItemDao`: agregar `existsByTypeAndNameIgnoreCase(type, name): Boolean`, `countByType(type): Int`, `deleteById(id)`, `update(item)` (los que falten sobre lo ya existente de EP-001)
-- [ ] 1.2 `CatalogRepository` nuevo (`core.data`): `addItem(type, name): Result<CatalogItem>` (valida unicidad antes de insertar) — punto único reutilizado también por HU-013
-- [ ] 1.3 `CatalogRepository`: `deleteItem(item): Result<Unit>` — bloquea si es semilla protegida (`Ninguno`/ERROR siempre; `XAUUSD`/ASSET solo si `countByType(ASSET)==1`), si no, elimina y dispara recreación de semilla si `countByType(type)` queda en 0 tras el delete (reutiliza `CatalogSeeder`)
-- [ ] 1.4 `CatalogRepository`: `updateItem(item, newName): Result<Unit>` — misma validación de unicidad que `addItem`
-- [ ] 1.5 `EtiquetasViewModel` nuevo: `StateFlow` por tipo de catálogo (lista de `CatalogItem`), acciones agregar/editar/eliminar, mapeo de errores a mensaje visible
-- [ ] 1.6 `EtiquetasScreen`: reemplazar el placeholder por `TabRow` (Activos/Emociones/Errores) + `CatalogListSection` compartido (lista + FAB/botón "Agregar" + diálogo de edición + confirmación simple de eliminar-sin-uso)
-- [ ] 1.7 Tests unitarios: unicidad case-insensitive/trim por `type`, unicidad no cruza tipos, protección de semillas (ambos casos), recreación automática al vaciar
+- [x] 1.1 `CatalogItemDao`: agregados `update(item)`, `delete(item)` y `countByTypeAndNameIgnoreCaseExcludingId(type, name, excludeId)` (unicidad + exclusión del propio id al editar, en un solo método en vez de `existsByType...`/`deleteById` separados)
+- [x] 1.2 `CatalogRepository` nuevo (`core.data`): `addItem(type, name): CatalogAddResult` (sellado `Added`/`Duplicate` en vez de `Result<T>`, más explícito para la UI) — punto único reutilizado también por HU-013
+- [x] 1.3 `CatalogRepository.deleteItem(item): CatalogDeleteResult` — bloquea "Ninguno" (ERROR) siempre y "XAUUSD" (ASSET) solo si `countByType(ASSET)<=1`; si no, elimina y dispara `CatalogSeeder.ensureSeeded` si el catálogo queda en 0
+- [x] 1.4 `CatalogRepository.updateItem(item, newName): CatalogUpdateResult` — misma validación de unicidad que `addItem`, excluyendo el propio id
+- [x] 1.5 `EtiquetasViewModel` nuevo: `StateFlow` por tipo de catálogo (`assets`/`emotions`/`errors`), acciones agregar/editar/eliminar, mapeo de errores a mensaje visible (`addError`/`editError`/`blockedDeleteMessage`)
+- [x] 1.6 `EtiquetasScreen`: reemplazado el placeholder por `SecondaryTabRow` (Activos/Emociones/Errores) + lista única parametrizada por la pestaña activa (sin duplicar composable por tipo, ya que solo se renderiza una lista a la vez) + diálogo de edición + diálogo de bloqueo de eliminación
+- [x] 1.7 Tests unitarios: `CatalogRepositoryTest` (12, unicidad case-insensitive/trim por `type`, no cruza tipos, protección de semillas ambos casos, recreación automática al vaciar) + `EtiquetasViewModelTest` (9, estado de UI). Se extrajo `testutil.FakeCatalogItemDao` compartido (regla de tres: ya se duplicaba en `OperationFormViewModelTest`) — se corrigió además un bug real del fake (no era reactivo: `getByType` creaba un `Flow` nuevo por llamada en vez de derivar de un `MutableStateFlow` único, rompiendo `stateIn(Eagerly)` en el ViewModel)
 - [ ] 1.8 Tests instrumentados: agregar un elemento y verlo disponible en el formulario de registro; editar; eliminar sin uso; bloqueo de eliminación de semilla con mensaje visible en pantalla
 - [ ] 1.9 `journey_smoke` EP-002-a: abrir Etiquetas, agregar un elemento a Activos, verlo en el selector del formulario de registro
 

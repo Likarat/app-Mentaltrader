@@ -39,8 +39,8 @@
       "wiring_verified": false,
       "dod": false
     },
-    "updated_at": "2026-07-31T04:00:00.000000+00:00",
-    "updated_by": "change-epic-coherence",
+    "updated_at": "2026-07-31T05:00:00.000000+00:00",
+    "updated_by": "build-orchestrator",
     "files_scope": [
       "app/src/main/java/**/feature/etiquetas/**",
       "app/src/main/java/**/feature/registro/**",
@@ -243,6 +243,11 @@
       }
     ],
     "progress_log": [
+      {
+        "at": "2026-07-31T05:00:00.000000+00:00",
+        "by": "build-orchestrator",
+        "note": "TDD (JVM) de sub-slice EP-002-a completo, sin evidencia instrumentada todavia (tasks.md 1.1-1.7 tildadas, 1.8 pendiente -- requiere dispositivo, no conectado en esta sesion). Implementado: CatalogItemDao.update/delete/countByTypeAndNameIgnoreCaseExcludingId; CatalogRepository nuevo (core.data) con addItem/updateItem/deleteItem devolviendo resultados sellados (CatalogAddResult/CatalogUpdateResult/CatalogDeleteResult) en vez de Result<T> generico -- mas explicito para la UI, misma decision tecnica de design.md #2/#3; EtiquetasViewModel + EtiquetasScreen reemplazando el placeholder de EP-005 (SecondaryTabRow de Activos/Emociones/Errores, agregar/editar/eliminar con dialogos); wiring en MentaltraderApplication.catalogRepository y MainActivity. Tests unitarios nuevos: CatalogRepositoryTest (12, cubre HU-010 AC1-3 y HU-011 AC1-4 a nivel de logica de negocio) + EtiquetasViewModelTest (9, estado de UI: limpiar campo tras exito, error de duplicado visible, cancelar edicion, mensaje de bloqueo al eliminar semilla). Se extrajo testutil.FakeCatalogItemDao compartido (regla de tres, ya se duplicaba en OperationFormViewModelTest) y se corrigio un bug real en el fake original: getByType() creaba un Flow nuevo (snapshot) en cada llamada en vez de derivar de un unico MutableStateFlow de respaldo, por lo que EtiquetasViewModel.assets/emotions/errors (via stateIn(Eagerly)) nunca reflejaba altas posteriores a la suscripcion -- 2 tests nuevos lo detectaron en rojo antes del fix. testDebugUnitTest: 53/53 PASSED (JVM, fresco). assembleDebug: BUILD SUCCESSFUL. wiring_checklist de HU-010/HU-011 sigue en failing (evidencia unitaria no es suficiente para cerrar hu_ac -- falta 1.8 instrumentado + 1.9 journey_smoke, ambos requieren dispositivo real). No se toco gates.tdd todavia (falta cerrar el sub-slice completo con evidencia instrumentada antes de marcarlo)."
+      },
       {
         "at": "2026-07-31T04:00:00.000000+00:00",
         "by": "change-epic-coherence",

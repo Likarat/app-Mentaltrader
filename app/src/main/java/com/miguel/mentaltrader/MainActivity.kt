@@ -47,6 +47,7 @@ import com.miguel.mentaltrader.core.navigation.Destino
 import com.miguel.mentaltrader.feature.ajustes.AjustesScreen
 import com.miguel.mentaltrader.feature.ajustes.AjustesViewModel
 import com.miguel.mentaltrader.feature.etiquetas.EtiquetasScreen
+import com.miguel.mentaltrader.feature.etiquetas.EtiquetasViewModel
 import com.miguel.mentaltrader.feature.historial.HistorialScreen
 import com.miguel.mentaltrader.feature.metricas.InicioScreen
 import com.miguel.mentaltrader.feature.registro.OperationFormScreen
@@ -227,7 +228,15 @@ fun MentaltraderApp(navController: NavHostController = rememberNavController()) 
                     operationImageDao = application.database.operationImageDao()
                 )
             }
-            composable(Destino.Etiquetas.route) { EtiquetasScreen() }
+            composable(Destino.Etiquetas.route) {
+                val etiquetasViewModel: EtiquetasViewModel = viewModel(
+                    factory = EtiquetasViewModel.Factory(
+                        application.database.catalogItemDao(),
+                        application.catalogRepository
+                    )
+                )
+                EtiquetasScreen(viewModel = etiquetasViewModel)
+            }
             composable(RUTA_NUEVA_OPERACION) {
                 val formViewModel: OperationFormViewModel = viewModel(
                     factory = OperationFormViewModel.Factory(

@@ -95,7 +95,8 @@
       "Bash(openspec --help)",
       "Bash(openspec archive *)",
       "Bash(git switch *)",
-      "Bash(awk 'NR==61,NR==89' docs/03-backlog/epicas.md)"
+      "Bash(awk 'NR==61,NR==89' docs/03-backlog/epicas.md)",
+      "Bash(./gradlew.bat assembleDebug --console=plain)"
     ]
   }
 }
