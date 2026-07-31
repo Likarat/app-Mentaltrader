@@ -12,17 +12,24 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Verifica el RoomDatabase.Callback.onCreate REAL (AppDatabase.kt, mismo código que corre en
- * producción vía MentaltraderApplication.database) sobre la base de datos real del dispositivo:
- * siembra XAUUSD (ASSET), "Ninguno" (ERROR) y las 8 emociones semilla la primera vez que se crea
- * la base de datos. Cierra INT-catalog-seed-entities/INT-catalog-seed-emotion.
+ * Verifica `CatalogSeeder.ensureSeeded()` REAL (core/data/CatalogSeeder.kt, disparado desde
+ * `MentaltraderApplication.onCreate()`, mismo código que corre en producción) sobre la base de
+ * datos real del dispositivo: siembra XAUUSD (ASSET), "Ninguno" (ERROR) y las 8 emociones semilla
+ * la primera vez que se crea la base de datos. Cierra INT-catalog-seed-entities/
+ * INT-catalog-seed-emotion.
  *
- * Para verificar genuinamente el "arranque limpio" (design.md, riesgo #1: siembra en una
- * corrutina separada del hilo principal de Room), este test se ejecutó tras
+ * Nota histórica: la siembra vivió antes en un `RoomDatabase.Callback.onCreate`, pero un bug
+ * real detectado en la primera corrida instrumentada (2026-07-29) mostró que ese mecanismo no
+ * era confiable tras una migración destructiva (bump de versión al agregar `OperationImage`) —
+ * se reemplazó por `CatalogSeeder.ensureSeeded()`, idempotente y disparado explícitamente desde
+ * `Application.onCreate()`, sin depender de en qué punto del ciclo de vida de Room se dispare
+ * `onCreate`. Ver `CatalogSeeder.kt` para el detalle.
+ *
+ * Para verificar genuinamente el "arranque limpio", este test se ejecutó tras
  * `adb shell pm clear com.miguel.mentaltrader` — ver progress_log de build-state.json para el
  * comando exacto y su evidencia. Si se re-ejecuta sin limpiar datos, sigue siendo válido: la
- * siembra es idempotente por catálogo (solo ocurre en onCreate, no se duplica en accesos
- * posteriores) siempre que ningún otro flujo de la app inserte manualmente elementos de
+ * siembra es idempotente por catálogo (chequea count==0 antes de insertar, no se duplica en
+ * accesos posteriores) siempre que ningún otro flujo de la app inserte manualmente elementos de
  * catálogo (no existe tal flujo todavía, se sembrará en EP-002).
  */
 @RunWith(AndroidJUnit4::class)

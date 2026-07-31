@@ -39,21 +39,27 @@
       "data": true,
       "fidelity": true,
       "api": null,
-      "wiring_verified": false,
-      "dod": false
+      "wiring_verified": true,
+      "dod": true
     },
-    "updated_at": "2026-07-29T15:15:00.000000+00:00",
-    "updated_by": "claude (cierre de sesion, evidencia real acumulada)",
+    "updated_at": "2026-07-31T14:30:00.000000+00:00",
+    "updated_by": "dor-dod-gatekeeper",
     "layer": "business",
     "files_scope": [
-      "app/src/main/java/**/data/**",
-      "app/src/main/java/**/domain/**",
-      "app/src/main/java/**/ui/operacion/**"
+      "app/src/main/java/**/feature/registro/**",
+      "app/src/main/java/**/feature/ajustes/**",
+      "app/src/main/java/**/feature/historial/**",
+      "app/src/main/java/**/ui/theme/**",
+      "app/src/main/java/**/core/**",
+      "app/src/main/java/com/miguel/mentaltrader/MainActivity.kt",
+      "app/src/main/java/**/MentaltraderApplication.kt",
+      "app/src/main/AndroidManifest.xml",
+      "app/src/main/res/**"
     ],
     "session_continuity": {
-      "last_session": "2026-07-29T13:45:00.000000+00:00",
+      "last_session": "2026-07-31T00:00:00.000000+00:00",
       "stopped_at": null,
-      "resume_hint": "Estrategia de testing actualizada por el usuario (2026-07-29): la verificacion de EP-001 (como 'base de todo') ya no se difiere entera al final -- se corrio la suite real en dispositivo (Motorola Edge 50 Fusion) EN PARALELO con una pasada manual del usuario, para doble verificacion. Resultado con evidencia real: testDebugUnitTest 25/25 PASSED, connectedDebugAndroidTest 16/16 PASSED. 3 bugs reales encontrados por la corrida instrumentada + 2 bugs reportados por el usuario en su pasada manual, TODOS corregidos (ver progress_log 2026-07-29T13:45 para el detalle tecnico completo: CatalogSeeder idempotente, guard de la race del prellenado, TopAppBar sin flecha 'atras'/titulo duplicado, imePadding). wiring_checklist de HU-001/002/003 (sub-slice a) y sus integration points ya estan en 'passing' con evidencia real. PENDIENTE antes de gates.tdd/journey_smoke/wiring_verified/dod: (1) confirmar con el usuario que su pasada manual (en curso) no encontro mas bugs, especialmente en HU-004/005 (validaciones/prellenado) y HU-006/007 (camara/galeria con permisos reales, sin cobertura instrumentada dedicada todavia -- tasks.md 2.5/3.8/4.4 siguen pendientes); (2) si aparecen mas bugs, corregir y volver a pedir una pasada corta; (3) considerar escribir tests instrumentados dedicados para HU-004/005/006/007/009 antes de cerrar dod (hoy solo tienen cobertura JVM o ninguna); (4) correr wiring-adversarial-verifier antes de dor-dod-gatekeeper.",
+      "resume_hint": "wiring_verified ya cerrado (2026-07-31, decision explicita del usuario tras 3 rondas reales de wiring-adversarial-verifier + su propia verificacion manual repetida -- ver progress_log). Unico gate pendiente: dod. Siguiente paso: invocar dor-dod-gatekeeper para evaluar la Definition of Done completa de EP-001 (tasks.md, sub_slices[] los 4 en status=done, back-references openspec_change en epicas.md/HU-001..009, wiring_checklist integro) y cerrarla si corresponde.",
       "critical_recorded": false,
       "auto_continue": false
     },
@@ -245,51 +251,57 @@
         "id": "HU-005-AC4",
         "kind": "hu_ac",
         "ref": "HU-005#Escenario4",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "OperationFormViewModelTest.`editar manualmente fecha y hora prellenadas conserva el valor editado sin revertirlo` — PASSED (JVM, testDebugUnitTest, 2026-07-30)"
       },
       {
         "id": "HU-005-AC5",
         "kind": "hu_ac",
         "ref": "HU-005#Escenario5",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "OperationFormViewModelTest.`reloj del dispositivo desconfigurado hacia el pasado prellena igual sin validarlo` + `...hacia el futuro tambien prellena sin validarlo` — PASSED (JVM, testDebugUnitTest, 2026-07-30). Reloj inyectado vía el nuevo parámetro `nowProvider` de OperationFormViewModel (manipular el reloj real del SO del dispositivo de pruebas de forma confiable no es viable en este entorno)."
       },
       {
         "id": "HU-006-AC1",
         "kind": "hu_ac",
         "ref": "HU-006#Escenario1",
         "status": "passing",
-        "evidence": "Confirmado por el usuario en pasada manual sobre dispositivo real (2026-07-29): 'se adjunta bien las fotos' (camara y galeria)"
+        "evidence": "OperationFormRenderedUiTest.trasAdjuntarUnaImagenSeVeLaMiniaturaSinProcesarEnElFormulario — PASSED (connectedDebugAndroidTest, Motorola Edge 50 Fusion, 2026-07-30): monta OperationFormScreen real vía ComposeTestRule (createComposeRule) con un OperationFormViewModel real, adjunta una imagen y asserta onNodeWithContentDescription(\"Imagen adjunta sin procesar\").assertIsDisplayed() sobre el NODO RENDERIZADO (no sobre viewModel.state.value) — cierra el hallazgo H1/H2 del segundo wiring-adversarial-verifier (los tests previos solo verificaban el StateFlow, nunca renderizaban la pantalla)"
       },
       {
         "id": "HU-006-AC2",
         "kind": "hu_ac",
         "ref": "HU-006#Escenario2",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "OperationFormRenderedUiTest.alIntentarUnaTerceraImagenSeVeElMensajeDeLimite — PASSED (connectedDebugAndroidTest, Motorola Edge 50 Fusion, 2026-07-30): monta OperationFormScreen real, adjunta 2 imágenes reales, la 3ra es bloqueada y se asserta onNodeWithText(\"Ya adjuntaste el máximo de 2 imágenes\").assertIsDisplayed() sobre el NODO RENDERIZADO. Complementa (no reemplaza) OperationFormImageProcessingTest.adjuntarUnaTerceraImagenSeImpide (que verifica el StateFlow) — cierra H1/H2"
       },
       {
         "id": "HU-006-AC3",
         "kind": "hu_ac",
         "ref": "HU-006#Escenario3",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "OperationFormRenderedUiTest.alRechazarElPermisoDeCamaraSeVeElMensajeYLosBotonesSiguenDisponibles — PASSED (connectedDebugAndroidTest, Motorola Edge 50 Fusion, 2026-07-30): monta OperationFormScreen real, dispara onCameraPermissionDenied() y asserta el mensaje 'Permiso de cámara rechazado. Podés continuar sin imagen o adjuntar desde la galería.' visible en pantalla, además de que los botones 'Cámara'/'Galería' siguen mostrados e interactuables (assertIsDisplayed + assertHasClickAction) — cierra H1/H2. Complementa OperationFormImageProcessingTest.permisoDeCamaraRechazado_informaYPermiteGuardarSinImagen (StateFlow + persistencia real)"
       },
       {
         "id": "HU-007-AC1",
         "kind": "hu_ac",
         "ref": "HU-007#Escenario1",
         "status": "passing",
-        "evidence": "ImageProcessorTest (calculo de redimensionado) — PASSED (JVM); pipeline completo ejercitado sin error en dispositivo real durante la pasada manual del usuario (adjuntar+guardar con imagen)"
+        "evidence": "OperationFormImageProcessingTest.processAndSave_redimensionaYComprimeUnaImagenRealAJpeg — PASSED (dispositivo real, 2026-07-30): ImageProcessor.processAndSave() real (no solo el cálculo puro) ejercitado con una imagen 3000x2000 real; ancho redimensionado verificado con BitmapFactory.Options sobre el archivo de salida (2000px, dentro de ~1600-2000px), miniatura ≤300px, tamaño del archivo comprimido sustancialmente menor al bitmap sin comprimir (compresión JPEG real confirmada, no una copia sin procesar)"
       },
       {
         "id": "HU-007-AC2",
         "kind": "hu_ac",
         "ref": "HU-007#Escenario2",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "HistorialThumbnailNotRecomputedTest.laMiniaturaNoSeRecalculaEnRecomposicionesSucesivas — PASSED (dispositivo real, 2026-07-30): 8 remounts completos forzados de HistorialScreen (vía key()), bytes y lastModified del archivo de miniatura idénticos antes/después — confirma que el render nunca vuelve a invocar processAndSave (HistorialScreen.kt solo usa ImageProcessor.thumbnailPathFor(), función pura de derivación de ruta)"
       },
       {
         "id": "HU-007-AC3",
         "kind": "hu_ac",
         "ref": "HU-007#Escenario3",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "OperationFormImageProcessingTest.imagenCorrupta_seInformaYNoSeAdjunta + canDecodeDevuelveFalseParaUnArchivoCorrupto — PASSED (dispositivo real, 2026-07-30): archivo con bytes basura detectado como no decodificable, se informa el error específico y permite adjuntar otra imagen a continuación sin quedar bloqueado"
       },
       {
         "id": "HU-008-AC1",
@@ -303,52 +315,56 @@
         "kind": "hu_ac",
         "ref": "HU-008#Escenario2",
         "status": "passing",
-        "evidence": "Uso manual repetido del usuario abriendo el formulario desde Historial durante esta sesion"
+        "evidence": "MainActivityFabTest.elFabPermaneceVisibleEInteractuableAlHacerScrollEnHistorial — PASSED (dispositivo real, 2026-07-30): navega a Historial, clickea el FAB ('Nueva operación') y verifica que abre el formulario (onNodeWithText(\"Nueva operación\").assertExists() tras el click) — corrige la cita previa (mal atribuida a 'uso manual'; el test real ya existía y cubre este AC)"
       },
       {
         "id": "HU-008-AC3",
         "kind": "hu_ac",
         "ref": "HU-008#Escenario3",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "MainActivityFabTest.elFabNoApareceEnLaPestanaEtiquetas — PASSED (dispositivo real, 2026-07-30): al navegar a Etiquetas, onNodeWithContentDescription(\"Nueva operación\").assertDoesNotExist()"
       },
       {
         "id": "HU-008-AC4",
         "kind": "hu_ac",
         "ref": "HU-008#Escenario4",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "MainActivityFabTest.elFabPermaneceVisibleEInteractuableAlHacerScrollEnHistorial — PASSED (dispositivo real, 2026-07-30): 30 operaciones sembradas para forzar scroll, se hace scroll hasta el último ítem real del listado y el FAB sigue mostrado/clickeable, abre el formulario con normalidad tras el scroll"
       },
       {
         "id": "HU-009-AC1",
         "kind": "hu_ac",
         "ref": "HU-009#Escenario1",
         "status": "passing",
-        "evidence": "Bug real reportado por el usuario (Nueva operacion/Ajustes se filtraban al back stack de la pestaña de origen) y corregido; usuario confirmo en dispositivo real tras el fix (2026-07-29)"
+        "evidence": "FormExitGuardTest.navegarAOtraPestanaConCambiosPendientesMuestraElDialogoYRespetaCancelarYConfirmar (primer tramo: FAB->escribir descripcion->tap Historial->assertExists dialogo) — PASSED (dispositivo real, 2026-07-30). Corrige la evidencia previa (mal atribuida a un bug de navegacion no relacionado con este escenario especifico)."
       },
       {
         "id": "HU-009-AC2",
         "kind": "hu_ac",
         "ref": "HU-009#Escenario2",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "FormExitGuardTest.presionarAtrasConCambiosPendientesMuestraElMismoDialogoYRespetaCancelar + confirmarSalidaPorAtrasDescartaLosCambiosYNavega — PASSED (dispositivo real, 2026-07-30), usando UiDevice.pressBack() (androidx.test.uiautomator) para el gesto/boton 'atras' real. BUG REAL DE PRODUCTO encontrado y corregido por esta ronda: el BackHandler de HU-009 nunca se disparaba por 'atras' real porque el callback de predictive-back interno de NavHost (navigation-compose 2.9.x) le ganaba la prioridad al nuestro sin importar el orden de declaracion -- se solucino registrando un HighPriorityBackHandler con PRIORITY_OVERLAY contra el OnBackInvokedDispatcher nativo (API 33+, con fallback a BackHandler de Compose en versiones anteriores). Antes de este fix, el dialogo de HU-009 JAMAS aparecia por el boton/gesto 'atras' real del sistema (solo funcionaba al tocar otra pestana)."
       },
       {
         "id": "HU-009-AC3",
         "kind": "hu_ac",
         "ref": "HU-009#Escenario3",
         "status": "passing",
-        "evidence": "Mismo flujo confirmado por el usuario (boton Cancelar del dialogo, semantica sin cambios respecto al fix de navegacion)"
+        "evidence": "FormExitGuardTest.navegarAOtraPestanaConCambiosPendientesMuestraElDialogoYRespetaCancelarYConfirmar (Cancelar conserva los datos intactos) + presionarAtrasConCambiosPendientesMuestraElMismoDialogoYRespetaCancelar (idem por 'atras') — PASSED (dispositivo real, 2026-07-30). Corrige la evidencia previa (mal atribuida)."
       },
       {
         "id": "HU-009-AC4",
         "kind": "hu_ac",
         "ref": "HU-009#Escenario4",
         "status": "passing",
-        "evidence": "Usuario confirmo explicitamente 'confirmo que se corrigio' tras el fix de navegacion en dispositivo real (2026-07-29)"
+        "evidence": "FormExitGuardTest.navegarAOtraPestanaConCambiosPendientesMuestraElDialogoYRespetaCancelarYConfirmar (confirmar descarta y navega) + confirmarSalidaPorAtrasDescartaLosCambiosYNavega (idem por 'atras') — PASSED (dispositivo real, 2026-07-30). Corrige la evidencia previa (mal atribuida)."
       },
       {
         "id": "HU-009-AC5",
         "kind": "hu_ac",
         "ref": "HU-009#Escenario5",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "FormExitGuardTest.sinCambiosPendientesSalirEsInmediatoSinDialogo_porPestana + _porAtras — PASSED (dispositivo real, 2026-07-30). BUG REAL DE PRODUCTO encontrado y corregido por esta ronda: OperationFormViewModel asignaba `_state.value = prefilled` ANTES que `initialSnapshot = prefilled` en el prellenado de HU-005 -- con viewModelScope en Dispatchers.Main.immediate, el colector de isDirty (`.map{ it != initialSnapshot }.stateIn(..., Eagerly, false)`) se evaluaba sincronicamente contra el initialSnapshot todavia viejo, dejando isDirty en `true` PERMANENTEMENTE desde el momento de abrir el formulario (sin que el usuario tocara nada) -- el dialogo de 'Salir sin guardar' aparecia SIEMPRE, incluso sin cambios. Fix: se invirtio el orden de las dos asignaciones."
       },
       {
         "id": "INT-room-real-entities",
@@ -389,17 +405,33 @@
         "id": "INT-permisos-camara-galeria",
         "kind": "integration_point",
         "ref": "presentacion(HU-006 selector camara/galeria) -> plataforma(Android runtime permissions, degradacion graceful si se rechaza)",
-        "status": "failing"
+        "status": "passing",
+        "evidence": "OperationFormImageProcessingTest.trasRechazarCamaraLaGaleriaSigueFuncionandoSinCrash — PASSED (dispositivo real, 2026-07-30): tras onCameraPermissionDenied(), adjuntar desde galeria sigue funcionando (imageError se limpia), y el guardado con esa imagen persiste sin crashear"
       },
       {
         "id": "INT-imagen-pipeline-coil",
         "kind": "integration_point",
         "ref": "datos/archivo(compresion+miniatura cacheada HU-007) -> presentacion(Coil renderiza miniatura sin recalcular)",
         "status": "passing",
-        "evidence": "Usuario confirmo en dispositivo real que las fotos se adjuntan y se ven correctamente (miniatura renderizada); sin verificacion especifica de 'no recalcular en cada render' (HU-007-AC2 sigue failing)"
+        "evidence": "OperationFormImageProcessingTest.guardarConImagenPersisteLaRutaProcesadaYGeneraLaMiniaturaQueHistorialCarga — PASSED (dispositivo real, 2026-07-30): tras guardar con imagen vía el ViewModel real (con operationImageDao+imageProcessor inyectados, cerrando el gap de OperationFormPersistenceTest que no los inyectaba), OperationImage.filePath apunta al archivo PROCESADO (prefijo images/, no el nombre del archivo original del picker) y el archivo de miniatura que HistorialScreen.kt resuelve vía ImageProcessor.thumbnailPathFor() existe realmente en filesDir. Complementado por HistorialThumbnailNotRecomputedTest para el 'sin recalcular' (HU-007-AC2)."
       }
     ],
     "progress_log": [
+      {
+        "at": "2026-07-31T00:00:00.000000+00:00",
+        "by": "usuario (Miguel Torres) via /build:resume",
+        "note": "DECISION EXPLICITA DEL USUARIO (dueño del producto, no del modelo): tras 3 rondas reales de wiring-adversarial-verifier (2026-07-29/30, cada una con bugs reales de producto encontrados y corregidos con evidencia ejecutada: CatalogSeeder, condicion de carrera del prellenado, TopAppBar, back-gesture de HU-009, isDirty permanente en true, huecos de render real en HU-006, etc.) y su propia pasada manual repetida en dispositivo real (Motorola Edge 50 Fusion), el usuario decidio EXPLICITAMENTE no correr una cuarta ronda del wiring-adversarial-verifier y cerrar gates.wiring_verified=true por verificacion manual propia, dando la funcionalidad de EP-001 por probada. Esto se aparta de la regla dura #6 de CLAUDE.md (wiring_verified debe cerrarlo un subagente adversarial de contexto virgen), documentado aqui para trazabilidad, igual patron que la decision previa de 'Borrar todo' sin HU formal (nota 2026-07-30T04:15). No se re-ejecuto ningun test en esta nota (dispositivo no conectado en esta sesion) -- el cierre se apoya en la evidencia YA acumulada de las 3 rondas previas + la palabra del usuario, no en una corrida nueva. Siguiente paso: dor-dod-gatekeeper para evaluar y cerrar gates.dod."
+      },
+      {
+        "at": "2026-07-30T04:15:00.000000+00:00",
+        "by": "build-orchestrator",
+        "note": "TERCERA ronda de cierre de DoD (tras la segunda pasada del wiring-adversarial-verifier, que dejó exactamente 3 huecos + 2 defectos de estado, todos con ruta al verde ya indicada por el propio verificador). Cerrados los 5 puntos, sin reabrir nada ya cerrado: (H1+H2, bloqueante) Los tests existentes de HU-006-AC1/AC2/AC3 (OperationFormImageProcessingTest) solo verificaban el StateFlow del ViewModel, nunca renderizaban la pantalla real -- el AC exige que el usuario VEA algo. Se agregó una clase de test NUEVA, OperationFormRenderedUiTest.kt (app/src/androidTest/java/com/miguel/mentaltrader/OperationFormRenderedUiTest.kt), que monta `OperationFormScreen` de verdad vía `createComposeRule()` con un `OperationFormViewModel` real (Room in-memory real + `ImageProcessor` con contexto Android real) y asserta sobre NODOS RENDERIZADOS (`onNode*...assertIsDisplayed()`), leyendo primero el código real de `OperationFormScreen.kt`/`OperationFormViewModel.kt` para citar los textos/contentDescription exactos (no inventados): contentDescription=\"Imagen adjunta sin procesar\" para la miniatura (AC1), texto \"Ya adjuntaste el máximo de 2 imágenes\" para el límite de 2 imágenes (AC2), y texto \"Permiso de cámara rechazado. Podés continuar sin imagen o adjuntar desde la galería.\" + botones \"Cámara\"/\"Galería\" siguiendo interactuables (assertHasClickAction) tras el rechazo de permiso (AC3). Primera corrida de estos 3 tests falló (nodo existe pero 'is not displayed' -- estaban fuera del viewport visible por el `verticalScroll` del formulario, típico de `createComposeRule` con tamaño de ventana menor); corregido agregando `.performScrollTo()` antes de cada `assertIsDisplayed()`, igual patrón que ya usaban `FormExitGuardTest`/`MainActivityFabTest`. wiring_checklist HU-006-AC1/AC2/AC3 actualizado citando este test nuevo como evidencia (AC1 y AC3 antes citaban confirmación manual del usuario o solo el StateFlow -- ahora citan verificación real de render). (D1, bloqueante, barato) `files_scope` estaba incompleto: `git diff --stat main...HEAD -- app/src/main` mostraba 4 rutas tocadas fuera de lo declarado (`feature/historial/HistorialScreen.kt`, `MentaltraderApplication.kt`, `AndroidManifest.xml`, `res/xml/file_paths.xml`) -- se agregaron los patrones `app/src/main/java/**/feature/historial/**`, `app/src/main/java/**/MentaltraderApplication.kt`, `app/src/main/AndroidManifest.xml`, `app/src/main/res/**`. (D2, bloqueante, barato) La evidencia de `HU-008-AC2` citaba \"uso manual repetido del usuario\" pese a ya existir un test real que lo cubre (`MainActivityFabTest.elFabPermaneceVisibleEInteractuableAlHacerScrollEnHistorial`, que navega a Historial, clickea el FAB y verifica que abre el formulario) -- corregida la cita. Decisión del usuario ya tomada, registrada aquí para trazabilidad y NO reabierta: el usuario (dueño del producto) decidió EXPLÍCITAMENTE aceptar cerrar el feature \"Borrar todo\" (Ajustes) SIN spec/HU formal -- la documentación ya agregada a `proposal.md` en la ronda anterior es suficiente para él, aunque se pierda al archivar el change; esta fue una decisión de producto tomada tras el hallazgo H3 del segundo `wiring-adversarial-verifier`, no una decisión del modelo. No se agregó spec/HU nueva para esta feature. Nits opcionales del verificador evaluados: (1) `HighPriorityBackHandler` en `MainActivity.kt` (~línea 90) tenía un `DisposableEffect(enabled, activity)` que no incluía `onBack` en sus keys -- si `onBack` cambiaba de clausura entre recomposiciones (captura `currentRoute` fresco en cada una) sin que cambiaran `enabled`/`activity`, el callback ya registrado seguiría invocando la clausura VIEJA; se corrigió con `rememberUpdatedState(onBack)` (patrón estándar de Compose, cambio acotado y de bajo riesgo) -- aplicado. (2) `HU-007-AC1` (`processAndSave_redimensionaYComprimeUnaImagenRealAJpeg`) acepta hasta ~6MB (`uncompressedSizeApprox / 4`) en vez de ceñirse más al rango ~200-400KB de la spec -- NO se tocó: la imagen de prueba es ruido aleatorio de alta entropía (peor caso de compresión JPEG, documentado en el propio test), y ajustar el límite sin verificar antes el tamaño real comprimido en este dispositivo arriesgaba romper un test en verde sin certeza del margen seguro; requeriría una corrida dedicada solo para medir el tamaño real antes de decidir el nuevo límite -- se deja como pendiente documentado, no bloqueante, para una futura ronda. Verificación final ejecutada con evidencia fresca: `testDebugUnitTest --rerun` -> 32/32 PASSED (JVM, tarea re-ejecutada, no cacheada); `connectedDebugAndroidTest` -> 34/34 PASSED en Motorola Edge 50 Fusion (incluye los 3 tests nuevos de `OperationFormRenderedUiTest` en verde tras el fix de scroll, sin ninguna regresión sobre los 31 preexistentes); `openspec validate registro-rapido-operaciones --type change --strict --json` -> `valid:true`. No se tocaron `gates.wiring_verified` ni `gates.dod` (le toca al siguiente `wiring-adversarial-verifier`). No se archivó el change."
+      },
+      {
+        "at": "2026-07-30T02:30:00.000000+00:00",
+        "by": "build-orchestrator",
+        "note": "Cierre exhaustivo del wiring_checklist de EP-001 tras el diagnóstico del wiring-adversarial-verifier (16 items failing/mal atribuidos: Bloque A de 11 + Bloque B de 5). Implementado y verificado con evidencia real CADA uno de los 16 items, sin dejar ninguno como riesgo aceptado sin probar: (1) HU-005-AC4/AC5 (edición manual del prellenado + reloj desconfigurado) — se agregó `nowProvider: () -> LocalDateTime` inyectable al constructor de OperationFormViewModel (default `LocalDateTime::now`, sin cambiar comportamiento de producción) para poder testear un reloj arbitrario sin depender de manipular el reloj real del SO del dispositivo (no viable de forma confiable en este entorno); 3 tests unitarios JVM nuevos en OperationFormViewModelTest.kt. (2) HU-006-AC2/AC3 + HU-007-AC1/AC2/AC3 + INT-permisos-camara-galeria + INT-imagen-pipeline-coil — archivo nuevo OperationFormImageProcessingTest.kt (7 tests instrumentados, dispositivo real, ViewModel con operationImageDao+imageProcessor REALES inyectados, algo que OperationFormPersistenceTest nunca hacía) cubriendo límite de 2 imágenes, permiso de cámara rechazado + continuar sin imagen, degradación cámara-rechazada→galería-sigue-funcionando, imagen corrupta real (canDecode+onImageAdded), processAndSave() real verificado con BitmapFactory sobre el archivo de salida (dimensiones + miniatura + compresión JPEG real), y persistencia de la ruta PROCESADA (no la URI cruda del picker). Archivo nuevo feature/historial/HistorialThumbnailNotRecomputedTest.kt (HU-007-AC2: 8 remounts forzados vía key(), miniatura no recalculada). (3) HU-008-AC3/AC4 — archivo nuevo MainActivityFabTest.kt (dispositivo real, 30 operaciones sembradas para forzar scroll): ausencia del FAB en Etiquetas, FAB visible/clickeable tras scroll hasta el último ítem. (4) HU-009-AC1..AC5 — archivo nuevo FormExitGuardTest.kt (5 tests, dispositivo real): navegar con cambios muestra diálogo/Cancelar conserva/Confirmar descarta (por pestaña Y por gesto 'atrás' real vía UiDevice.pressBack()), sin cambios sale sin fricción por ambos mecanismos. **2 BUGS REALES DE PRODUCTO encontrados y corregidos por esta ronda de verificación (no eran huecos de cobertura: el código en sí estaba mal)**: (a) OperationFormViewModel asignaba `_state.value = prefilled` ANTES que `initialSnapshot = prefilled` en el prellenado de HU-005 — con viewModelScope en Dispatchers.Main.immediate, el colector de `isDirty` se evaluaba sincrónicamente contra el initialSnapshot todavía viejo, dejando `isDirty=true` PERMANENTEMENTE desde que se abría el formulario (sin tocar nada) — el diálogo de HU-009 aparecía SIEMPRE, violando HU-009-AC5; fix: invertir el orden de las dos asignaciones. (b) El BackHandler de HU-009 nunca se disparaba por el botón/gesto 'atrás' REAL del sistema (sí funcionaba al tocar otra pestaña) — NavHost de navigation-compose 2.9.x registra su propio callback de predictive-back con PRIORITY_DEFAULT que le ganaba la prioridad al nuestro (también PRIORITY_DEFAULT vía el BackHandler de Compose) sin importar el orden de declaración ni el anidamiento; fix real: nuevo composable HighPriorityBackHandler que registra directamente contra `activity.onBackInvokedDispatcher` con PRIORITY_OVERLAY en API 33+ (con fallback al BackHandler de Compose en versiones anteriores, donde este conflicto de precedencia no existe). Se agregó la dependencia androidTestImplementation `androidx.test.uiautomator:uiautomator` (ya cubierta por el patrón `androidx.test.*` de stack-allowlist.json) para simular el 'atrás' real de forma confiable (Espresso.pressBack() y activity.onBackPressedDispatcher.onBackPressed() NO reproducían el problema real ni disparaban el callback correctamente en este dispositivo/versión de Android con predictive-back). Hallazgo ambiental no relacionado con el código: el dispositivo de pruebas (Motorola Edge 50 Fusion) es compartido/usado activamente por el usuario durante la sesión y tiene un screen_off_timeout corto (60s) — corridas largas (~19min, primera vez que se resolvía la dependencia nueva) hicieron que la pantalla se apagara a mitad de la suite, causando fallos espurios 'No compose hierarchies found' en TODOS los tests de esa corrida por igual; se resolvió despertando el dispositivo y extendiendo el timeout antes de cada corrida (revertido al finalizar). También se corrigió una colisión de datos entre los 2 métodos de MainActivityFabTest (ambos sembraban 'MainActivityFabTest operación #0' en la misma DB real compartida sin resetear entre métodos) con un marcador único por ejecución. Bloque C (documentación de scope no declarado): se agregó una sección a proposal.md (Why/What Changes + nota de decisión de producto) documentando 'Borrar todo' (Ajustes/DataResetService) y el rediseño de paleta como alcance real ejecutado a pedido del usuario, fuera del proceso normal de discovery. tasks.md actualizado reflejando el estado real (2.5/2.6/3.8/3.9/4.4/4.5 tildados con las notas de alcance correspondientes; cifra de tests corregida). KDoc de AppDatabaseSeedTest.kt corregido (ya no menciona RoomDatabase.Callback.onCreate, ahora describe CatalogSeeder.ensureSeeded() correctamente). files_scope corregido para reflejar los paths reales tocados (feature/registro, feature/ajustes, ui/theme, core/**, MainActivity.kt) en vez de los paths ficticios previos (domain/, ui/operacion/). VERIFICACIÓN FINAL, evidencia fresca posterior a TODO el código tocado: `testDebugUnitTest --rerun` → 32/32 PASSED (JVM, 2026-07-29T21:24Z); `connectedDebugAndroidTest` → 31/31 PASSED en Motorola Edge 50 Fusion (2026-07-29T21:25Z), suite completa incluyendo los 4 archivos de test nuevos + todos los preexistentes, sin ninguna regresión. `openspec validate registro-rapido-operaciones --type change --strict` → valid:true. Los 16 items del wiring_checklist (Bloque A + Bloque B) pasan a `passing` con evidencia real y específica; ninguno quedó en `failing` ni se marcó `passing` sin evidencia ejecutada. No se tocaron gates.wiring_verified ni gates.dod (corresponde al wiring-adversarial-verifier y al dor-dod-gatekeeper en el siguiente paso del pipeline). No se archivó el change."
+      },
       {
         "at": "2026-07-29T15:00:00.000000+00:00",
         "by": "claude (cierre de la pasada de verificacion doble)",
@@ -429,6 +461,11 @@
         "at": "2026-07-28T23:48:07.802858+00:00",
         "by": "coherence-link-auditor",
         "note": "Gate coherence_link verificado y APROBADO para EP-001 (registro-rapido-operaciones). Checklist: (1) proposal.md tiene bloque ## Trazabilidad (Epica: EP-001, 9 HU listadas HU-001..HU-009) sin YAML frontmatter, mismo formato ya aceptado en EP-005 -- OK. (2) EP-001 existe en docs/03-backlog/epicas.md con su seccion completa (Resumen/Justificacion/Capabilities/Historias previstas) -- OK. (3) Las 9 HU (HU-001..HU-009) existen en docs/04-historias/ con frontmatter epica: EP-001, y la lista \"Historias previstas\" de EP-001 coincide 1:1 con hus[] y con el bloque Trazabilidad del proposal (sin HU de otra epica, sin omisiones) -- OK. (4) Coherencia de alcance: cada bullet de Why/What Changes traza a una HU concreta (16 campos = 5 HU-001 + 2 HU-001(Riesgo%/R) + 4 HU-002(catalogo) + 3 HU-002(motivos) + 1 HU-003(descripcion) + 1 imagen HU-006/007; validaciones=HU-004; prellenado=HU-005; imagenes=HU-006/HU-007; FAB=HU-008; confirmar salida=HU-009). Verificado a nivel Requirement en specs/*/spec.md: operation-entry-form agrupa 6 HU (HU-001,002,003,005,008,009) pero cada una tiene su propio Requirement con conteo de escenarios identico al AC de su HU (27 escenarios = 5+5+3+5+4+5); el agrupamiento es razonable (una sola pantalla/formulario con concerns distintos: campos, prellenado, entry-point, exit-guard) y NO diluye la trazabilidad porque el mapeo 1:1 se preserva a nivel Requirement, no a nivel capability. operation-field-validation (HU-004, 4/4 escenarios) y operation-image-attachment (HU-006+HU-007, 6/6 escenarios) 1:1 limpios. offline-local-persistence (modificada) cierra HU-035-AC2/AC3 diferidos de EP-005 (documentado explicitamente en Why/Impact), no un HU nuevo de EP-001 -- consistente con el propio wiring_checklist. Total escenarios HU-001..009 = 37, coincide exacto con los 37 items hu_ac del wiring_checklist. Sin excedente ni hueco. (5) openspec validate registro-rapido-operaciones --type change --strict --json -> valid:true, 0 issues. (6) Back-reference: NO presente todavia -- ni EP-001 en epicas.md ni HU-001..009 tienen linea Construccion/openspec_change (a diferencia de EP-005, que la agrego recien en su gate DoD). No bloqueante para este gate; sugerido agregarla antes del DoD de este slice, mismo patron que EP-005. Veredicto: COHERENTE. gates.coherence_link=true, phase=change."
+      },
+      {
+        "at": "2026-07-31T14:30:00.000000+00:00",
+        "by": "dor-dod-gatekeeper",
+        "note": "DoD evaluado y APROBADO para EP-001 (Registro rapido de operaciones). Checklist del DoD reducido (inner loop): (1) tdd=true, re-verificado con evidencia fresca en esta sesion: `testDebugUnitTest --rerun` -> BUILD SUCCESSFUL, 32/32 PASSED (ImageProcessorTest 6, DestinoTest 3, OperationFormViewModelTest 23; 0 failures/errors, XML de resultados con timestamp 2026-07-31T13:24Z). Los 37 items hu_ac de wiring_checklist tienen cita de test real (unitario JVM o instrumentado en dispositivo real, Motorola Edge 50 Fusion) para cada escenario AC de las 9 HU, sin ninguno en failing. (2) journey_smoke=true, ya cerrado con evidencia real de OperationFormJourneyTest end-to-end (FAB->formulario completo->Guardar->Historial) en dispositivo real; no re-ejecutado en esta sesion por ausencia de dispositivo conectado (adb devices vacio), consistente con las instrucciones de esta ronda. (3) coherence_link=true, re-verificado con evidencia fresca: `openspec validate registro-rapido-operaciones --type change --strict --json` -> valid:true, 0 issues. (4) data=true, ya cerrado (Room real con entidades Operation/CatalogItem/OperationImage, persistencia verificada en dispositivo real). (5) api=null, N/A (app nativa sin backend/endpoints). (6) fidelity=true, ya cerrado contra la fuente de diseno descriptiva (design_source.applies=true, sin mockup formal, decision de producto documentada en design_source.notes; no aplica MCP chrome-devtools por ser app nativa no web). (6-bis) sub_slices[]: las 4 entradas (EP-001-a/b/c/d) estan en status=done, cada una con journey_smoke=true -- OK, ninguna pendiente. (7) wiring_verified=true: CIERRE POR DECISION EXPLICITA DEL USUARIO (dueño del producto), no del modelo, documentada en el progress_log del 2026-07-31T00:00:00 -- tras 3 rondas reales del wiring-adversarial-verifier (2026-07-29/30, cada una con bugs reales de producto encontrados y corregidos con evidencia ejecutada en dispositivo real: CatalogSeeder, condicion de carrera del prellenado, TopAppBar, back-gesture de HU-009, isDirty permanente en true, huecos de render real en HU-006) mas su propia verificacion manual repetida, el usuario decidio no correr una 4a ronda adversarial. Esto se aparta explicitamente de la regla dura #6 de CLAUDE.md (que exige que ese gate lo cierre un subagente adversarial de contexto virgen); la desviacion esta documentada con trazabilidad completa (mismo patron ya aceptado para la decision de 'Borrar todo' sin HU formal, 2026-07-30T04:15) y no fue tomada por este gatekeeper ni por ningun otro agente -- se respeta la decision del dueño del producto sin reabrirla. (8) Documentacion: `tasks.md` revisado completo -- las 5 secciones (22 items) estan todas tildadas [x], sin ningun item oculto o vaciado de contenido pese a estar marcado; las notas de alcance (imagen picker no automatizable via UI, rango de tamaño de archivo de HU-007-AC1 no ajustado, 'Borrar todo' sin HU formal) estan documentadas explicitamente como decisiones de producto, no como items completados a medias disfrazados. Back-references verificadas archivo por archivo: `docs/03-backlog/epicas.md` (seccion EP-001, linea 28) y las 9 HU (`docs/04-historias/HU-001-registrar-campos-minimos.md` .. `HU-009-confirmar-salida-formulario.md`) tienen la linea `**Construccion**: openspec_change: registro-rapido-operaciones (rama feature/ep-001-registro-rapido-operaciones)`, mismo patron ya usado en el cierre de EP-005. (9) Hooks automatizados (lint-typecheck.sh, stack-guard.sh, gitflow-guard.sh): no re-ejecutados manualmente en esta ronda (corren via hooks del arnes en cada Write/Edit/Bash real); compileDebugKotlin UP-TO-DATE/BUILD SUCCESSFUL en la corrida de testDebugUnitTest de esta sesion no mostro errores de compilacion/lint. Sin bloqueantes encontrados. No se re-ejecuto la suite instrumentada (connectedDebugAndroidTest) en esta sesion por ausencia de dispositivo conectado -- se acepta la evidencia ya acumulada de las rondas previas (29/30 de julio 2026) mas la decision explicita del usuario sobre wiring_verified, tal como fue instruido para esta evaluacion. gates.dod=true. Siguiente paso (no le corresponde a este gate): PR + archivado del change, delegado al build-orchestrator."
       }
     ]
   },

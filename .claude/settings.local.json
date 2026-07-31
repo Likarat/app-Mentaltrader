@@ -78,7 +78,20 @@
       "Bash(rm -rf 'C:\\\\Users\\\\migue/.android/avd/Pixel_6_API_30.avd/hardware-qemu.ini.lock')",
       "Bash(./gradlew.bat testDebugUnitTest assembleDebug --console=plain)",
       "Bash(./gradlew.bat compileDebugAndroidTestKotlin --console=plain)",
-      "Bash(command -v python)"
+      "Bash(command -v python)",
+      "Bash(gh pr *)",
+      "PowerShell(gh pr list --head feature/ep-001-registro-rapido-operaciones --state all --json number,title,state,url 2>&1)",
+      "Bash(./gradlew.bat testDebugUnitTest --rerun-tasks --console=plain)",
+      "Bash(sort -k6,7)",
+      "Bash(xargs -I{} sh -c 'grep -H \"tests=\" {}')",
+      "Bash(powershell -Command \"Get-Process -Name java -ErrorAction SilentlyContinue | Select-Object Id,StartTime\")",
+      "Bash(./gradlew.bat testDebugUnitTest --rerun --console=plain)",
+      "Bash(xargs grep -oh 'tests=\"[0-9]*\" skipped=\"[0-9]*\" failures=\"[0-9]*\" errors=\"[0-9]*\"')",
+      "Bash(awk -F'\"' '{tests+=$2; fail+=$6; err+=$8} END {print \"tests=\"tests, \"failures=\"fail, \"errors=\"err}')",
+      "Bash(grep -n \"fun \\\\`\\\\|    fun \" app/src/test/java/com/miguel/mentaltrader/feature/registro/OperationFormViewModelTest.kt)",
+      "Bash(adb devices *)",
+      "Bash(./gradlew testDebugUnitTest --rerun)",
+      "Bash(xargs grep -h \"tests=\")"
     ]
   }
 }
