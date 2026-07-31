@@ -1,6 +1,9 @@
 package com.miguel.mentaltrader
 
+import android.os.Build
 import android.os.Bundle
+import android.window.OnBackInvokedCallback
+import android.window.OnBackInvokedDispatcher
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -30,6 +33,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -65,6 +69,55 @@ class MainActivity : ComponentActivity() {
 const val RUTA_NUEVA_OPERACION = "nueva_operacion"
 const val RUTA_AJUSTES = "ajustes"
 
+/**
+ * Bug real encontrado por `FormExitGuardTest` (HU-009-AC2, 2026-07-29): `NavHost` de
+ * navigation-compose 2.9.x registra su propio callback de "atrás" predictivo con prioridad
+ * `PRIORITY_DEFAULT`. El `BackHandler` estándar de Compose (`androidx.activity.compose`) TAMBIÉN
+ * registra con `PRIORITY_DEFAULT` a través del `OnBackPressedDispatcher` de compatibilidad — en
+ * ese caso, el orden de registro decide quién gana, y se verificó empíricamente (logging
+ * temporal en dispositivo real) que el callback interno de NavHost termina ganando SIEMPRE,
+ * sin importar dónde se declare nuestro `BackHandler` (ni a nivel de `MentaltraderApp`, ni
+ * anidado dentro del contenido del propio destino). El diálogo de confirmación nunca se
+ * disparaba por el gesto/botón "atrás" real del sistema (sí funcionaba, correctamente, al tocar
+ * otra pestaña, que no pasa por este dispatcher).
+ *
+ * Fix real: en API 33+ (`OnBackInvokedCallback` nativo), se registra DIRECTAMENTE contra el
+ * `onBackInvokedDispatcher` de la Activity con `PRIORITY_OVERLAY`, que por contrato de la
+ * plataforma tiene prioridad sobre cualquier callback `PRIORITY_DEFAULT` (como el de NavHost),
+ * sin depender del orden de registro. En API < 33 se usa el `BackHandler` de Compose de siempre
+ * (predictive back no existe ahí, por lo que este conflicto de prioridad no aplica).
+ */
+@Composable
+private fun HighPriorityBackHandler(enabled: Boolean, onBack: () -> Unit) {
+    val activity = LocalContext.current as? ComponentActivity
+    // Nit detectado por wiring-adversarial-verifier: el DisposableEffect de abajo solo se
+    // vuelve a ejecutar cuando cambian `enabled`/`activity` (sus keys), NO cuando cambia el
+    // lambda `onBack` en sí — y `onBack` sí cambia entre recomposiciones (nueva clausura
+    // capturando `currentRoute`/`onBack` frescos cada vez, ver el call-site más abajo). Sin
+    // `rememberUpdatedState`, el callback ya registrado en el dispatcher nativo seguiría
+    // invocando la clausura VIEJA (con `currentRoute` desactualizado) hasta la próxima vez que
+    // cambiaran `enabled`/`activity`. `rememberUpdatedState` asegura que el callback siempre
+    // invoque la versión más reciente de `onBack`, sin necesidad de re-registrar el callback en
+    // cada recomposición.
+    val currentOnBack by rememberUpdatedState(onBack)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && activity != null) {
+        DisposableEffect(enabled, activity) {
+            val callback = OnBackInvokedCallback { currentOnBack() }
+            if (enabled) {
+                activity.onBackInvokedDispatcher.registerOnBackInvokedCallback(
+                    OnBackInvokedDispatcher.PRIORITY_OVERLAY,
+                    callback
+                )
+            }
+            onDispose {
+                if (enabled) activity.onBackInvokedDispatcher.unregisterOnBackInvokedCallback(callback)
+            }
+        }
+    } else {
+        BackHandler(enabled = enabled, onBack = onBack)
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MentaltraderApp(navController: NavHostController = rememberNavController()) {
@@ -85,10 +138,6 @@ fun MentaltraderApp(navController: NavHostController = rememberNavController()) 
         } else {
             action()
         }
-    }
-
-    BackHandler(enabled = currentRoute == RUTA_NUEVA_OPERACION) {
-        requestExit { navController.popBackStack() }
     }
 
     // Título del TopAppBar: NO repetir la etiqueta del tab activo (ya se muestra en la barra
@@ -191,6 +240,13 @@ fun MentaltraderApp(navController: NavHostController = rememberNavController()) 
                 val dirty by formViewModel.isDirty.collectAsState()
                 LaunchedEffect(dirty) { formDirty = dirty }
                 DisposableEffect(Unit) { onDispose { formDirty = false } }
+
+                // HU-009-AC2: ver KDoc de HighPriorityBackHandler (arriba) para el detalle del
+                // bug real de precedencia de callbacks frente al predictive-back interno de
+                // NavHost que esto soluciona.
+                HighPriorityBackHandler(enabled = true) {
+                    requestExit { navController.popBackStack() }
+                }
 
                 OperationFormScreen(
                     viewModel = formViewModel,

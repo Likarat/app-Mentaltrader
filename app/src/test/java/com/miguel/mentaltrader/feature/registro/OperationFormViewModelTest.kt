@@ -49,8 +49,8 @@ class OperationFormViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun createViewModel(): OperationFormViewModel =
-        OperationFormViewModel(operationDao, catalogItemDao)
+    private fun createViewModel(now: () -> java.time.LocalDateTime = java.time.LocalDateTime::now): OperationFormViewModel =
+        OperationFormViewModel(operationDao, catalogItemDao, nowProvider = now)
 
     private fun OperationFormViewModel.fillMinimalRequiredFields(
         assetId: Long,
@@ -436,6 +436,52 @@ class OperationFormViewModelTest {
         val viewModel = createViewModel()
 
         assertNull(viewModel.state.value.assetId)
+    }
+
+    // HU-005 Escenario 4: editar manualmente Fecha/Hora ya prellenadas conserva el valor editado,
+    // sin revertirlo automáticamente al valor por defecto.
+    @Test
+    fun `editar manualmente fecha y hora prellenadas conserva el valor editado sin revertirlo`() = runTest {
+        catalogItemDao.seed(CatalogType.ASSET, CatalogItem.SEED_ASSET_XAUUSD)
+        val viewModel = createViewModel()
+        // Confirma que efectivamente arrancó prellenado (para no falsear el escenario: si no
+        // hubiera prellenado, "conservar la edición" no probaría nada).
+        val today = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+        assertEquals(today, viewModel.state.value.dateText)
+
+        viewModel.onDateChange("01/01/2020")
+        viewModel.onTimeChange("00:00")
+
+        assertEquals("01/01/2020", viewModel.state.value.dateText)
+        assertEquals("00:00", viewModel.state.value.timeText)
+    }
+
+    // HU-005 Escenario 5: reloj del dispositivo desconfigurado -- el sistema prellena igual con
+    // el valor (incorrecto) del reloj, sin intentar corregirlo ni validarlo en este punto (esa
+    // responsabilidad es exclusiva de HU-004 al guardar). Se inyecta un reloj falso vía
+    // `nowProvider` porque manipular de forma confiable el reloj real del sistema operativo del
+    // dispositivo de pruebas no es viable en este entorno (ver progress_log de build-state.json).
+    @Test
+    fun `reloj del dispositivo desconfigurado hacia el pasado prellena igual sin validarlo`() = runTest {
+        catalogItemDao.seed(CatalogType.ASSET, CatalogItem.SEED_ASSET_XAUUSD)
+        val relojDesconfiguradoEnElPasado = java.time.LocalDateTime.of(1999, 1, 1, 0, 0)
+        val viewModel = createViewModel(now = { relojDesconfiguradoEnElPasado })
+
+        assertEquals("01/01/1999", viewModel.state.value.dateText)
+        assertEquals("00:00", viewModel.state.value.timeText)
+        // No se valida ni se bloquea en este punto: el formulario recién abre, sin fieldErrors.
+        assertTrue(viewModel.state.value.fieldErrors.isEmpty())
+    }
+
+    @Test
+    fun `reloj del dispositivo desconfigurado hacia el futuro tambien prellena sin validarlo`() = runTest {
+        catalogItemDao.seed(CatalogType.ASSET, CatalogItem.SEED_ASSET_XAUUSD)
+        val relojDesconfiguradoEnElFuturo = java.time.LocalDateTime.of(2099, 6, 15, 12, 0)
+        val viewModel = createViewModel(now = { relojDesconfiguradoEnElFuturo })
+
+        assertEquals("15/06/2099", viewModel.state.value.dateText)
+        assertEquals("12:00", viewModel.state.value.timeText)
+        assertTrue(viewModel.state.value.fieldErrors.isEmpty())
     }
 
     private class FakeOperationDao : OperationDao {

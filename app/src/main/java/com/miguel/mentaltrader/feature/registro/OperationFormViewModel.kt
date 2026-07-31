@@ -33,7 +33,14 @@ class OperationFormViewModel(
     private val operationDao: OperationDao,
     private val catalogItemDao: CatalogItemDao,
     private val operationImageDao: OperationImageDao? = null,
-    private val imageProcessor: ImageProcessor? = null
+    private val imageProcessor: ImageProcessor? = null,
+    /** HU-005-AC5 (reloj del dispositivo desconfigurado): fuente del "ahora" usada para el
+     * prellenado. Inyectable para poder probar el comportamiento con un reloj arbitrario
+     * (pasado/futuro absurdo) sin depender de manipular el reloj real del sistema operativo,
+     * que no es viable de forma confiable en este entorno. En producción siempre es
+     * `LocalDateTime.now()` (valor real del dispositivo, sin corregir ni validar aquí — esa
+     * responsabilidad es de HU-004 al guardar). */
+    private val nowProvider: () -> LocalDateTime = LocalDateTime::now
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(OperationFormState.INITIAL)
@@ -63,7 +70,7 @@ class OperationFormViewModel(
 
     init {
         viewModelScope.launch {
-            val now = LocalDateTime.now()
+            val now = nowProvider()
             val assetCatalog = catalogItemDao.getByType(CatalogType.ASSET).first()
             // HU-005 Esc.2/3: solo se prellena el Activo si el catálogo no tiene más que la
             // semilla (ningún elemento agregado manualmente por el usuario).
@@ -79,9 +86,20 @@ class OperationFormViewModel(
             // usuario) — sin este guard, un `_state.value = prefilled` incondicional podía
             // pisar campos que ya se habían completado. Solo se prellena si el formulario
             // sigue intacto.
+            //
+            // Bug real #2 encontrado por FormExitGuardTest (HU-009-AC5, 2026-07-29): con
+            // `viewModelScope` en `Dispatchers.Main.immediate`, escribir `_state.value` ANTES de
+            // `initialSnapshot` dejaba una ventana donde el colector de `isDirty` (el `.map{}` de
+            // más arriba, disparado sincrónicamente por el cambio de `_state` en el mismo hilo)
+            // podía evaluarse contra el `initialSnapshot` TODAVÍA viejo (`INITIAL`), marcando
+            // `isDirty=true` de forma permanente (nada vuelve a recalcularlo hasta la próxima
+            // edición real) — el diálogo de "¿Salir sin guardar?" aparecía SIEMPRE al abrir el
+            // formulario, incluso sin que el usuario tocara nada. Se actualiza `initialSnapshot`
+            // PRIMERO para que, quien sea que reaccione al cambio de `_state`, ya vea el snapshot
+            // correcto.
             if (_state.value == OperationFormState.INITIAL) {
-                _state.value = prefilled
                 initialSnapshot = prefilled
+                _state.value = prefilled
             }
         }
     }
