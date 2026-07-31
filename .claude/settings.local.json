@@ -93,7 +93,9 @@
       "Bash(./gradlew testDebugUnitTest --rerun)",
       "Bash(xargs grep -h \"tests=\")",
       "Bash(openspec --help)",
-      "Bash(openspec archive *)"
+      "Bash(openspec archive *)",
+      "Bash(git switch *)",
+      "Bash(awk 'NR==61,NR==89' docs/03-backlog/epicas.md)"
     ]
   }
 }

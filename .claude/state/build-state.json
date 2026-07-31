@@ -32,15 +32,15 @@
       "dor": true,
       "tdd": false,
       "journey_smoke": false,
-      "coherence_link": false,
+      "coherence_link": true,
       "data": false,
       "fidelity": false,
       "api": null,
       "wiring_verified": false,
       "dod": false
     },
-    "updated_at": "2026-07-31T15:10:00.000000+00:00",
-    "updated_by": "dor-dod-gatekeeper",
+    "updated_at": "2026-07-31T04:00:00.000000+00:00",
+    "updated_by": "change-epic-coherence",
     "files_scope": [
       "app/src/main/java/**/feature/etiquetas/**",
       "app/src/main/java/**/feature/registro/**",
@@ -243,6 +243,11 @@
       }
     ],
     "progress_log": [
+      {
+        "at": "2026-07-31T04:00:00.000000+00:00",
+        "by": "change-epic-coherence",
+        "note": "Gate coherence_link verificado y APROBADO para EP-002 (gestion-catalogos-etiquetas). proposal.md con bloque ## Trazabilidad (EP-002, HU-010..014); EP-002 existe en epicas.md; las 5 HU existen con epica: EP-002 en frontmatter y coinciden 1:1 con 'Historias previstas'. Mapeo HU->capability sin hueco ni excedente: catalog-management (nueva) = HU-010+011+012; image-storage-usage (nueva) = HU-014; operation-entry-form (modificada) = HU-013. openspec validate --strict devuelve error esperado ('sin deltas') porque todavia no existen specs/ ni tasks.md en esta fase -- no es un defecto del proposal, se re-verificara cuando existan. Back-reference agregado a epicas.md (Construccion: openspec_change=gestion-catalogos-etiquetas). Nota no bloqueante detectada (preexistente, no de este change): epicas.md:83 referencia un slug de archivo viejo de HU-010 (HU-010-administrar-catalogos.md) que ya no existe -- pendiente de corregir en otra pasada."
+      },
       {
         "at": "2026-07-31T15:10:00.000000+00:00",
         "by": "dor-dod-gatekeeper",

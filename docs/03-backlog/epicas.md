@@ -60,6 +60,8 @@
 
 ## EP-002 — Gestión de catálogos (Etiquetas)
 
+**Construcción**: `openspec_change: gestion-catalogos-etiquetas` (rama `feature/ep-002-gestion-catalogos-etiquetas`).
+
 **Resumen**: cubre la pestaña "Etiquetas" — administración de los tres catálogos (Activos, Emociones, Errores) compartiendo la misma entidad `CatalogItem`, incluyendo semillas (`Ninguno` obligatoria para Errores, `XAUUSD` obligatoria para Activos, y un set inicial **opcional** para Emociones — ver nota abajo), la posibilidad de agregar una etiqueta nueva sin salir del formulario de registro, y la visualización del espacio en disco usado por imágenes.
 
 > **Decisión de producto (post `/trycore:invest` sobre la historia original de EP-001)**: el catálogo `EMOTION`, que la especificación original dejaba sin semilla obligatoria, ahora se siembra con un set inicial de valores por defecto (Confianza, Nervios, Ansiedad, Euforia, Frustración, Alivio, Miedo, Calma — editable desde Etiquetas) para que el registro de operaciones (EP-001, HU-002) sea completable desde el primer uso sin depender de esta épica. Detalle en `docs/04-historias/HU-002-completar-campos-catalogo.md` §Notas técnicas.
