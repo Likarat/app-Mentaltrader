@@ -15,7 +15,241 @@
     "source": "Sin mockups formales — decisión de producto explícita (Especificacion_Bitacora_Trading.md §1: \"No hay mockups previos; la UI se ajusta de forma iterativa durante el desarrollo\"). Fuente de verdad visual: PRD/spec descriptivos (tema oscuro por defecto, layout de una columna, orden de campos ya fijado).",
     "notes": "gate fidelity (fase smoke) se evalúa contra la descripción textual del PRD/spec, no contra un export visual (no aplica MCP chrome-devtools screenshot-vs-prototipo en el sentido estricto; se evalúa consistencia con la descripción)."
   },
-  "active_slice": null,
+  "active_slice": {
+    "epica": "EP-002",
+    "hus": [
+      "HU-010",
+      "HU-011",
+      "HU-012",
+      "HU-013",
+      "HU-014"
+    ],
+    "openspec_change": "gestion-catalogos-etiquetas",
+    "branch": "feature/ep-002-gestion-catalogos-etiquetas",
+    "phase": "dor",
+    "layer": "business",
+    "gates": {
+      "dor": true,
+      "tdd": false,
+      "journey_smoke": false,
+      "coherence_link": false,
+      "data": false,
+      "fidelity": false,
+      "api": null,
+      "wiring_verified": false,
+      "dod": false
+    },
+    "updated_at": "2026-07-31T15:10:00.000000+00:00",
+    "updated_by": "dor-dod-gatekeeper",
+    "files_scope": [
+      "app/src/main/java/**/feature/etiquetas/**",
+      "app/src/main/java/**/feature/registro/**",
+      "app/src/main/java/**/core/data/**",
+      "app/src/main/java/**/core/model/**"
+    ],
+    "sub_slices": [
+      {
+        "id": "EP-002-a",
+        "title": "Administracion completa de catalogos (agregar, editar, eliminar con proteccion de semillas)",
+        "hus": [
+          "HU-010",
+          "HU-011"
+        ],
+        "status": "pending",
+        "journey_smoke": false
+      },
+      {
+        "id": "EP-002-b",
+        "title": "Agregar etiqueta inline sin salir del formulario de operacion",
+        "hus": [
+          "HU-013"
+        ],
+        "status": "pending",
+        "journey_smoke": false
+      },
+      {
+        "id": "EP-002-c",
+        "title": "Confirmar eliminacion de un elemento de catalogo en uso",
+        "hus": [
+          "HU-012"
+        ],
+        "status": "pending",
+        "journey_smoke": false
+      },
+      {
+        "id": "EP-002-d",
+        "title": "Ver espacio en disco usado por imagenes",
+        "hus": [
+          "HU-014"
+        ],
+        "status": "pending",
+        "journey_smoke": false
+      }
+    ],
+    "wiring_checklist": [
+      {
+        "id": "HU-010-AC1",
+        "kind": "hu_ac",
+        "ref": "HU-010#Escenario1",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-010-AC2",
+        "kind": "hu_ac",
+        "ref": "HU-010#Escenario2",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-010-AC3",
+        "kind": "hu_ac",
+        "ref": "HU-010#Escenario3",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-011-AC1",
+        "kind": "hu_ac",
+        "ref": "HU-011#Escenario1",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-011-AC2",
+        "kind": "hu_ac",
+        "ref": "HU-011#Escenario2",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-011-AC3",
+        "kind": "hu_ac",
+        "ref": "HU-011#Escenario3",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-011-AC4",
+        "kind": "hu_ac",
+        "ref": "HU-011#Escenario4",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-012-AC1",
+        "kind": "hu_ac",
+        "ref": "HU-012#Escenario1",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-012-AC2",
+        "kind": "hu_ac",
+        "ref": "HU-012#Escenario2",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-012-AC3",
+        "kind": "hu_ac",
+        "ref": "HU-012#Escenario3",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-013-AC1",
+        "kind": "hu_ac",
+        "ref": "HU-013#Escenario1",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-013-AC2",
+        "kind": "hu_ac",
+        "ref": "HU-013#Escenario2",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-013-AC3",
+        "kind": "hu_ac",
+        "ref": "HU-013#Escenario3",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-013-AC4",
+        "kind": "hu_ac",
+        "ref": "HU-013#Escenario4",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-014-AC1",
+        "kind": "hu_ac",
+        "ref": "HU-014#Escenario1",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-014-AC2",
+        "kind": "hu_ac",
+        "ref": "HU-014#Escenario2",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-014-AC3",
+        "kind": "hu_ac",
+        "ref": "HU-014#Escenario3",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "INT-etiquetas-screen-catalogitemdao",
+        "kind": "integration_point",
+        "ref": "presentacion(EtiquetasScreen, hoy placeholder) -> datos(CatalogItemDao: insert/update/delete reales, reemplazando el placeholder de EP-005)",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "INT-registro-form-inline-add",
+        "kind": "integration_point",
+        "ref": "presentacion(OperationFormScreen/ViewModel, EP-001 ya archivada) -> datos(CatalogItemDao.insert reutilizado por HU-013 via punto de entrada + Agregar nueva)",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "INT-catalogitem-usage-count",
+        "kind": "integration_point",
+        "ref": "datos(nueva query: contar Operation.assetId/emotionBeforeId/emotionAfterId/errorId == CatalogItem.id) -> presentacion(advertencia de HU-012 con conteo real)",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "INT-disk-space-aggregation",
+        "kind": "integration_point",
+        "ref": "datos(OperationImageDao.getAll() -> File(filePath).length() por imagen real en filesDir) -> presentacion(texto de espacio total de HU-014)",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "INT-seed-recreation-on-empty-catalog",
+        "kind": "integration_point",
+        "ref": "datos(logica de recreacion automatica de semilla, hoy solo existe en CatalogSeeder.ensureSeeded al arrancar la app) -> disparada tambien tras un delete real que vacia el catalogo (HU-011 Escenario 4)",
+        "status": "failing",
+        "evidence": ""
+      }
+    ],
+    "progress_log": [
+      {
+        "at": "2026-07-31T15:10:00.000000+00:00",
+        "by": "dor-dod-gatekeeper",
+        "note": "DoR evaluado y APROBADO para EP-002 (Gestion de catalogos - Etiquetas), con troceo obligatorio en sub_slices[]. Checklist DoR: (1) epica existe en epicas.md con trazabilidad a Obj.3 (deteccion de patrones) y Obj.5 (espacio en disco) del PRD -- OK, verificado en el Mapa de trazabilidad. (2) 5 HU enumeradas y listadas en hus[] -- OK (HU-010..HU-014), coinciden 1:1 con la seccion Historias previstas de epicas.md y con la fila Trazabilidad rapida de backlog.md. (3) Frontmatter completo + estado:lista en las 5 -- OK, verificado archivo por archivo (HU-010-agregar-elemento-catalogo.md, HU-011-editar-eliminar-catalogo.md, HU-012-confirmar-eliminacion-en-uso.md, HU-013-agregar-etiqueta-inline.md, HU-014-ver-espacio-disco-imagenes.md). (4) AC en G/W/T proporcional a complejidad -- las 5 son complejidad S: HU-010=3, HU-011=4, HU-012=3, HU-013=4, HU-014=3 escenarios, todos cubriendo happy+error/edge reales sin inflar (mismo patron ya aceptado en EP-001 para HU de complejidad S con 3-5 escenarios: el umbral 1-2 de la regla es un piso, no un techo, cuando existen mas ramas de error/edge reales -- ej. HU-011 cubre ademas del happy path 3 edges reales: eliminar sin uso, bloquear eliminacion de semilla, y recrear semilla al vaciar el catalogo). (5) INVEST 6/6 en las 5 -- OK, checklist propio de cada HU revisado y consistente: HU-010 Independent de EP-001 (semillas por migracion, no por esta historia) y de HU-011; HU-011 Independent de HU-010 (prueba sobre elementos ya sembrados) y de HU-012; HU-012 depende de HU-011 (caso complementario del mismo verbo eliminar) y de datos de EP-001 solo para pruebas E2E, no de alcance; HU-013 reutiliza la logica de HU-010 sin duplicarla y depende de que el formulario de EP-001 exista (dependencia de plataforma ya aceptada en HU-008); HU-014 depende de datos de HU-006/007 (EP-001) solo para tener imagenes reales que agregar, vista de solo lectura sin alcance propio adicional. (6) Dependencias externas: HU-012 y HU-014 dependen de datos de EP-001 (HU-001 y HU-006/007 respectivamente) -- EP-001 ya esta en history[] archivada con gates.dod=true. HU-013 depende de que el formulario de EP-001 (OperationFormScreen/ViewModel) exista -- tambien archivada. Sin dependencias cruzadas pendientes. (7) Cimiento (criterio duro, layer=business): se verifico leyendo el codigo real, no por inspeccion del resumen -- la entidad CatalogItem, CatalogItemDao (insert/insertAll/getByType/countByType/getById), CatalogSeeder.ensureSeeded() y el placeholder EtiquetasScreen.kt YA EXISTEN (construidos por EP-001 y EP-005 respectivamente, ambas archivadas con dod=true). El unico cimiento pendiente es el propio codigo de negocio de esta epica (CRUD completo, conteo de uso, agregacion de espacio en disco), que es alcance normal de EP-002, no cimiento fundacional no construido. No se detecto ningun cimiento bloqueante -- EtiquetasScreen.kt es hoy literalmente Pantalla de Etiquetas (placeholder), con el comentario La logica real llega con EP-002, confirmando que EP-005 dejo el gancho listo a proposito. (8) Tamano: 5 HU > umbral por defecto de 3 -- NO entra como slice unico, se decompone en sub_slices[] (4 grupos, de a uno con journey_smoke verde entre cada uno): EP-002-a=HU-010+HU-011 (agrupadas porque epicas.md documenta que eran originalmente UNA sola historia partida solo por INVEST-S, mismo patron ya aplicado en EP-001-c=HU-006+HU-007; construyen el CRUD completo de la pantalla Etiquetas, PRIMERO porque HU-013/HU-012 reutilizan o extienden su logica); EP-002-b=HU-013 (Should, reutiliza HU-010 desde un punto de entrada distinto -- formulario de registro -- se construye segundo por prioridad MoSCoW y porque ya puede probarse en cuanto existe el add de HU-010); EP-002-c=HU-012 (Could, extiende el flujo de eliminar de HU-011 para el caso en uso, requiere que HU-011 ya exista); EP-002-d=HU-014 (Could, vista de solo lectura totalmente independiente de las otras 4 HU de esta epica -- se deja ultima por prioridad MoSCoW mas baja, sin razon de dependencia real). Capas tocadas: presentacion (EtiquetasScreen nueva UI real + touch puntual en OperationFormScreen para el entry point inline de HU-013) y datos (nuevas queries en CatalogItemDao: update/delete/ conteo de uso por CatalogItem.id contra Operation, mas agregacion de tamanio de archivo sobre OperationImageDao.getAll()) -- 2 capas, no 3, pero el criterio ya disparo por conteo de HU (>3). (9) Fuente de diseno (la epica toca UI: pantalla Etiquetas completa + touch en formulario de registro) -- design_source.confirmed=true a nivel de proyecto (fuente descriptiva PRD/spec, sin mockups formales, decision de producto ya registrada en design_source.notes); la epica apunta a la pestana Etiquetas ya prevista en esa misma fuente descriptiva -- mismo tratamiento ya aplicado a EP-001/EP-005, no requiere reconfirmacion. scaffold.confirmed=true y design_source.confirmed=true ya verificados en build-state.json antes de continuar (no se repregunto, segun instruccion). gates iniciales: dor=true, resto en false, api=null (app nativa sin backend/endpoints), fidelity=false (la epica toca UI), wiring_verified=false. wiring_checklist inicializado con 17 items hu_ac (uno por escenario AC de las 5 HU: 3+4+3+4+3) + 5 integration_point (Etiquetas-screen contra CatalogItemDao real; formulario de registro contra insert reutilizado de HU-013; conteo de uso Operation contra CatalogItem para HU-012; agregacion de tamanio de archivo real en disco para HU-014; recreacion de semilla disparada tambien por un delete real, no solo al arrancar la app), todos failing. Proximo paso: opsx:new para crear el change gestion-catalogos-etiquetas y arrancar TDD (red) sobre HU-010 (sub_slice EP-002-a, primera HU sin ninguna dependencia entrante dentro de la epica)."
+      }
+    ]
+  },
   "history": [
     {
       "epica": "EP-005",
