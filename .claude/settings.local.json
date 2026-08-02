@@ -116,7 +116,11 @@
       "PowerShell(python \"C:\\\\Users\\\\migue\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-migue-Desktop-automatizacion-proyectos-App-Mentaltrader\\\\4752548e-83ff-4acd-a98f-68e3ef157216\\\\scratchpad\\\\pause_ep002.py\")",
       "PowerShell(python -c \"import jsonschema, json; jsonschema.Draft202012Validator\\(json.load\\(open\\('.claude/state/build-state.schema.json'\\)\\)\\).validate\\(json.load\\(open\\('.claude/state/build-state.json'\\)\\)\\); print\\('SCHEMA OK'\\)\")",
       "PowerShell(python -c \"import jsonschema, json, io; schema=json.load\\(io.open\\('.claude/state/build-state.schema.json',encoding='utf-8'\\)\\); data=json.load\\(io.open\\('.claude/state/build-state.json',encoding='utf-8'\\)\\); jsonschema.Draft202012Validator\\(schema\\).validate\\(data\\); print\\('SCHEMA OK'\\)\")",
-      "PowerShell(git push -u origin feature/ep-002-gestion-catalogos-etiquetas)"
+      "PowerShell(git push -u origin feature/ep-002-gestion-catalogos-etiquetas)",
+      "PowerShell(git fetch origin)",
+      "PowerShell(git checkout main)",
+      "PowerShell(git pull origin main)",
+      "PowerShell(git push)"
     ]
   }
 }
