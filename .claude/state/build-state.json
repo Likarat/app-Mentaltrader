@@ -207,21 +207,21 @@
         "kind": "hu_ac",
         "ref": "HU-018#Escenario1",
         "status": "failing",
-        "evidence": ""
+        "evidence": "PARCIAL: HistorialDetalleViewModel escrito y testeado en JVM (carga la operacion real por id) pero HistorialDetalleScreen (la UI que se abre al tocar la tarjeta) y la navegacion real (tasks.md 2.4) todavia NO estan escritas -- interrumpido en un punto de corte natural (contexto de sesion bajo). Sin esa navegacion, este escenario no puede cerrarse ni a nivel JVM."
       },
       {
         "id": "HU-018-AC2",
         "kind": "hu_ac",
         "ref": "HU-018#Escenario2",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Cubierto a nivel JVM (datos, no layout): HistorialDetalleViewModelTest.'carga la operacion con los nombres de catalogo resueltos' + 'carga las imagenes adjuntas de la operacion' (testDebugUnitTest en verde) -- expone assetName/emotionBeforeName/emotionAfterName/errorName/images ya resueltos, listos para que la UI (todavia no escrita) los ordene en secciones."
       },
       {
         "id": "HU-018-AC3",
         "kind": "hu_ac",
         "ref": "HU-018#Escenario3",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Cubierto a nivel JVM: HistorialDetalleViewModelTest.'sin imagenes adjuntas la lista de imagenes queda vacia' (testDebugUnitTest en verde) -- el ViewModel expone images=emptyList(), la UI (todavia no escrita) es responsable de omitir la seccion sin dejar espacio vacio."
       },
       {
         "id": "HU-019-AC1",
@@ -457,6 +457,11 @@
     ],
     "progress_log": [
       {
+        "at": "2026-08-02T20:45:00.000000+00:00",
+        "by": "build-orchestrator",
+        "note": "EP-003-b (HU-018) iniciado, PAUSADO en un punto de corte natural (contexto de sesion bajo, ~35% restante) -- no un bloqueo de dispositivo esta vez, sino corte deliberado para no arrancar trabajo complejo nuevo (la UI) con poco contexto. Completado: HistorialDetalleUiState + HistorialDetalleViewModel (operationDao.getById + operationImageDao.getByOperationId + CatalogItemDao.getById resuelto para Activo/Emocion antes/Emocion despues/Error, todo en un unico init{} async) + Factory. 4 tests unitarios nuevos en HistorialDetalleViewModelTest (fakes locales de OperationDao/OperationImageDao/CatalogItemDao, ya que esta rama -- basada en main, sin el merge de EP-002 -- todavia no tiene testutil/ compartido) -- testDebugUnitTest en verde. NO escrito todavia: HistorialDetalleScreen (la UI real, secciones ordenadas imagen->datos generales->emociones->resultado->descripcion), ni la navegacion real desde una tarjeta de HistorialScreen (tasks.md 2.2/2.3/2.4). tasks.md 2.1 marcada parcial (solo ViewModel), 2.5 marcada completa. Proximo paso EXACTO: escribir HistorialDetalleScreen.kt (Composable con las secciones ya especificadas en design.md/HU-018), agregar la ruta de navegacion en MainActivity.kt (Destino o ruta ad-hoc con operationId como argumento, mismo patron que RUTA_NUEVA_OPERACION), y cablear el tap de OperationCard en HistorialScreen.kt para navegar ahi con el id real."
+      },
+      {
         "at": "2026-08-02T20:15:00.000000+00:00",
         "by": "build-orchestrator",
         "note": "EP-003-a (HU-015+HU-016) implementado: TDD JVM verde para la logica pura de agrupacion + wiring real de Paging 3 sobre Room. Implementado: OperationDao.pagingSourceOrderedByDateDesc (Room PagingSource real); HistorialListItem (GroupHeader/OperationRow) + HistorialSeparators.between(before, after) como funcion PURA (sin Room/Paging) que decide el separador mes/dia -- decision de diseno para poder testearla en JVM sin agregar androidx.paging:paging-testing (no esta en stack-allowlist.json); HistorialViewModel nuevo (Pager+insertSeparators+map+cachedIn, mas catalogItemDao para resolver el nombre del Activo en la tarjeta); HistorialScreen reemplaza el listado minimo de verificacion de EP-001 por LazyPagingItems real con tarjeta compacta (miniatura real o icono generico, Activo+Hora arriba, Resultado+R coloreado abajo). Se agregaron room-paging/paging-compose/paging-runtime (versiones 2.8.4/3.5.0/3.5.0, verificadas contra dl.google.com maven-metadata, no adivinadas) a libs.versions.toml/build.gradle.kts. Bloqueo de entorno real encontrado y resuelto: SSL handshake al resolver esas dependencias nuevas (PKIX path building failed) porque el JDK 21 auto-provisto de Gradle no confia en el certificado del proxy/AV de esta maquina -- mismo patron que el fix ya documentado de git http.sslbackend=schannel; resuelto con systemProp.javax.net.ssl.trustStoreType=Windows-ROOT en ~/.gradle/gradle.properties (config de maquina, fuera del repo, no afecta otros entornos/CI). Se actualizaron 2 tests preexistentes de EP-001 desincronizados por el cambio de firma de HistorialScreen (paso de parametros DAO sueltos a viewModel): AppNavigationTest.tocarHistorialMuestraLaPantallaDeHistorialInmediatamente (la tarjeta ya no muestra 'Operacion #...', ahora asertamos por el nombre del ResultType) y HistorialThumbnailNotRecomputedTest (HU-007 Escenario 2, construye un HistorialViewModel real en vez del constructor viejo). testDebugUnitTest (HistorialSeparatorsTest, 5 tests) + assembleDebug + compileDebugAndroidTestKotlin: BUILD SUCCESSFUL, sin regresiones. Sin instrumentado ni journey_smoke todavia (tasks.md 1.8/1.9 diferidos a la pasada final unica, sin dispositivo conectado en esta sesion, mismo criterio ya aplicado a EP-002-b/c/d). phase=green. Proximo paso: EP-003-b (HU-018, vista de detalle completo)."
@@ -471,7 +476,14 @@
         "by": "change-epic-coherence",
         "note": "Gate coherence_link (inner loop, fase change) VERIFICADO y APROBADO para el change historial-estudio-operaciones atado a EP-003 (Historial y estudio de operaciones). Checklist: (1) proposal.md contiene el bloque '## Trazabilidad' en el formato canonico (no en frontmatter YAML): '- Epica: EP-003', '- Historias: HU-015, HU-016, HU-017, HU-018, HU-019, HU-020, HU-021, HU-022, HU-023, HU-024, HU-025', '- Discovery: docs/03-backlog/epicas.md#ep-003' (lineas 33-36 de proposal.md), OK. (2) EP-003 existe en docs/03-backlog/epicas.md (seccion '## EP-003 -- Historial y estudio de operaciones', linea 89), con trazabilidad a Obj.2 y Obj.3 del PRD, OK. (3) Las 11 HU (HU-015 a HU-025) existen como archivo propio en docs/04-historias/, frontmatter epica: EP-003 verificado en las 11 (grep linea a linea), y la lista 'Historias:' del proposal coincide 1:1 con la seccion 'Historias previstas' de EP-003 en epicas.md -- sin faltantes ni sobrantes de otra epica, OK. (4) Coherencia de alcance: los 7 bullets de 'What Changes' del proposal mapean sin excedente a la union de AC de las 11 HU (listado mes/dia + orden reciente -> HU-015; Paging 3/fluidez -> HU-016; resumen y colapsar/expandir -> HU-017; detalle+editar+eliminar con deshacer -> HU-018/HU-020/HU-021; visor de imagen zoom/navegacion/rotacion -> HU-019; filtros AND + busqueda por palabra clave -> HU-022/HU-023; persistencia de filtro -> HU-024; estados vacios diferenciados -> HU-025); las 11 HU quedan cubiertas, ninguna se omite. El mapeo HU->capability de la seccion '## Capabilities' tampoco tiene huecos ni excedentes: historial-listado={HU-015,016,017,025}, historial-detalle-operacion={HU-018,020,021}, historial-visor-imagen={HU-019}, historial-filtros={HU-022,023,024} -- union exacta de las 11 HU, cada una aparece exactamente una vez. (5) openspec validate historial-estudio-operaciones --strict --json ejecutado (via npx.cmd, CLI 1.6.0): 1 unico issue, ERROR 'Change must have at least one delta. No deltas found...' -- esperado en esta fase (solo existen proposal.md y .openspec.yaml en el change; specs/ aun no se ha escrito), no hay ningun otro error de estructura. (6) Back-reference recomendada (NO bloqueante para este gate): ni la seccion EP-003 de epicas.md ni las 11 HU declaran aun openspec_change: historial-estudio-operaciones -- a diferencia de EP-001/EP-005 archivadas, que si tienen la linea 'Construccion: openspec_change: ...' en epicas.md. Sugerido para cuando se archive el change: agregar bajo el titulo de la seccion EP-003 la linea '**Construccion**: openspec_change: historial-estudio-operaciones (rama feature/ep-003-historial-estudio-operaciones)', igual que EP-001/EP-005. Veredicto: COHERENTE. gates.coherence_link=true."
       }
-    ]
+    ],
+    "session_continuity": {
+      "last_session": "2026-08-02T20:45:00.000000+00:00",
+      "stopped_at": "2026-08-02T20:45:00.000000+00:00",
+      "resume_hint": "EP-003-a (HU-015+HU-016) cerrado a nivel de codigo/TDD JVM (commit 515bc4d), solo falta instrumentado+journey_smoke (sin dispositivo, diferido a la pasada final). EP-003-b (HU-018) EN CURSO: HistorialDetalleViewModel + HistorialDetalleUiState escritos y testeados en JVM (4 tests verdes), pero HistorialDetalleScreen (la UI) y la navegacion real (tocar una tarjeta de HistorialScreen abre el detalle) TODAVIA NO EXISTEN. Sesion cortada en este punto por bajo contexto (~35% restante al momento de parar), NO por bloqueo de dispositivo. Siguiente paso EXACTO: (1) escribir HistorialDetalleScreen.kt (Composable, secciones imagen->Datos generales->Emociones y errores->Resultado->Descripcion entrada, igual orden que OperationFormScreen; omitir seccion de imagen sin espacio vacio si state.images esta vacio); (2) agregar una ruta de navegacion en MainActivity.kt con operationId como argumento (mismo patron que RUTA_NUEVA_OPERACION); (3) cablear el tap de OperationCard en HistorialScreen.kt para navegar ahi con el id real de la operacion tocada (tasks.md 2.2/2.3/2.4); (4) recien entonces instrumentado (2.6) + journey_smoke (2.7), diferidos junto con los de EP-003-a a la pasada final.",
+      "critical_recorded": false,
+      "auto_continue": false
+    }
   },
   "history": [
     {

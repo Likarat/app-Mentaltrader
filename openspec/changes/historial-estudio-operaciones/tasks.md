@@ -12,11 +12,11 @@
 
 ## 2. Sub-slice EP-003-b: detalle completo de una operación (HU-018)
 
-- [ ] 2.1 `HistorialDetalleScreen` nuevo (ruta de navegación con `operationId` como argumento) + `HistorialDetalleViewModel` (`operationDao.getById(id)` + `operationImageDao.getByOperationId(id)`)
+- [x] 2.1 (parcial: solo el ViewModel) `HistorialDetalleViewModel` nuevo (`operationDao.getById(id)` + `operationImageDao.getByOperationId(id)` + nombres de catálogo resueltos vía `CatalogItemDao.getById` para Activo/Emoción antes/Emoción después/Error). `HistorialDetalleScreen` (la UI en sí) TODAVÍA NO ESCRITA -- próximo paso exacto de la próxima sesión.
 - [ ] 2.2 Secciones ordenadas igual que el formulario de registro: imagen (si existe) primero, luego "Datos generales"/"Emociones y errores"/"Resultado", "Descripción entrada" al final
 - [ ] 2.3 Omitir la sección de imagen sin dejar espacio vacío si la operación no tiene ninguna adjunta
 - [ ] 2.4 Navegación real: tocar una tarjeta del listado (EP-003-a) navega a `HistorialDetalleScreen` con el id real
-- [ ] 2.5 Tests unitarios: `HistorialDetalleViewModelTest` (carga los datos correctos, expone ausencia de imagen)
+- [x] 2.5 Tests unitarios: `HistorialDetalleViewModelTest` (4 tests: carga operación+catálogo resuelto, carga imágenes, sin imágenes queda vacío, operación inexistente no crashea) -- `testDebugUnitTest` en verde
 - [ ] 2.6 Test instrumentado: tocar una tarjeta real del listado abre el detalle real con los datos de esa operación (Room real, sin fakes)
 - [ ] 2.7 `journey_smoke` EP-003-b: desde Historial, tocar una operación real y ver su detalle completo
 

@@ -135,7 +135,8 @@
       "PowerShell(.\\\\gradlew.bat compileDebugKotlin --console=plain 2>&1)",
       "PowerShell(.\\\\gradlew.bat testDebugUnitTest assembleDebug compileDebugAndroidTestKotlin --console=plain --rerun 2>&1)",
       "PowerShell(python -c \"import json,io; d=json.load\\(io.open\\('.claude/state/build-state.json',encoding='utf-8'\\)\\); a=d['active_slice']; print\\('phase', a['phase']\\); print\\('gates', a['gates']\\); print\\([w['id'] for w in a['wiring_checklist'] if w['kind']=='integration_point']\\)\")",
-      "PowerShell(python -c \"import jsonschema, json, io; schema=json.load\\(io.open\\('.claude/state/build-state.schema.json',encoding='utf-8'\\)\\); data=json.load\\(io.open\\('.claude/state/build-state.json',encoding='utf-8'\\)\\); jsonschema.Draft202012Validator\\(schema\\).validate\\(data\\); print\\('SCHEMA OK'\\)\")"
+      "PowerShell(python -c \"import jsonschema, json, io; schema=json.load\\(io.open\\('.claude/state/build-state.schema.json',encoding='utf-8'\\)\\); data=json.load\\(io.open\\('.claude/state/build-state.json',encoding='utf-8'\\)\\); jsonschema.Draft202012Validator\\(schema\\).validate\\(data\\); print\\('SCHEMA OK'\\)\")",
+      "PowerShell(.\\\\gradlew.bat testDebugUnitTest --console=plain --tests \"com.miguel.mentaltrader.feature.historial.HistorialDetalleViewModelTest\" 2>&1)"
     ]
   }
 }
