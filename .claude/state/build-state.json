@@ -55,8 +55,8 @@
           "HU-010",
           "HU-011"
         ],
-        "status": "pending",
-        "journey_smoke": false
+        "status": "done",
+        "journey_smoke": true
       },
       {
         "id": "EP-002-b",
@@ -91,50 +91,50 @@
         "id": "HU-010-AC1",
         "kind": "hu_ac",
         "ref": "HU-010#Escenario1",
-        "status": "failing",
-        "evidence": ""
+        "status": "passing",
+        "evidence": "EtiquetasCatalogManagementTest.agregarUnActivoLoMuestraDeInmediatoEnElSelectorDelFormularioDeRegistro — PASSED en Motorola Edge 50 Fusion (connectedDebugAndroidTest, 38/38, 2026-08-02). Ademas verificado visualmente (journey_smoke 1.9): se agrego \"EURJPY-smoke\" en Activos via la app real y aparecio de inmediato en el selector \"Activo\" de \"Nueva operacion\" (capturas reales adb screencap + taps por coordenadas reales de uiautomator dump)."
       },
       {
         "id": "HU-010-AC2",
         "kind": "hu_ac",
         "ref": "HU-010#Escenario2",
         "status": "failing",
-        "evidence": ""
+        "evidence": "PENDIENTE de nivel instrumentado (fuera del alcance literal de tasks.md 1.8 en esta pasada). Cubierto solo a nivel JVM: CatalogRepositoryTest (unicidad case-insensitive/trim) + EtiquetasViewModelTest (addError visible en el estado). Falta un test instrumentado que confirme el mensaje \"Este valor ya existe en el catalogo\" renderizado en pantalla real, no solo en el StateFlow."
       },
       {
         "id": "HU-010-AC3",
         "kind": "hu_ac",
         "ref": "HU-010#Escenario3",
         "status": "failing",
-        "evidence": ""
+        "evidence": "PENDIENTE de nivel instrumentado (fuera del alcance literal de tasks.md 1.8 en esta pasada). Cubierto a nivel JVM por CatalogRepositoryTest (unicidad no cruza type). No se agrego un test instrumentado dedicado a este edge en este pase."
       },
       {
         "id": "HU-011-AC1",
         "kind": "hu_ac",
         "ref": "HU-011#Escenario1",
-        "status": "failing",
-        "evidence": ""
+        "status": "passing",
+        "evidence": "EtiquetasCatalogManagementTest.editarUnElementoActualizaElNombreMostrado — PASSED en Motorola Edge 50 Fusion (connectedDebugAndroidTest, 38/38, 2026-08-02): edita un elemento real en Room via CatalogRepository.updateItem y confirma que el nombre nuevo se ve en la lista renderizada y el nombre viejo desaparece."
       },
       {
         "id": "HU-011-AC2",
         "kind": "hu_ac",
         "ref": "HU-011#Escenario2",
-        "status": "failing",
-        "evidence": ""
+        "status": "passing",
+        "evidence": "EtiquetasCatalogManagementTest.eliminarUnElementoSinUsoLoEliminaDeInmediatoSinConfirmacion — PASSED en Motorola Edge 50 Fusion (connectedDebugAndroidTest, 38/38, 2026-08-02): elimina un elemento real sin uso, confirma ausencia de cualquier dialogo de confirmacion y que desaparece de la lista renderizada."
       },
       {
         "id": "HU-011-AC3",
         "kind": "hu_ac",
         "ref": "HU-011#Escenario3",
-        "status": "failing",
-        "evidence": ""
+        "status": "passing",
+        "evidence": "EtiquetasCatalogManagementTest.intentarEliminarLaSemillaNingunoMuestraElMensajeDeBloqueoVisibleEnPantalla — PASSED en Motorola Edge 50 Fusion (connectedDebugAndroidTest, 38/38, 2026-08-02): intenta eliminar la semilla \"Ninguno\" (Errores) y confirma el dialogo \"No se puede eliminar\" con el mensaje real visible en pantalla; el elemento sigue en el catalogo tras dismiss."
       },
       {
         "id": "HU-011-AC4",
         "kind": "hu_ac",
         "ref": "HU-011#Escenario4",
         "status": "failing",
-        "evidence": ""
+        "evidence": "PENDIENTE de nivel instrumentado (fuera del alcance literal de tasks.md 1.8 en esta pasada). Cubierto a nivel JVM por CatalogRepositoryTest (recreacion automatica al vaciar, via CatalogRepository.deleteItem -> CatalogSeeder.ensureSeeded). Falta un test instrumentado que vacie un catalogo real hasta 0 y confirme que la semilla reaparece en la lista renderizada."
       },
       {
         "id": "HU-012-AC1",
@@ -210,8 +210,8 @@
         "id": "INT-etiquetas-screen-catalogitemdao",
         "kind": "integration_point",
         "ref": "presentacion(EtiquetasScreen, hoy placeholder) -> datos(CatalogItemDao: insert/update/delete reales, reemplazando el placeholder de EP-005)",
-        "status": "failing",
-        "evidence": ""
+        "status": "passing",
+        "evidence": "EtiquetasCatalogManagementTest (4/4 PASSED, Motorola Edge 50 Fusion, connectedDebugAndroidTest 38/38, 2026-08-02): EtiquetasScreen real (SecondaryTabRow Activos/Emociones/Errores + alta/edicion/baja) queda cableada contra CatalogItemDao real via CatalogRepository, sin fakes ni base in-memory (misma DB de produccion del dispositivo). Se corrigio ademas AppNavigationTest.tocarEtiquetasMuestraLaPantallaDeEtiquetas, que seguia asertando el placeholder de EP-005 ya reemplazado (desincronizado desde 1.6, expuesto por esta corrida real)."
       },
       {
         "id": "INT-registro-form-inline-add",
@@ -239,10 +239,20 @@
         "kind": "integration_point",
         "ref": "datos(logica de recreacion automatica de semilla, hoy solo existe en CatalogSeeder.ensureSeeded al arrancar la app) -> disparada tambien tras un delete real que vacia el catalogo (HU-011 Escenario 4)",
         "status": "failing",
-        "evidence": ""
+        "evidence": "PENDIENTE de nivel instrumentado, misma razon que HU-011-AC4 (fuera del alcance literal de tasks.md 1.8 en esta pasada). CatalogRepository.deleteItem SI dispara CatalogSeeder.ensureSeeded cuando countByType llega a 0 (verificado por CatalogRepositoryTest, JVM), pero falta confirmar en un test instrumentado que la semilla recreada se vea en la lista renderizada real."
       }
     ],
     "progress_log": [
+      {
+        "at": "2026-08-02T14:00:00.000000+00:00",
+        "by": "/build:resume",
+        "note": "Retomado tras reinicio de contexto. Reconciliacion sin cambios (reconcile-build-state.py corrio limpio). Estado en disco confirmado: EP-002-a done con evidencia instrumentada real (tasks.md 1.1-1.9 tildadas), working tree con esos cambios (EtiquetasScreen.kt, EtiquetasViewModel.kt, EtiquetasCatalogManagementTest.kt nuevo, AppNavigationTest.kt corregido, tasks.md) todavia sin commit desde el ultimo commit registrado (a037bc0, previo a 1.8/1.9). session_continuity.resume_hint apunta a abrir EP-002-b (HU-013, agregar etiqueta inline desde OperationFormScreen, tasks.md seccion 2.1-2.7). Siguiente paso: delegar en building-a-slice para (1) commitear el cierre de EP-002-a y (2) arrancar TDD de EP-002-b."
+      },
+      {
+        "at": "2026-08-02T13:45:00.000000+00:00",
+        "by": "build-orchestrator",
+        "note": "tasks.md 1.8 y 1.9 completados con evidencia real en dispositivo (Motorola Edge 50 Fusion, ZY22KXXQHV), retomando la pausa de la sesion anterior. 1.8: nuevo `EtiquetasCatalogManagementTest` (app/src/androidTest/java/com/miguel/mentaltrader/EtiquetasCatalogManagementTest.kt, 4 tests, misma app real/Room de produccion via MainActivity, sin fakes) -- agregarUnActivoLoMuestraDeInmediatoEnElSelectorDelFormularioDeRegistro (HU-010-AC1), editarUnElementoActualizaElNombreMostrado (HU-011-AC1), eliminarUnElementoSinUsoLoEliminaDeInmediatoSinConfirmacion (HU-011-AC2), intentarEliminarLaSemillaNingunoMuestraElMensajeDeBloqueoVisibleEnPantalla (HU-011-AC3). Bug real de entorno encontrado y corregido en el camino: la primera corrida de connectedDebugAndroidTest fallo con 20/38 tests (todos los que usan Compose+MainActivity) con 'No compose hierarchies found in the app' -- causa raiz: screen_off_timeout=60000ms del dispositivo, la pantalla se apagaba a mitad de la suite (3-4 min) y las Activities relanzadas quedaban sin ventana; fix: `adb shell settings put system screen_off_timeout 1800000` + `adb shell svc power stayon usb` antes de correr la suite, sin tocar codigo de produccion. Tras el fix: connectedDebugAndroidTest 38/38 PASSED (0 fallidos), incluidos los 4 tests nuevos. Se encontro ademas un segundo bug real (no de entorno, de test desincronizado): `AppNavigationTest.tocarEtiquetasMuestraLaPantallaDeEtiquetas` seguia asertando el placeholder de EP-005 ('Pantalla de Etiquetas (placeholder)') que EP-002-a ya reemplazo en 1.6 -- nadie lo habia actualizado; corregido para asertar 'Agregar nuevo elemento' (label unico de la pantalla real, no depende de cuantos items tenga ya el catalogo). testDebugUnitTest re-corrido fresco (--rerun): 53/53 PASSED, sin regresiones. 1.9: journey_smoke ejecutado con verificacion visual REAL (no por inspeccion): APK debug instalado/lanzado en el dispositivo real, capturas reales via `adb exec-out screencap` y taps por coordenadas reales obtenidas de `adb shell uiautomator dump` (no adivinadas) recorriendo Etiquetas (tab 'Activos', ya con la semilla XAUUSD) -> escribir 'EURJPY-smoke' en 'Agregar nuevo elemento' -> tocar 'Agregar' -> el item aparece en la lista real -> volver a Inicio -> FAB 'Nueva operacion' -> tocar el selector 'Activo' -> el desplegable real muestra 'EURJPY-smoke' junto a 'XAUUSD'. Confirma INT-etiquetas-screen-catalogitemdao cableado de punta a punta contra Room real. wiring_checklist actualizado a passing con evidencia real: HU-010-AC1, HU-011-AC1, HU-011-AC2, HU-011-AC3, INT-etiquetas-screen-catalogitemdao. Quedan explicitamente en failing (fuera del alcance literal de 1.8 en esta pasada, NO ocultos): HU-010-AC2 (mensaje de duplicado, cubierto solo a nivel JVM), HU-010-AC3 (unicidad no cruza catalogos, JVM), HU-011-AC4 + INT-seed-recreation-on-empty-catalog (recreacion automatica de semilla al vaciar, JVM) -- estos 3 necesitarian un test instrumentado dedicado en una pasada futura antes del dod de la epica completa (wiring-adversarial-verifier los revisara entonces). sub_slices[EP-002-a].status=done y journey_smoke=true (el schema liga 'done' solo a journey_smoke verde, que si se ejecuto y verifico de punta a punta). gates.tdd/gates.journey_smoke del active_slice (EP-002, la epica completa) se MANTIENEN en false a proposito: todavia faltan 3 sub-slices (EP-002-b/c/d); esos gates de nivel-epica solo deberian cerrarse cuando los 4 sub-slices esten done, siguiendo el mismo patron que EP-001 (donde gates.tdd/journey_smoke solo pasaron a true tras completar sus 4 sub-slices)."
+      },
       {
         "at": "2026-07-31T05:00:00.000000+00:00",
         "by": "build-orchestrator",
@@ -260,9 +270,9 @@
       }
     ],
     "session_continuity": {
-      "last_session": "2026-07-31T05:10:00.000000+00:00",
-      "stopped_at": "2026-07-31T05:10:00.000000+00:00",
-      "resume_hint": "EP-002-a (HU-010+HU-011) tiene el TDD de nivel JVM completo y commiteado (commit 8104d78 en feature/ep-002-gestion-catalogos-etiquetas): CatalogRepository (addItem/updateItem/deleteItem con resultados sellados), EtiquetasViewModel, EtiquetasScreen (reemplaza el placeholder), wiring en MentaltraderApplication/MainActivity. testDebugUnitTest 53/53 PASSED, assembleDebug BUILD SUCCESSFUL. PAUSADO A PEDIDO DEL USUARIO (no es limitacion tecnica): faltan tasks.md 1.8 (tests instrumentados: agregar+ver disponible en el formulario, editar, eliminar sin uso, bloqueo de semilla visible en pantalla) y 1.9 (journey_smoke de EP-002-a) -- ambos requieren el dispositivo real (Motorola Edge 50 Fusion), no conectado en la sesion donde se pauso. Siguiente paso exacto al retomar: conectar el dispositivo por USB, correr connectedDebugAndroidTest con los tests instrumentados nuevos de 1.8, luego el journey_smoke de 1.9, y recien ahi evaluar gates.tdd/journey_smoke de este sub-slice antes de pasar a EP-002-b (HU-013, agregar etiqueta inline desde el formulario de registro, reutiliza CatalogRepository.addItem sin reimplementar).",
+      "last_session": "2026-08-02T13:45:00.000000+00:00",
+      "stopped_at": null,
+      "resume_hint": "EP-002-a (HU-010+HU-011) CERRADO: sub_slices[EP-002-a].status=done, journey_smoke=true, con evidencia real instrumentada (EtiquetasCatalogManagementTest, 4/4 PASSED) y journey_smoke visual real (capturas adb + taps por coordenadas reales) -- ver progress_log 2026-08-02. Pendiente explicito antes del dod de la epica completa (no bloquea seguir con el siguiente sub-slice): agregar tests instrumentados para HU-010-AC2 (mensaje de duplicado en pantalla), HU-010-AC3 (unicidad no cruza catalogos) y HU-011-AC4+INT-seed-recreation-on-empty-catalog (recreacion de semilla al vaciar), hoy solo cubiertos a nivel JVM. Siguiente paso exacto: abrir EP-002-b (HU-013, 'agregar etiqueta inline desde el formulario de registro') -- tasks.md seccion 2 (2.1-2.7): agregar opcion '+ Agregar nueva' en los 3 selectores de OperationFormScreen, reutilizando CatalogRepository.addItem (mismo metodo de 1.2, sin reimplementar validacion), TDD JVM primero (OperationFormViewModelTest) y recien despues instrumentado + journey_smoke propio de ese sub-slice.",
       "critical_recorded": false,
       "auto_continue": false
     }

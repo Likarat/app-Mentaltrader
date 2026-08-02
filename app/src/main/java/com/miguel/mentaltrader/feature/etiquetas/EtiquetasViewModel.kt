@@ -24,6 +24,7 @@ data class EtiquetasUiState(
     val editingItem: CatalogItem? = null,
     val editFieldValue: String = "",
     val editError: String? = null,
+    val pendingDeleteItem: CatalogItem? = null,
     val blockedDeleteMessage: String? = null
 )
 
@@ -87,12 +88,22 @@ class EtiquetasViewModel(
         }
     }
 
-    fun onDeleteItem(item: CatalogItem) {
+    fun onRequestDelete(item: CatalogItem) {
+        _state.value = _state.value.copy(pendingDeleteItem = item)
+    }
+
+    fun onCancelDelete() {
+        _state.value = _state.value.copy(pendingDeleteItem = null)
+    }
+
+    fun onConfirmDelete() {
+        val item = _state.value.pendingDeleteItem ?: return
         viewModelScope.launch {
             when (val result = catalogRepository.deleteItem(item)) {
-                CatalogDeleteResult.Deleted -> Unit
+                CatalogDeleteResult.Deleted ->
+                    _state.value = _state.value.copy(pendingDeleteItem = null)
                 is CatalogDeleteResult.Blocked ->
-                    _state.value = _state.value.copy(blockedDeleteMessage = result.reason)
+                    _state.value = _state.value.copy(pendingDeleteItem = null, blockedDeleteMessage = result.reason)
             }
         }
     }

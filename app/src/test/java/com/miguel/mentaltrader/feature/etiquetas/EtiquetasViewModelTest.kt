@@ -119,21 +119,46 @@ class EtiquetasViewModelTest {
     }
 
     @Test
-    fun `eliminar un elemento permitido no deja mensaje de bloqueo`() = runTest {
+    fun `solicitar eliminar un elemento lo deja pendiente de confirmacion sin eliminarlo todavia`() = runTest {
         val id = dao.seed(CatalogType.ASSET, "EURUSD", isDefault = false)
 
-        viewModel.onDeleteItem(dao.getById(id)!!)
+        viewModel.onRequestDelete(dao.getById(id)!!)
 
+        assertEquals(id, viewModel.state.value.pendingDeleteItem?.id)
+        assertTrue(dao.getById(id) != null)
+    }
+
+    @Test
+    fun `cancelar la eliminacion pendiente no elimina el elemento y limpia el estado`() = runTest {
+        val id = dao.seed(CatalogType.ASSET, "EURUSD", isDefault = false)
+        viewModel.onRequestDelete(dao.getById(id)!!)
+
+        viewModel.onCancelDelete()
+
+        assertNull(viewModel.state.value.pendingDeleteItem)
+        assertTrue(dao.getById(id) != null)
+    }
+
+    @Test
+    fun `confirmar la eliminacion de un elemento permitido lo elimina sin dejar mensaje de bloqueo`() = runTest {
+        val id = dao.seed(CatalogType.ASSET, "EURUSD", isDefault = false)
+        viewModel.onRequestDelete(dao.getById(id)!!)
+
+        viewModel.onConfirmDelete()
+
+        assertNull(viewModel.state.value.pendingDeleteItem)
         assertNull(viewModel.state.value.blockedDeleteMessage)
         assertNull(dao.getById(id))
     }
 
     @Test
-    fun `eliminar una semilla protegida deja el mensaje de bloqueo visible`() = runTest {
+    fun `confirmar la eliminacion de una semilla protegida deja el mensaje de bloqueo visible`() = runTest {
         val ninguno = dao.seed(CatalogType.ERROR, CatalogItem.SEED_ERROR_NINGUNO, isDefault = true)
+        viewModel.onRequestDelete(dao.getById(ninguno)!!)
 
-        viewModel.onDeleteItem(dao.getById(ninguno)!!)
+        viewModel.onConfirmDelete()
 
+        assertNull(viewModel.state.value.pendingDeleteItem)
         assertTrue(viewModel.state.value.blockedDeleteMessage != null)
         assertTrue(dao.getById(ninguno) != null)
     }
@@ -141,7 +166,8 @@ class EtiquetasViewModelTest {
     @Test
     fun `descartar el mensaje de bloqueo lo limpia del estado`() = runTest {
         val ninguno = dao.seed(CatalogType.ERROR, CatalogItem.SEED_ERROR_NINGUNO, isDefault = true)
-        viewModel.onDeleteItem(dao.getById(ninguno)!!)
+        viewModel.onRequestDelete(dao.getById(ninguno)!!)
+        viewModel.onConfirmDelete()
 
         viewModel.onDismissBlockedDeleteMessage()
 

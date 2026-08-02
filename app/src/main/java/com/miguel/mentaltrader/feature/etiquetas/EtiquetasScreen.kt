@@ -86,7 +86,7 @@ fun EtiquetasScreen(viewModel: EtiquetasViewModel, modifier: Modifier = Modifier
                             IconButton(onClick = { viewModel.onStartEdit(item) }) {
                                 Icon(Icons.Filled.Edit, contentDescription = "Editar ${item.name}")
                             }
-                            IconButton(onClick = { viewModel.onDeleteItem(item) }) {
+                            IconButton(onClick = { viewModel.onRequestDelete(item) }) {
                                 Icon(Icons.Filled.Delete, contentDescription = "Eliminar ${item.name}")
                             }
                         }
@@ -104,6 +104,20 @@ fun EtiquetasScreen(viewModel: EtiquetasViewModel, modifier: Modifier = Modifier
             onValueChange = viewModel::onEditFieldChange,
             onConfirm = viewModel::onConfirmEdit,
             onDismiss = viewModel::onCancelEdit
+        )
+    }
+
+    state.pendingDeleteItem?.let { pending ->
+        AlertDialog(
+            onDismissRequest = viewModel::onCancelDelete,
+            title = { Text("Eliminar elemento") },
+            text = { Text("¿Estás seguro que deseas eliminar \"${pending.name}\"?") },
+            confirmButton = {
+                TextButton(onClick = viewModel::onConfirmDelete) { Text("Eliminar") }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::onCancelDelete) { Text("Cancelar") }
+            }
         )
     }
 

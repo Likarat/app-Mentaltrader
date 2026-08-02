@@ -96,7 +96,13 @@
       "Bash(openspec archive *)",
       "Bash(git switch *)",
       "Bash(awk 'NR==61,NR==89' docs/03-backlog/epicas.md)",
-      "Bash(./gradlew.bat assembleDebug --console=plain)"
+      "Bash(./gradlew.bat assembleDebug --console=plain)",
+      "Bash(xargs grep -l \"testsuite\")",
+      "Bash(./gradlew.bat testDebugUnitTest --console=plain --rerun)",
+      "Bash(grep -oE 'text=\"[^\"]{1,40}\"' journey_dump_06.xml)",
+      "Bash(./gradlew.bat connectedDebugAndroidTest --console=plain -Pandroid.testInstrumentationRunnerArguments.class=com.miguel.mentaltrader.AppDatabaseSeedTest)",
+      "PowerShell(python .claude/hooks/build/reconcile-build-state.py .claude/state/build-state.json)",
+      "PowerShell(git add .claude/settings.local.json .claude/state/build-state.json app/src/androidTest/java/com/miguel/mentaltrader/AppNavigationTest.kt app/src/androidTest/java/com/miguel/mentaltrader/EtiquetasCatalogManagementTest.kt app/src/main/java/com/miguel/mentaltrader/feature/etiquetas/EtiquetasScreen.kt app/src/main/java/com/miguel/mentaltrader/feature/etiquetas/EtiquetasViewModel.kt app/src/test/java/com/miguel/mentaltrader/feature/etiquetas/EtiquetasViewModelTest.kt openspec/changes/gestion-catalogos-etiquetas/tasks.md)"
     ]
   }
 }
