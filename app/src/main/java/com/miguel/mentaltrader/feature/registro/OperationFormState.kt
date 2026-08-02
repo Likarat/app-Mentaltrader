@@ -24,7 +24,12 @@ data class OperationFormState(
     val pendingImages: List<PendingImage> = emptyList(),
     val fieldErrors: Map<String, String> = emptyMap(),
     val imageError: String? = null,
-    val isSaved: Boolean = false
+    val isSaved: Boolean = false,
+    /** HU-013: campo de catálogo (uno de los FIELD_*) cuyo alta inline está abierta; null si
+     * ninguna está en curso. Solo uno puede estar abierto a la vez. */
+    val addingCatalogField: String? = null,
+    val addCatalogText: String = "",
+    val addCatalogError: String? = null
 ) {
     companion object {
         val INITIAL = OperationFormState()

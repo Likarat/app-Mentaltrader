@@ -64,7 +64,7 @@
         "hus": [
           "HU-013"
         ],
-        "status": "pending",
+        "status": "in_progress",
         "journey_smoke": false
       },
       {
@@ -162,28 +162,28 @@
         "kind": "hu_ac",
         "ref": "HU-013#Escenario1",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Cubierto a nivel JVM: OperationFormViewModelTest.'iniciar el alta inline de Activo muestra el campo sin tocar el resto del estado' (testDebugUnitTest en verde). Instrumentado escrito (OperationFormCatalogInlineAddTest.tocarAgregarNuevaEnActivoMuestraElCampoInlineDeAlta, compileDebugAndroidTestKotlin en verde) pero SIN EJECUTAR: sin dispositivo/emulador conectado en esta sesion (adb devices vacio)."
       },
       {
         "id": "HU-013-AC2",
         "kind": "hu_ac",
         "ref": "HU-013#Escenario2",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Cubierto a nivel JVM: OperationFormViewModelTest.'confirmar el alta inline de un Activo lo crea lo selecciona automaticamente y conserva el resto del formulario' + tests de Emocion despues/Error (testDebugUnitTest en verde). Instrumentado escrito (OperationFormCatalogInlineAddTest.confirmarElAltaInlineDeUnActivoLoSeleccionaYConservaElRestoDelFormulario) pero SIN EJECUTAR, misma razon que AC1."
       },
       {
         "id": "HU-013-AC3",
         "kind": "hu_ac",
         "ref": "HU-013#Escenario3",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Cubierto a nivel JVM: OperationFormViewModelTest.'confirmar el alta inline con nombre duplicado mantiene el campo abierto con el mensaje de error' (testDebugUnitTest en verde). Instrumentado escrito (OperationFormCatalogInlineAddTest.confirmarElAltaInlineConNombreDuplicadoMantieneElCampoAbiertoConElMensajeDeError, incluye FocusRequester al mostrar el error) pero SIN EJECUTAR, misma razon que AC1."
       },
       {
         "id": "HU-013-AC4",
         "kind": "hu_ac",
         "ref": "HU-013#Escenario4",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Cubierto a nivel JVM: OperationFormViewModelTest.'cancelar el alta inline cierra el campo sin crear ningun elemento' (testDebugUnitTest en verde). Instrumentado escrito (OperationFormCatalogInlineAddTest.cancelarElCampoInlineCierraElCampoSinCrearNingunElemento) pero SIN EJECUTAR, misma razon que AC1."
       },
       {
         "id": "HU-014-AC1",
@@ -218,7 +218,7 @@
         "kind": "integration_point",
         "ref": "presentacion(OperationFormScreen/ViewModel, EP-001 ya archivada) -> datos(CatalogItemDao.insert reutilizado por HU-013 via punto de entrada + Agregar nueva)",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Cableado real implementado: OperationFormViewModel.onConfirmAddCatalogItem invoca CatalogRepository.addItem (mismo repositorio de HU-010/EtiquetasViewModel, sin reimplementar la validacion) y CatalogDropdown expone '+ Agregar nueva' en los 4 selectores (Activo/Emocion antes/Emocion despues/Error). Verificado a nivel JVM (fake DAO) y compila el instrumentado real (Room in-memory), pero falta la corrida real end-to-end (connectedDebugAndroidTest) -- sin dispositivo conectado en esta sesion."
       },
       {
         "id": "INT-catalogitem-usage-count",
@@ -243,6 +243,11 @@
       }
     ],
     "progress_log": [
+      {
+        "at": "2026-08-02T15:30:00.000000+00:00",
+        "by": "build-orchestrator",
+        "note": "EP-002-b (HU-013) en curso, TDD JVM completo y verde, instrumentado escrito pero sin ejecutar (sin dispositivo). Implementado: OperationFormState (addingCatalogField/addCatalogText/addCatalogError), OperationFormViewModel.onStartAddCatalogItem/onAddCatalogTextChange/onCancelAddCatalogItem/onConfirmAddCatalogItem (reutiliza CatalogRepository.addItem, mismo repositorio de HU-010, ahora con default `CatalogRepository(catalogItemDao)` en el constructor -- sin estado propio mas alla del DAO, evita tocar el Factory/MainActivity existente), CatalogDropdown con opcion '+ Agregar nueva' + campo inline con FocusRequester (foco vuelve al campo si hay error de duplicado, Escenario 3) en los 4 selectores (Activo/Emocion antes/Emocion despues/Error). Tests unitarios nuevos: 7 en OperationFormViewModelTest (Escenarios 1-4 de HU-013 + variantes Emocion/Error) -- testDebugUnitTest --rerun completo (fresco) en verde, sin regresiones. assembleDebug BUILD SUCCESSFUL. compileDebugAndroidTestKotlin BUILD SUCCESSFUL (nuevo archivo OperationFormCatalogInlineAddTest.kt, 4 tests, mismo estandar que OperationFormRenderedUiTest de EP-001: ComposeTestRule + Room in-memory real, sin fakes). NO se corrio connectedDebugAndroidTest ni journey_smoke: `adb devices` no muestra ningun dispositivo/emulador conectado en esta sesion -- wiring_checklist de HU-013-AC1..4 e INT-registro-form-inline-add quedan `failing` a proposito (evidencia JVM documentada, instrumentada pendiente de ejecucion real, no de escritura). tasks.md 2.1-2.5 tildadas, 2.6/2.7 explicitamente pendientes de dispositivo. sub_slices[EP-002-b].status=in_progress (no done: journey_smoke requiere ejecucion real)."
+      },
       {
         "at": "2026-08-02T14:00:00.000000+00:00",
         "by": "/build:resume",
@@ -270,9 +275,9 @@
       }
     ],
     "session_continuity": {
-      "last_session": "2026-08-02T13:45:00.000000+00:00",
-      "stopped_at": null,
-      "resume_hint": "EP-002-a (HU-010+HU-011) CERRADO: sub_slices[EP-002-a].status=done, journey_smoke=true, con evidencia real instrumentada (EtiquetasCatalogManagementTest, 4/4 PASSED) y journey_smoke visual real (capturas adb + taps por coordenadas reales) -- ver progress_log 2026-08-02. Pendiente explicito antes del dod de la epica completa (no bloquea seguir con el siguiente sub-slice): agregar tests instrumentados para HU-010-AC2 (mensaje de duplicado en pantalla), HU-010-AC3 (unicidad no cruza catalogos) y HU-011-AC4+INT-seed-recreation-on-empty-catalog (recreacion de semilla al vaciar), hoy solo cubiertos a nivel JVM. Siguiente paso exacto: abrir EP-002-b (HU-013, 'agregar etiqueta inline desde el formulario de registro') -- tasks.md seccion 2 (2.1-2.7): agregar opcion '+ Agregar nueva' en los 3 selectores de OperationFormScreen, reutilizando CatalogRepository.addItem (mismo metodo de 1.2, sin reimplementar validacion), TDD JVM primero (OperationFormViewModelTest) y recien despues instrumentado + journey_smoke propio de ese sub-slice.",
+      "last_session": "2026-08-02T15:30:00.000000+00:00",
+      "stopped_at": "2026-08-02T15:30:00.000000+00:00",
+      "resume_hint": "EP-002-b (HU-013) TDD JVM completo y verde (7 tests nuevos en OperationFormViewModelTest, testDebugUnitTest --rerun fresco sin regresiones) y UI cableada (CatalogDropdown con '+ Agregar nueva' + campo inline en los 4 selectores). PAUSADO por falta de dispositivo/emulador conectado (adb devices vacio) -- NO por decision de alcance. tasks.md 2.1-2.5 tildadas; 2.6 (instrumentado) escrito en app/src/androidTest/java/com/miguel/mentaltrader/OperationFormCatalogInlineAddTest.kt (4 tests, compileDebugAndroidTestKotlin en verde) pero SIN EJECUTAR todavia; 2.7 (journey_smoke) tampoco corrido. Siguiente paso exacto en cuanto haya un dispositivo/emulador: conectar (`adb devices` debe listar uno), correr `./gradlew.bat connectedDebugAndroidTest --console=plain` filtrando o incluyendo OperationFormCatalogInlineAddTest, verificar los 4 tests en verde, actualizar wiring_checklist HU-013-AC1..4 e INT-registro-form-inline-add a passing con la evidencia real, y recien despues journey_smoke EP-002-b (crear un Activo nuevo inline en 'Nueva operacion' y completar el resto del formulario sin salir, con capturas adb reales). Tras cerrar EP-002-b: sub_slices[EP-002-c] (HU-012, confirmar eliminacion en uso) es el siguiente.",
       "critical_recorded": false,
       "auto_continue": false
     }

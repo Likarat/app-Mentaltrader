@@ -4,8 +4,10 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.miguel.mentaltrader.core.data.CatalogAddResult
 import com.miguel.mentaltrader.core.data.CatalogItem
 import com.miguel.mentaltrader.core.data.CatalogItemDao
+import com.miguel.mentaltrader.core.data.CatalogRepository
 import com.miguel.mentaltrader.core.data.Operation
 import com.miguel.mentaltrader.core.data.OperationDao
 import com.miguel.mentaltrader.core.data.OperationImage
@@ -34,6 +36,11 @@ class OperationFormViewModel(
     private val catalogItemDao: CatalogItemDao,
     private val operationImageDao: OperationImageDao? = null,
     private val imageProcessor: ImageProcessor? = null,
+    /** HU-013: punto único de creación de [CatalogItem], mismo que usa `EtiquetasViewModel` --
+     * no reimplementa la validación de unicidad ni la protección de semillas. Sin estado propio
+     * más allá del DAO, así que un default construido a partir de [catalogItemDao] es equivalente
+     * a reutilizar la instancia singleton de la Application (evita tocar el Factory/DI existente). */
+    private val catalogRepository: CatalogRepository = CatalogRepository(catalogItemDao),
     /** HU-005-AC5 (reloj del dispositivo desconfigurado): fuente del "ahora" usada para el
      * prellenado. Inyectable para poder probar el comportamiento con un reloj arbitrario
      * (pasado/futuro absurdo) sin depender de manipular el reloj real del sistema operativo,
@@ -166,6 +173,60 @@ class OperationFormViewModel(
     private fun update(transform: (OperationFormState) -> OperationFormState) {
         _state.value = transform(_state.value).copy(fieldErrors = emptyMap(), isSaved = false)
     }
+
+    /** HU-013 Escenario 1: abre el campo inline para el selector que lo pidió. */
+    fun onStartAddCatalogItem(field: String) {
+        _state.value = _state.value.copy(addingCatalogField = field, addCatalogText = "", addCatalogError = null)
+    }
+
+    fun onAddCatalogTextChange(value: String) {
+        _state.value = _state.value.copy(addCatalogText = value, addCatalogError = null)
+    }
+
+    /** HU-013 Escenario 4: cierra el campo sin crear ningún elemento. */
+    fun onCancelAddCatalogItem() {
+        _state.value = _state.value.copy(addingCatalogField = null, addCatalogText = "", addCatalogError = null)
+    }
+
+    /** HU-013 Escenario 2/3: reutiliza CatalogRepository.addItem (misma validación que HU-010).
+     * Éxito: guarda, selecciona automáticamente el campo que abrió el alta y cierra el campo
+     * inline sin tocar el resto del formulario. Duplicado: deja el campo abierto con el mensaje. */
+    fun onConfirmAddCatalogItem() {
+        val current = _state.value
+        val field = current.addingCatalogField ?: return
+        val type = catalogTypeForField(field)
+        val name = current.addCatalogText
+        viewModelScope.launch {
+            when (val result = catalogRepository.addItem(type, name)) {
+                is CatalogAddResult.Added -> {
+                    update { selectCatalogField(field, result.item.id, it) }
+                    _state.value = _state.value.copy(
+                        addingCatalogField = null,
+                        addCatalogText = "",
+                        addCatalogError = null
+                    )
+                }
+                CatalogAddResult.Duplicate ->
+                    _state.value = _state.value.copy(addCatalogError = CatalogRepository.DUPLICATE_MESSAGE)
+            }
+        }
+    }
+
+    private fun catalogTypeForField(field: String): CatalogType = when (field) {
+        OperationFormState.FIELD_ASSET -> CatalogType.ASSET
+        OperationFormState.FIELD_EMOTION_BEFORE, OperationFormState.FIELD_EMOTION_AFTER -> CatalogType.EMOTION
+        OperationFormState.FIELD_ERROR -> CatalogType.ERROR
+        else -> throw IllegalArgumentException("Campo de catálogo desconocido: $field")
+    }
+
+    private fun selectCatalogField(field: String, id: Long, state: OperationFormState): OperationFormState =
+        when (field) {
+            OperationFormState.FIELD_ASSET -> state.copy(assetId = id)
+            OperationFormState.FIELD_EMOTION_BEFORE -> state.copy(emotionBeforeId = id)
+            OperationFormState.FIELD_EMOTION_AFTER -> state.copy(emotionAfterId = id)
+            OperationFormState.FIELD_ERROR -> state.copy(errorId = id)
+            else -> state
+        }
 
     fun save() {
         val current = _state.value

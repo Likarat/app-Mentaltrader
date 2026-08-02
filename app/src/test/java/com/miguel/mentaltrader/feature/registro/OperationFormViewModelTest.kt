@@ -484,6 +484,126 @@ class OperationFormViewModelTest {
         assertTrue(viewModel.state.value.fieldErrors.isEmpty())
     }
 
+    // HU-013 Escenario 1: tocar "+ Agregar nueva" muestra el campo inline sin salir del formulario
+    // ni tocar el resto de los datos ya ingresados.
+    @Test
+    fun `iniciar el alta inline de Activo muestra el campo sin tocar el resto del estado`() = runTest {
+        val assetId = catalogItemDao.seed(CatalogType.ASSET, "XAUUSD")
+        val emotionId = catalogItemDao.seed(CatalogType.EMOTION, "Confianza")
+        val errorId = catalogItemDao.seed(CatalogType.ERROR, "Ninguno")
+        val viewModel = createViewModel()
+        viewModel.fillMinimalRequiredFields(assetId, emotionId, emotionId, errorId)
+        viewModel.onDescriptionChange("Entré por ruptura de rango")
+
+        viewModel.onStartAddCatalogItem(OperationFormState.FIELD_ASSET)
+
+        assertEquals(OperationFormState.FIELD_ASSET, viewModel.state.value.addingCatalogField)
+        assertEquals("", viewModel.state.value.addCatalogText)
+        assertNull(viewModel.state.value.addCatalogError)
+        assertEquals(assetId, viewModel.state.value.assetId)
+        assertEquals("Entré por ruptura de rango", viewModel.state.value.entryDescription)
+    }
+
+    // HU-013 Escenario 2: confirmar la creación guarda el elemento, lo selecciona automáticamente
+    // y el resto de los datos ya ingresados permanece intacto.
+    @Test
+    fun `confirmar el alta inline de un Activo lo crea lo selecciona automaticamente y conserva el resto del formulario`() = runTest {
+        val assetId = catalogItemDao.seed(CatalogType.ASSET, "XAUUSD")
+        val emotionId = catalogItemDao.seed(CatalogType.EMOTION, "Confianza")
+        val errorId = catalogItemDao.seed(CatalogType.ERROR, "Ninguno")
+        val viewModel = createViewModel()
+        viewModel.fillMinimalRequiredFields(assetId, emotionId, emotionId, errorId)
+        viewModel.onDescriptionChange("Entré por ruptura de rango")
+        viewModel.onStartAddCatalogItem(OperationFormState.FIELD_ASSET)
+        viewModel.onAddCatalogTextChange("EURJPY")
+
+        viewModel.onConfirmAddCatalogItem()
+
+        val nuevoActivo = catalogItemDao.itemsOfType(CatalogType.ASSET).single { it.name == "EURJPY" }
+        assertEquals(nuevoActivo.id, viewModel.state.value.assetId)
+        assertNull(viewModel.state.value.addingCatalogField)
+        assertEquals("", viewModel.state.value.addCatalogText)
+        assertNull(viewModel.state.value.addCatalogError)
+        assertEquals("Entré por ruptura de rango", viewModel.state.value.entryDescription)
+        assertEquals(emotionId, viewModel.state.value.emotionBeforeId)
+    }
+
+    // HU-013 Escenario 3: nombre duplicado -- el campo inline permanece abierto con el mensaje de
+    // HU-010 (misma regla de unicidad, no se revalida aquí), sin crear un duplicado ni tocar el
+    // resto del formulario.
+    @Test
+    fun `confirmar el alta inline con nombre duplicado mantiene el campo abierto con el mensaje de error`() = runTest {
+        val assetId = catalogItemDao.seed(CatalogType.ASSET, "XAUUSD")
+        val emotionId = catalogItemDao.seed(CatalogType.EMOTION, "Confianza")
+        val errorId = catalogItemDao.seed(CatalogType.ERROR, "Ninguno")
+        val viewModel = createViewModel()
+        viewModel.fillMinimalRequiredFields(assetId, emotionId, emotionId, errorId)
+        viewModel.onStartAddCatalogItem(OperationFormState.FIELD_ASSET)
+        viewModel.onAddCatalogTextChange("XAUUSD")
+
+        viewModel.onConfirmAddCatalogItem()
+
+        assertEquals(OperationFormState.FIELD_ASSET, viewModel.state.value.addingCatalogField)
+        assertEquals(
+            "Este valor ya existe en el catálogo",
+            viewModel.state.value.addCatalogError
+        )
+        assertEquals(1, catalogItemDao.itemsOfType(CatalogType.ASSET).size)
+        assertEquals(assetId, viewModel.state.value.assetId)
+    }
+
+    // HU-013 Escenario 4: cancelar el campo inline sin crear ningún elemento.
+    @Test
+    fun `cancelar el alta inline cierra el campo sin crear ningun elemento`() = runTest {
+        catalogItemDao.seed(CatalogType.ASSET, "XAUUSD")
+        val viewModel = createViewModel()
+        viewModel.onStartAddCatalogItem(OperationFormState.FIELD_ASSET)
+        viewModel.onAddCatalogTextChange("EURJPY")
+
+        viewModel.onCancelAddCatalogItem()
+
+        assertNull(viewModel.state.value.addingCatalogField)
+        assertEquals("", viewModel.state.value.addCatalogText)
+        assertNull(viewModel.state.value.addCatalogError)
+        assertEquals(1, catalogItemDao.itemsOfType(CatalogType.ASSET).size)
+    }
+
+    // Nota técnica de HU-013: aplica a los 3 tipos de catálogo según cuál selector disparó la
+    // acción -- Emoción antes/después comparten CatalogType.EMOTION pero son campos distintos del
+    // formulario, y solo el campo que inició el alta debe verse afectado por la selección.
+    @Test
+    fun `el alta inline de Emocion despues usa el tipo EMOTION y solo selecciona ese campo`() = runTest {
+        val assetId = catalogItemDao.seed(CatalogType.ASSET, "XAUUSD")
+        val emotionBeforeId = catalogItemDao.seed(CatalogType.EMOTION, "Confianza")
+        val errorId = catalogItemDao.seed(CatalogType.ERROR, "Ninguno")
+        val viewModel = createViewModel()
+        viewModel.fillMinimalRequiredFields(assetId, emotionBeforeId, emotionBeforeId, errorId)
+        viewModel.onStartAddCatalogItem(OperationFormState.FIELD_EMOTION_AFTER)
+        viewModel.onAddCatalogTextChange("Euforia")
+
+        viewModel.onConfirmAddCatalogItem()
+
+        val nuevaEmocion = catalogItemDao.itemsOfType(CatalogType.EMOTION).single { it.name == "Euforia" }
+        assertEquals(nuevaEmocion.id, viewModel.state.value.emotionAfterId)
+        assertEquals(emotionBeforeId, viewModel.state.value.emotionBeforeId)
+    }
+
+    @Test
+    fun `el alta inline de Error usa el tipo ERROR`() = runTest {
+        val assetId = catalogItemDao.seed(CatalogType.ASSET, "XAUUSD")
+        val emotionId = catalogItemDao.seed(CatalogType.EMOTION, "Confianza")
+        val errorId = catalogItemDao.seed(CatalogType.ERROR, "Ninguno")
+        val viewModel = createViewModel()
+        viewModel.fillMinimalRequiredFields(assetId, emotionId, emotionId, errorId)
+        viewModel.onStartAddCatalogItem(OperationFormState.FIELD_ERROR)
+        viewModel.onAddCatalogTextChange("Sobreapalancamiento")
+
+        viewModel.onConfirmAddCatalogItem()
+
+        val nuevoError = catalogItemDao.itemsOfType(CatalogType.ERROR).single { it.name == "Sobreapalancamiento" }
+        assertEquals(nuevoError.id, viewModel.state.value.errorId)
+    }
+
     private class FakeOperationDao : OperationDao {
         val inserted = mutableListOf<Operation>()
         private var nextId = 1L

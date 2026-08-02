@@ -12,13 +12,13 @@
 
 ## 2. Sub-slice EP-002-b: agregar etiqueta inline desde el formulario (HU-013)
 
-- [ ] 2.1 `OperationFormScreen`: agregar opción "+ Agregar nueva" en los 3 selectores de catálogo (Activo, Emoción antes/después, Error)
-- [ ] 2.2 `OperationFormViewModel`: estado del campo inline (abierto/cerrado, texto, error) + acción de confirmar que invoca `CatalogRepository.addItem` (mismo método de 1.2, sin reimplementar la validación)
-- [ ] 2.3 Al confirmar con éxito: seleccionar automáticamente el elemento creado en el campo correspondiente, sin tocar el resto del estado del formulario
-- [ ] 2.4 Al confirmar con nombre duplicado: mantener el campo inline abierto y con foco, mostrar "Este valor ya existe en el catálogo" junto al campo
-- [ ] 2.5 Tests unitarios: creación inline exitosa + selección automática, duplicado mantiene el campo abierto con el error, cancelar no crea nada, resto del formulario permanece intacto en los 3 casos
-- [ ] 2.6 Tests instrumentados: flujo completo tocando "+ Agregar nueva" sobre el `OperationFormScreen` real, verificando el nodo renderizado (no solo el StateFlow) — mismo estándar que `OperationFormRenderedUiTest` de EP-001
-- [ ] 2.7 `journey_smoke` EP-002-b: en "Nueva operación", crear un Activo nuevo inline y completar el resto del formulario sin salir
+- [x] 2.1 `OperationFormScreen`: agregar opción "+ Agregar nueva" en los 3 selectores de catálogo (Activo, Emoción antes/después, Error)
+- [x] 2.2 `OperationFormViewModel`: estado del campo inline (abierto/cerrado, texto, error) + acción de confirmar que invoca `CatalogRepository.addItem` (mismo método de 1.2, sin reimplementar la validación)
+- [x] 2.3 Al confirmar con éxito: seleccionar automáticamente el elemento creado en el campo correspondiente, sin tocar el resto del estado del formulario
+- [x] 2.4 Al confirmar con nombre duplicado: mantener el campo inline abierto y con foco, mostrar "Este valor ya existe en el catálogo" junto al campo
+- [x] 2.5 Tests unitarios: creación inline exitosa + selección automática, duplicado mantiene el campo abierto con el error, cancelar no crea nada, resto del formulario permanece intacto en los 3 casos (`OperationFormViewModelTest`, 7 tests nuevos, `testDebugUnitTest` fresco en verde sin regresiones)
+- [ ] 2.6 Tests instrumentados: flujo completo tocando "+ Agregar nueva" sobre el `OperationFormScreen` real, verificando el nodo renderizado (no solo el StateFlow) — mismo estándar que `OperationFormRenderedUiTest` de EP-001. `OperationFormCatalogInlineAddTest` escrito y compila (`compileDebugAndroidTestKotlin` en verde), pero **sin ejecutar todavía**: no hay dispositivo/emulador conectado en esta sesión (`adb devices` vacío) — pendiente de correr `connectedDebugAndroidTest` en cuanto haya uno
+- [ ] 2.7 `journey_smoke` EP-002-b: en "Nueva operación", crear un Activo nuevo inline y completar el resto del formulario sin salir — pendiente de dispositivo real, misma razón que 2.6
 
 ## 3. Sub-slice EP-002-c: confirmar eliminación de un elemento en uso (HU-012)
 

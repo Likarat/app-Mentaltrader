@@ -102,7 +102,14 @@
       "Bash(grep -oE 'text=\"[^\"]{1,40}\"' journey_dump_06.xml)",
       "Bash(./gradlew.bat connectedDebugAndroidTest --console=plain -Pandroid.testInstrumentationRunnerArguments.class=com.miguel.mentaltrader.AppDatabaseSeedTest)",
       "PowerShell(python .claude/hooks/build/reconcile-build-state.py .claude/state/build-state.json)",
-      "PowerShell(git add .claude/settings.local.json .claude/state/build-state.json app/src/androidTest/java/com/miguel/mentaltrader/AppNavigationTest.kt app/src/androidTest/java/com/miguel/mentaltrader/EtiquetasCatalogManagementTest.kt app/src/main/java/com/miguel/mentaltrader/feature/etiquetas/EtiquetasScreen.kt app/src/main/java/com/miguel/mentaltrader/feature/etiquetas/EtiquetasViewModel.kt app/src/test/java/com/miguel/mentaltrader/feature/etiquetas/EtiquetasViewModelTest.kt openspec/changes/gestion-catalogos-etiquetas/tasks.md)"
+      "PowerShell(git add .claude/settings.local.json .claude/state/build-state.json app/src/androidTest/java/com/miguel/mentaltrader/AppNavigationTest.kt app/src/androidTest/java/com/miguel/mentaltrader/EtiquetasCatalogManagementTest.kt app/src/main/java/com/miguel/mentaltrader/feature/etiquetas/EtiquetasScreen.kt app/src/main/java/com/miguel/mentaltrader/feature/etiquetas/EtiquetasViewModel.kt app/src/test/java/com/miguel/mentaltrader/feature/etiquetas/EtiquetasViewModelTest.kt openspec/changes/gestion-catalogos-etiquetas/tasks.md)",
+      "PowerShell(.\\\\gradlew.bat testDebugUnitTest --console=plain --tests \"com.miguel.mentaltrader.feature.registro.OperationFormViewModelTest\" 2>&1)",
+      "PowerShell(.\\\\gradlew.bat assembleDebug --console=plain 2>&1)",
+      "PowerShell(.\\\\gradlew.bat testDebugUnitTest --console=plain --rerun 2>&1)",
+      "PowerShell(adb devices)",
+      "PowerShell(& \"C:\\\\Users\\\\migue\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" devices)",
+      "PowerShell(.\\\\gradlew.bat compileDebugAndroidTestKotlin --console=plain 2>&1)",
+      "PowerShell(git add .claude/settings.local.json .claude/state/build-state.json app/src/main/java/com/miguel/mentaltrader/feature/registro/OperationFormScreen.kt app/src/main/java/com/miguel/mentaltrader/feature/registro/OperationFormState.kt app/src/main/java/com/miguel/mentaltrader/feature/registro/OperationFormViewModel.kt app/src/test/java/com/miguel/mentaltrader/feature/registro/OperationFormViewModelTest.kt openspec/changes/gestion-catalogos-etiquetas/tasks.md app/src/androidTest/java/com/miguel/mentaltrader/OperationFormCatalogInlineAddTest.kt)"
     ]
   }
 }
