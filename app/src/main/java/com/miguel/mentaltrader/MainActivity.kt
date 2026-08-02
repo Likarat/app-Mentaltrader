@@ -48,6 +48,7 @@ import com.miguel.mentaltrader.feature.ajustes.AjustesScreen
 import com.miguel.mentaltrader.feature.ajustes.AjustesViewModel
 import com.miguel.mentaltrader.feature.etiquetas.EtiquetasScreen
 import com.miguel.mentaltrader.feature.historial.HistorialScreen
+import com.miguel.mentaltrader.feature.historial.HistorialViewModel
 import com.miguel.mentaltrader.feature.metricas.InicioScreen
 import com.miguel.mentaltrader.feature.registro.OperationFormScreen
 import com.miguel.mentaltrader.feature.registro.OperationFormViewModel
@@ -222,10 +223,14 @@ fun MentaltraderApp(navController: NavHostController = rememberNavController()) 
         ) {
             composable(Destino.Inicio.route) { InicioScreen() }
             composable(Destino.Historial.route) {
-                HistorialScreen(
-                    operationDao = application.database.operationDao(),
-                    operationImageDao = application.database.operationImageDao()
+                val historialViewModel: HistorialViewModel = viewModel(
+                    factory = HistorialViewModel.Factory(
+                        application.database.operationDao(),
+                        application.database.operationImageDao(),
+                        application.database.catalogItemDao()
+                    )
                 )
+                HistorialScreen(viewModel = historialViewModel)
             }
             composable(Destino.Etiquetas.route) { EtiquetasScreen() }
             composable(RUTA_NUEVA_OPERACION) {

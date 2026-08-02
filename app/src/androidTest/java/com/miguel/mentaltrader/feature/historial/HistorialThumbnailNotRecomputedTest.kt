@@ -43,6 +43,7 @@ class HistorialThumbnailNotRecomputedTest {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val database = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build()
         val imageProcessor = ImageProcessor(context)
+        val viewModel = HistorialViewModel(database.operationDao(), database.operationImageDao(), database.catalogItemDao())
 
         val filePath = runBlocking {
             val operationId = database.operationDao().insert(
@@ -78,10 +79,7 @@ class HistorialThumbnailNotRecomputedTest {
                     // que el cuerpo de HistorialScreen/OperationRow se re-ejecuta de verdad en
                     // cada uno de los 8 renders forzados a continuación.
                     key(recomposeTrigger.intValue) {
-                        HistorialScreen(
-                            operationDao = database.operationDao(),
-                            operationImageDao = database.operationImageDao()
-                        )
+                        HistorialScreen(viewModel = viewModel)
                     }
                 }
             }

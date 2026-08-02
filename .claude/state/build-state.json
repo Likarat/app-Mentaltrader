@@ -32,7 +32,7 @@
     ],
     "openspec_change": "historial-estudio-operaciones",
     "branch": "feature/ep-003-historial-estudio-operaciones",
-    "phase": "dor",
+    "phase": "green",
     "gates": {
       "dor": true,
       "tdd": false,
@@ -137,42 +137,42 @@
         "kind": "hu_ac",
         "ref": "HU-015#Escenario1",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Cubierto a nivel JVM (logica pura de agrupacion): HistorialSeparatorsTest.'la primera operacion del listado trae encabezado de mes y dia' + 'cambio de mes trae encabezado de mes y de dia' (testDebugUnitTest en verde). Implementado: HistorialViewModel.historial (Pager+insertSeparators+map sobre OperationDao.pagingSourceOrderedByDateDesc real), HistorialScreen renderiza GroupHeader/OperationRow reales via LazyPagingItems. assembleDebug+compileDebugAndroidTestKotlin BUILD SUCCESSFUL. Sin instrumentado/journey_smoke todavia (diferido a pasada final, sin dispositivo conectado)."
       },
       {
         "id": "HU-015-AC2",
         "kind": "hu_ac",
         "ref": "HU-015#Escenario2",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Cubierto a nivel JVM: HistorialSeparatorsTest.'dos operaciones del mismo dia no llevan separador' + 'cambio de dia dentro del mismo mes solo trae encabezado de dia' (testDebugUnitTest en verde). Sin instrumentado todavia, misma razon que AC1."
       },
       {
         "id": "HU-015-AC3",
         "kind": "hu_ac",
         "ref": "HU-015#Escenario3",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Implementado: OperationCard en HistorialScreen.kt muestra miniatura real (ImageProcessor.thumbnailPathFor) o icono generico (Icons.Filled.Image) si no hay imagen, Activo+Hora arriba (assetNameOf via CatalogItemDao real), Resultado+R coloreado abajo. Sin verificacion instrumentada/visual todavia, misma razon que AC1."
       },
       {
         "id": "HU-016-AC1",
         "kind": "hu_ac",
         "ref": "HU-016#Escenario1",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Cableado real implementado: OperationDao.pagingSourceOrderedByDateDesc (Room PagingSource real, room-paging 2.8.4) <- Pager(PagingConfig(pageSize=30)) en HistorialViewModel <- LazyPagingItems en HistorialScreen. Falta la corrida real con dataset sintetico grande (tasks.md 1.8) -- sin dispositivo conectado en esta sesion, diferido a la pasada final de instrumentados."
       },
       {
         "id": "HU-016-AC2",
         "kind": "hu_ac",
         "ref": "HU-016#Escenario2",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Misma implementacion que AC1 (Paging 3 carga incremental por diseno, no por verificacion todavia). Sin instrumentado, misma razon que AC1."
       },
       {
         "id": "HU-016-AC3",
         "kind": "hu_ac",
         "ref": "HU-016#Escenario3",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Misma implementacion que AC1; el limite superior (5,000 operaciones) requiere el dataset sintetico de tasks.md 1.8, sin dispositivo conectado en esta sesion."
       },
       {
         "id": "HU-017-AC1",
@@ -389,14 +389,14 @@
         "kind": "integration_point",
         "ref": "datos(Room DAO agrupacion mes/dia + Paging 3) -> presentacion(HistorialScreen listado, HU-015/HU-016)",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Cableado real implementado: OperationDao.pagingSourceOrderedByDateDesc (Room real) <- HistorialViewModel.historial (Pager + insertSeparators con HistorialSeparators.between, logica pura testeada en JVM + map a HistorialListItem) <- HistorialScreen (LazyPagingItems real, reemplazo del listado de verificacion de EP-001). assembleDebug BUILD SUCCESSFUL. Falta la corrida real con dataset sintetico grande (connectedDebugAndroidTest) -- sin dispositivo conectado en esta sesion, diferido a la pasada final de instrumentados."
       },
       {
         "id": "INT-historial-tarjeta-imagen",
         "kind": "integration_point",
         "ref": "datos/archivo(miniatura cacheada de OperationImage, EP-001 HU-007) -> presentacion(tarjeta compacta HU-015, miniatura o icono generico)",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Cableado real implementado: OperationCard (HistorialScreen.kt) lee OperationImageDao.getByOperationId real y usa ImageProcessor.thumbnailPathFor real para la miniatura, con icono generico (Icons.Filled.Image) si no hay imagenes; se actualizo HistorialThumbnailNotRecomputedTest (EP-001, HU-007 Escenario 2) para construir HistorialViewModel real en vez del constructor viejo de HistorialScreen. compileDebugAndroidTestKotlin BUILD SUCCESSFUL. Falta la corrida real (ese test ya existia, verifica que la miniatura no se recalcula en recomposiciones) -- sin dispositivo conectado en esta sesion."
       },
       {
         "id": "INT-detalle-navegacion",
@@ -456,6 +456,11 @@
       }
     ],
     "progress_log": [
+      {
+        "at": "2026-08-02T20:15:00.000000+00:00",
+        "by": "build-orchestrator",
+        "note": "EP-003-a (HU-015+HU-016) implementado: TDD JVM verde para la logica pura de agrupacion + wiring real de Paging 3 sobre Room. Implementado: OperationDao.pagingSourceOrderedByDateDesc (Room PagingSource real); HistorialListItem (GroupHeader/OperationRow) + HistorialSeparators.between(before, after) como funcion PURA (sin Room/Paging) que decide el separador mes/dia -- decision de diseno para poder testearla en JVM sin agregar androidx.paging:paging-testing (no esta en stack-allowlist.json); HistorialViewModel nuevo (Pager+insertSeparators+map+cachedIn, mas catalogItemDao para resolver el nombre del Activo en la tarjeta); HistorialScreen reemplaza el listado minimo de verificacion de EP-001 por LazyPagingItems real con tarjeta compacta (miniatura real o icono generico, Activo+Hora arriba, Resultado+R coloreado abajo). Se agregaron room-paging/paging-compose/paging-runtime (versiones 2.8.4/3.5.0/3.5.0, verificadas contra dl.google.com maven-metadata, no adivinadas) a libs.versions.toml/build.gradle.kts. Bloqueo de entorno real encontrado y resuelto: SSL handshake al resolver esas dependencias nuevas (PKIX path building failed) porque el JDK 21 auto-provisto de Gradle no confia en el certificado del proxy/AV de esta maquina -- mismo patron que el fix ya documentado de git http.sslbackend=schannel; resuelto con systemProp.javax.net.ssl.trustStoreType=Windows-ROOT en ~/.gradle/gradle.properties (config de maquina, fuera del repo, no afecta otros entornos/CI). Se actualizaron 2 tests preexistentes de EP-001 desincronizados por el cambio de firma de HistorialScreen (paso de parametros DAO sueltos a viewModel): AppNavigationTest.tocarHistorialMuestraLaPantallaDeHistorialInmediatamente (la tarjeta ya no muestra 'Operacion #...', ahora asertamos por el nombre del ResultType) y HistorialThumbnailNotRecomputedTest (HU-007 Escenario 2, construye un HistorialViewModel real en vez del constructor viejo). testDebugUnitTest (HistorialSeparatorsTest, 5 tests) + assembleDebug + compileDebugAndroidTestKotlin: BUILD SUCCESSFUL, sin regresiones. Sin instrumentado ni journey_smoke todavia (tasks.md 1.8/1.9 diferidos a la pasada final unica, sin dispositivo conectado en esta sesion, mismo criterio ya aplicado a EP-002-b/c/d). phase=green. Proximo paso: EP-003-b (HU-018, vista de detalle completo)."
+      },
       {
         "at": "2026-08-02T18:30:00.000000+00:00",
         "by": "dor-dod-gatekeeper",
