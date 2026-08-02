@@ -15,7 +15,459 @@
     "source": "Sin mockups formales — decisión de producto explícita (Especificacion_Bitacora_Trading.md §1: \"No hay mockups previos; la UI se ajusta de forma iterativa durante el desarrollo\"). Fuente de verdad visual: PRD/spec descriptivos (tema oscuro por defecto, layout de una columna, orden de campos ya fijado).",
     "notes": "gate fidelity (fase smoke) se evalúa contra la descripción textual del PRD/spec, no contra un export visual (no aplica MCP chrome-devtools screenshot-vs-prototipo en el sentido estricto; se evalúa consistencia con la descripción)."
   },
-  "active_slice": null,
+  "active_slice": {
+    "epica": "EP-003",
+    "hus": [
+      "HU-015",
+      "HU-016",
+      "HU-017",
+      "HU-018",
+      "HU-019",
+      "HU-020",
+      "HU-021",
+      "HU-022",
+      "HU-023",
+      "HU-024",
+      "HU-025"
+    ],
+    "openspec_change": "historial-estudio-operaciones",
+    "branch": "feature/ep-003-historial-estudio-operaciones",
+    "phase": "dor",
+    "gates": {
+      "dor": true,
+      "tdd": false,
+      "journey_smoke": false,
+      "coherence_link": true,
+      "data": false,
+      "fidelity": false,
+      "api": null,
+      "wiring_verified": false,
+      "dod": false
+    },
+    "updated_at": "2026-08-02T18:30:00.000000+00:00",
+    "updated_by": "dor-dod-gatekeeper",
+    "layer": "business",
+    "files_scope": [
+      "app/src/main/java/**/feature/historial/**",
+      "app/src/main/java/**/feature/registro/**",
+      "app/src/main/java/**/core/data/**",
+      "app/src/main/java/**/core/image/**",
+      "app/src/main/java/com/miguel/mentaltrader/MainActivity.kt"
+    ],
+    "sub_slices": [
+      {
+        "id": "EP-003-a",
+        "title": "Historial agrupado por mes/dia con escala (listado base + fluidez a volumen)",
+        "hus": [
+          "HU-015",
+          "HU-016"
+        ],
+        "status": "pending",
+        "journey_smoke": false
+      },
+      {
+        "id": "EP-003-b",
+        "title": "Abrir detalle completo de una operacion desde la tarjeta",
+        "hus": [
+          "HU-018"
+        ],
+        "status": "pending",
+        "journey_smoke": false
+      },
+      {
+        "id": "EP-003-c",
+        "title": "Editar y eliminar una operacion existente desde el detalle (con deshacer)",
+        "hus": [
+          "HU-020",
+          "HU-021"
+        ],
+        "status": "pending",
+        "journey_smoke": false
+      },
+      {
+        "id": "EP-003-d",
+        "title": "Resumen rapido por mes y colapsar/expandir el grupo",
+        "hus": [
+          "HU-017"
+        ],
+        "status": "pending",
+        "journey_smoke": false
+      },
+      {
+        "id": "EP-003-e",
+        "title": "Filtrar y buscar operaciones (etiqueta, fecha/periodo y palabra clave, AND)",
+        "hus": [
+          "HU-022",
+          "HU-023"
+        ],
+        "status": "pending",
+        "journey_smoke": false
+      },
+      {
+        "id": "EP-003-f",
+        "title": "Estado vacio en Historial (primera vez y sin resultados de filtro)",
+        "hus": [
+          "HU-025"
+        ],
+        "status": "pending",
+        "journey_smoke": false
+      },
+      {
+        "id": "EP-003-g",
+        "title": "Visor de imagen a pantalla completa (zoom, navegacion entre imagenes, rotacion excepcional)",
+        "hus": [
+          "HU-019"
+        ],
+        "status": "pending",
+        "journey_smoke": false
+      },
+      {
+        "id": "EP-003-h",
+        "title": "Persistir el ultimo filtro de Historial entre sesiones",
+        "hus": [
+          "HU-024"
+        ],
+        "status": "pending",
+        "journey_smoke": false
+      }
+    ],
+    "wiring_checklist": [
+      {
+        "id": "HU-015-AC1",
+        "kind": "hu_ac",
+        "ref": "HU-015#Escenario1",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-015-AC2",
+        "kind": "hu_ac",
+        "ref": "HU-015#Escenario2",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-015-AC3",
+        "kind": "hu_ac",
+        "ref": "HU-015#Escenario3",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-016-AC1",
+        "kind": "hu_ac",
+        "ref": "HU-016#Escenario1",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-016-AC2",
+        "kind": "hu_ac",
+        "ref": "HU-016#Escenario2",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-016-AC3",
+        "kind": "hu_ac",
+        "ref": "HU-016#Escenario3",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-017-AC1",
+        "kind": "hu_ac",
+        "ref": "HU-017#Escenario1",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-017-AC2",
+        "kind": "hu_ac",
+        "ref": "HU-017#Escenario2",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-017-AC3",
+        "kind": "hu_ac",
+        "ref": "HU-017#Escenario3",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-017-AC4",
+        "kind": "hu_ac",
+        "ref": "HU-017#Escenario4",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-018-AC1",
+        "kind": "hu_ac",
+        "ref": "HU-018#Escenario1",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-018-AC2",
+        "kind": "hu_ac",
+        "ref": "HU-018#Escenario2",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-018-AC3",
+        "kind": "hu_ac",
+        "ref": "HU-018#Escenario3",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-019-AC1",
+        "kind": "hu_ac",
+        "ref": "HU-019#Escenario1",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-019-AC2",
+        "kind": "hu_ac",
+        "ref": "HU-019#Escenario2",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-019-AC3",
+        "kind": "hu_ac",
+        "ref": "HU-019#Escenario3",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-019-AC4",
+        "kind": "hu_ac",
+        "ref": "HU-019#Escenario4",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-020-AC1",
+        "kind": "hu_ac",
+        "ref": "HU-020#Escenario1",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-020-AC2",
+        "kind": "hu_ac",
+        "ref": "HU-020#Escenario2",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-020-AC3",
+        "kind": "hu_ac",
+        "ref": "HU-020#Escenario3",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-021-AC1",
+        "kind": "hu_ac",
+        "ref": "HU-021#Escenario1",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-021-AC2",
+        "kind": "hu_ac",
+        "ref": "HU-021#Escenario2",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-021-AC3",
+        "kind": "hu_ac",
+        "ref": "HU-021#Escenario3",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-022-AC1",
+        "kind": "hu_ac",
+        "ref": "HU-022#Escenario1",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-022-AC2",
+        "kind": "hu_ac",
+        "ref": "HU-022#Escenario2",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-022-AC3",
+        "kind": "hu_ac",
+        "ref": "HU-022#Escenario3",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-022-AC4",
+        "kind": "hu_ac",
+        "ref": "HU-022#Escenario4",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-023-AC1",
+        "kind": "hu_ac",
+        "ref": "HU-023#Escenario1",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-023-AC2",
+        "kind": "hu_ac",
+        "ref": "HU-023#Escenario2",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-023-AC3",
+        "kind": "hu_ac",
+        "ref": "HU-023#Escenario3",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-024-AC1",
+        "kind": "hu_ac",
+        "ref": "HU-024#Escenario1",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-024-AC2",
+        "kind": "hu_ac",
+        "ref": "HU-024#Escenario2",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-024-AC3",
+        "kind": "hu_ac",
+        "ref": "HU-024#Escenario3",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-025-AC1",
+        "kind": "hu_ac",
+        "ref": "HU-025#Escenario1",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-025-AC2",
+        "kind": "hu_ac",
+        "ref": "HU-025#Escenario2",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "HU-025-AC3",
+        "kind": "hu_ac",
+        "ref": "HU-025#Escenario3",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "INT-historial-query-room",
+        "kind": "integration_point",
+        "ref": "datos(Room DAO agrupacion mes/dia + Paging 3) -> presentacion(HistorialScreen listado, HU-015/HU-016)",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "INT-historial-tarjeta-imagen",
+        "kind": "integration_point",
+        "ref": "datos/archivo(miniatura cacheada de OperationImage, EP-001 HU-007) -> presentacion(tarjeta compacta HU-015, miniatura o icono generico)",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "INT-detalle-navegacion",
+        "kind": "integration_point",
+        "ref": "presentacion(tarjeta HU-015) -> navigation -> presentacion(vista de detalle HU-018)",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "INT-detalle-formulario-edicion",
+        "kind": "integration_point",
+        "ref": "presentacion(boton Editar en detalle HU-018) -> feature registro (formulario reutilizado de EP-001) -> datos(actualiza Operation existente, HU-020)",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "INT-eliminar-softdelete-imagenes",
+        "kind": "integration_point",
+        "ref": "datos(Operation + OperationImage) -> archivo(filesDir) borrado real tras expirar la ventana de deshacer (HU-021)",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "INT-filtros-query-room",
+        "kind": "integration_point",
+        "ref": "presentacion(controles de filtro/busqueda HU-022/HU-023) -> datos(consulta Room combinada con logica AND)",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "INT-filtros-datastore-persistencia",
+        "kind": "integration_point",
+        "ref": "presentacion(filtros activos HU-022/HU-023) -> datos(DataStore Preferences, HU-024) -> presentacion(filtros restaurados al reabrir)",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "INT-visor-imagen-orientacion",
+        "kind": "integration_point",
+        "ref": "presentacion(visor de imagen a pantalla completa HU-019) -> plataforma(excepcion de rotacion a horizontal; unico punto que difiere de la regla general vertical fijada por EP-005/HU-034)",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "INT-estado-vacio-fab",
+        "kind": "integration_point",
+        "ref": "presentacion(estado vacio HU-025) -> navigation(FAB de HU-008, EP-001 ya archivada) -> presentacion(formulario Nueva Operacion)",
+        "status": "failing",
+        "evidence": ""
+      },
+      {
+        "id": "INT-hu034-retro-cierre",
+        "kind": "integration_point",
+        "ref": "plataforma/presentacion(visor HU-019 construido y verificado) -> EP-005 archivada (HU-034-AC2, hoy failing/diferido en su wiring_checklist): una vez HU-019 este passing, actualizar retroactivamente ese item archivado de EP-005 citando la evidencia real de HU-019 (no bloquea el DoR ni el DoD de EP-003, es un recordatorio de hilo cruzado)",
+        "status": "failing",
+        "evidence": ""
+      }
+    ],
+    "progress_log": [
+      {
+        "at": "2026-08-02T18:30:00.000000+00:00",
+        "by": "dor-dod-gatekeeper",
+        "note": "DoR evaluado y APROBADO para EP-003 (Historial y estudio de operaciones), con troceo obligatorio en sub_slices[]. Precondicion: scaffold.confirmed=true y design_source.confirmed=true, ya confirmados en build-state.json (no re-derivados). active_slice estaba en null (EP-002 pausada, no archivada, movida a history[] en la rama feature/ep-002-gestion-catalogos-etiquetas en un PR aparte, no toca esta epica ni este archivo en la rama actual feature/ep-003-historial-estudio-operaciones, creada desde main actualizado con el merge del PR de seguridad numero 4). Checklist DoR: (1) EP-003 existe en docs/03-backlog/epicas.md con trazabilidad a Obj.2 (historial agrupado, scroll fluido) y Obj.3 (deteccion de patrones) del PRD, OK. (2) 11 HU enumeradas y listadas en hus[], OK: HU-015..HU-025 coinciden 1:1 con la seccion Historias previstas de EP-003 en epicas.md y con la fila Trazabilidad rapida de backlog.md. (3) Frontmatter completo (id/titulo/epica/prioridad/complejidad/estado) + estado:lista en las 11, OK, verificado archivo por archivo (docs/04-historias/HU-015..HU-025). (4) AC en G/W/T proporcional a complejidad, conteo real verificado: HU-015=3 escenarios (M), HU-016=3 (S), HU-017=4 (S), HU-018=3 (S), HU-019=4 (M), HU-020=3 (S), HU-021=3 (M), HU-022=4 (M), HU-023=3 (S), HU-024=3 (S), HU-025=3 (S). Las cuatro de complejidad M (HU-015, HU-019, HU-021, HU-022) caen en el rango 3 a 5 esperado. Las de complejidad S superan a veces el rango estricto de 1 a 2, igual que ya ocurrio y quedo aprobado en el DoR de EP-001 (HU-005 y HU-009 con 5 escenarios siendo S). En este proyecto S no se limita mecanicamente a 1 o 2 escenarios cuando existen mas ramas reales de error o edge sin inflar: cada escenario revisado corresponde a un happy path o un edge/error real y distinto, ninguna historia repite variaciones cosmeticas del mismo caso, consistente con la clausula que exime a las historias triviales del piso de 3 a 5 pero exige cubrir toda rama de error o edge que exista de verdad. (5) INVEST 6/6 en las 11, OK, checklist propio de cada HU revisado y consistente con el contenido real de cada archivo, no solo con el checkbox: Independent verificado explicitamente contra sus dependencias intra-epica declaradas (HU-016 depende de HU-015, HU-017 depende de HU-015, HU-018 depende de HU-015, HU-019 depende de HU-018, HU-020 depende de HU-018 y de EP-001, HU-021 depende de HU-018, HU-022 depende de HU-015, HU-023 depende de HU-022, HU-024 depende de HU-022 y HU-023, HU-025 depende de HU-015 y HU-008), ninguna depende del alcance de otra historia de forma circular ni de epicas de negocio hermanas (EP-002, EP-004). (6) Dependencias externas: EP-003 depende de datos de EP-001 (HU-001 a HU-004, formulario base; HU-006 y HU-007, imagenes, para HU-018 y HU-019; HU-020 depende ademas explicitamente de las reglas de validacion HU-001 a HU-004) y de HU-008 (FAB, para HU-025). EP-001 ya esta en history[] archivada con gates.dod=true, OK, dependencia satisfecha. Sin mas dependencias cruzadas de epica (EP-002 y EP-004 no son prerequisito de EP-003). (7) Cimiento (criterio duro): EP-003 es layer=business. Su cimiento fundacional es EP-005 (navegacion, tema, orientacion, persistencia offline base), ya archivada con dor=dod=true. Caveat detectado y documentado, NO bloqueante: el wiring_checklist archivado de EP-005 dejo HU-034-AC2 (retorno a vertical tras salir del visor) en failing y diferido explicitamente a la espera de HU-019 (este mismo slice, sub_slice EP-003-g). Se agrega el item INT-hu034-retro-cierre al wiring_checklist de este slice como recordatorio explicito de actualizar retroactivamente ese item archivado de EP-005 en cuanto HU-019 quede passing con evidencia real. Esto no es cimiento sin construir (EP-005 esta completa y archivada), es solo un hilo de verificacion cruzada pendiente, mismo patron que el caveat de INT-room-real-entities documentado en el DoR de EP-001. (8) TAMANO (criterio de descomposicion): 11 HU excede ampliamente el umbral por defecto de 3, NO se abre como slice unico. Se decompone en sub_slices[] (8 grupos, construidos DE A UNO con journey_smoke verde entre cada uno). Criterio de orden: se replica el mismo criterio ya usado y documentado para EP-002 (su propio progress_log del 2 de agosto de 2026): orden de dependencias mas prioridad MoSCoW de backlog.md restringido a las filas propias de la epica, ignorando el interleaving de otras epicas en la tabla global, y se agrupan en el mismo sub_slice los pares que epicas.md declara explicitamente como particion vertical de una unica historia original tras fallar INVEST-S, exactamente el mismo tratamiento que EP-001 (HU-006 mas HU-007) y EP-002 (HU-010 mas HU-011) ya recibieron. Orden de las 11 HU propias de EP-003 en backlog.md, ignorando otras epicas intercaladas: HU-015 (Must, M, fila 10), HU-018 (Must, S, fila 11), HU-020 (Must, S, fila 12), HU-021 (Must, M, fila 13), HU-016 (Should, S, fila 22), HU-017 (Should, S, fila 23), HU-022 (Should, M, fila 24), HU-025 (Should, S, fila 25), HU-019 (Could, M, fila 30), HU-023 (Could, S, fila 31), HU-024 (Could, S, fila 32). Sobre ese orden se aplica el agrupamiento de los pares de particion vertical (HU-015 mas HU-016, y HU-022 mas HU-023), que por ser splits explicitos no se separan aunque su fila MoSCoW quede lejana entre si, el mismo criterio que junto HU-010 (fila 9, Must) con HU-011 (fila 20, Should) en EP-002 pese a la distancia de filas. Resultado: EP-003-a es HU-015 mas HU-016 (listado agrupado mas fluidez a escala, walking skeleton de la pestana Historial, PRIMERO, porque todo lo demas depende de que el listado exista). EP-003-b es HU-018 (detalle completo, capa intermedia de la que dependen HU-019, HU-020 y HU-021, se construye sola para estabilizar esa base antes de ramificar en tres direcciones distintas). EP-003-c es HU-020 mas HU-021 (editar mas eliminar, las dos acciones Must que penden del detalle, pareja natural analoga a HU-011 en EP-002 que tambien combino edicion y eliminacion con proteccion). EP-003-d es HU-017 (resumen mensual, Should, depende solo de HU-015 pero se secuencia aqui por prioridad, tras cerrar los Must). EP-003-e es HU-022 mas HU-023 (filtrar mas buscar, particion vertical explicita, Should mas Could). EP-003-f es HU-025 (estado vacio, depende de HU-015 y HU-008 y referencia los filtros de HU-022/HU-023 para su Escenario 2 de sin resultados para el filtro, se secuencia despues de tener al menos un filtro real para probar ese escenario sin inventar datos). EP-003-g es HU-019 (visor de imagen, Could, depende de HU-018 y de imagenes ya existentes de EP-001, se deja para casi el final por ser Could y una capa aislada y autocontenida, mismo tratamiento que EP-001 dio a HU-006 y HU-007 como capa aislada de imagenes). EP-003-h es HU-024 (persistir filtro, Could, ultimo, envuelve y persiste el estado de filtros de HU-022/HU-023 ya construidos, es la ultima HU listada en epicas.md y funcionalmente el pulido final sobre todo lo demas). Cobertura verificada programaticamente: las 8 entradas de sub_slices[] cubren exactamente las 11 HU sin huecos ni solapamientos. (9) Fuente de diseno (criterio 9, EP-003 toca UI): design_source.confirmed=true (fuente descriptiva PRD/spec, sin mockups formales, decision de producto ya registrada en design_source.notes), mismo tratamiento que EP-001 y EP-005 ya recibieron, satisfecho. gates iniciales: dor=true, resto en false; api=null (app nativa sin backend ni endpoints); fidelity=false (la epica toca UI, arranca en false, NO null); wiring_verified=false. wiring_checklist inicializado con 36 items hu_ac (uno por cada uno de los 36 escenarios AC de las 11 HU, conteo verificado programaticamente contra ac_counts) mas 10 integration_point (9 puntos de integracion entre capas relevantes de esta epica mas 1 recordatorio explicito de cierre retroactivo de EP-005/HU-034-AC2), todos failing con evidence vacio. openspec_change queda declarado como historial-estudio-operaciones (slug aun NO creado, opsx:new todavia no se corrio) para que building-a-slice lo cree en el proximo paso; branch ya existe y coincide (feature/ep-003-historial-estudio-operaciones). Proximo paso: opsx:new para crear el change historial-estudio-operaciones, y arrancar TDD (red) sobre HU-015 (sub_slice EP-003-a), primera HU sin ninguna dependencia pendiente dentro de la propia epica."
+      },
+      {
+        "at": "2026-08-02T19:05:00.000000+00:00",
+        "by": "change-epic-coherence",
+        "note": "Gate coherence_link (inner loop, fase change) VERIFICADO y APROBADO para el change historial-estudio-operaciones atado a EP-003 (Historial y estudio de operaciones). Checklist: (1) proposal.md contiene el bloque '## Trazabilidad' en el formato canonico (no en frontmatter YAML): '- Epica: EP-003', '- Historias: HU-015, HU-016, HU-017, HU-018, HU-019, HU-020, HU-021, HU-022, HU-023, HU-024, HU-025', '- Discovery: docs/03-backlog/epicas.md#ep-003' (lineas 33-36 de proposal.md), OK. (2) EP-003 existe en docs/03-backlog/epicas.md (seccion '## EP-003 -- Historial y estudio de operaciones', linea 89), con trazabilidad a Obj.2 y Obj.3 del PRD, OK. (3) Las 11 HU (HU-015 a HU-025) existen como archivo propio en docs/04-historias/, frontmatter epica: EP-003 verificado en las 11 (grep linea a linea), y la lista 'Historias:' del proposal coincide 1:1 con la seccion 'Historias previstas' de EP-003 en epicas.md -- sin faltantes ni sobrantes de otra epica, OK. (4) Coherencia de alcance: los 7 bullets de 'What Changes' del proposal mapean sin excedente a la union de AC de las 11 HU (listado mes/dia + orden reciente -> HU-015; Paging 3/fluidez -> HU-016; resumen y colapsar/expandir -> HU-017; detalle+editar+eliminar con deshacer -> HU-018/HU-020/HU-021; visor de imagen zoom/navegacion/rotacion -> HU-019; filtros AND + busqueda por palabra clave -> HU-022/HU-023; persistencia de filtro -> HU-024; estados vacios diferenciados -> HU-025); las 11 HU quedan cubiertas, ninguna se omite. El mapeo HU->capability de la seccion '## Capabilities' tampoco tiene huecos ni excedentes: historial-listado={HU-015,016,017,025}, historial-detalle-operacion={HU-018,020,021}, historial-visor-imagen={HU-019}, historial-filtros={HU-022,023,024} -- union exacta de las 11 HU, cada una aparece exactamente una vez. (5) openspec validate historial-estudio-operaciones --strict --json ejecutado (via npx.cmd, CLI 1.6.0): 1 unico issue, ERROR 'Change must have at least one delta. No deltas found...' -- esperado en esta fase (solo existen proposal.md y .openspec.yaml en el change; specs/ aun no se ha escrito), no hay ningun otro error de estructura. (6) Back-reference recomendada (NO bloqueante para este gate): ni la seccion EP-003 de epicas.md ni las 11 HU declaran aun openspec_change: historial-estudio-operaciones -- a diferencia de EP-001/EP-005 archivadas, que si tienen la linea 'Construccion: openspec_change: ...' en epicas.md. Sugerido para cuando se archive el change: agregar bajo el titulo de la seccion EP-003 la linea '**Construccion**: openspec_change: historial-estudio-operaciones (rama feature/ep-003-historial-estudio-operaciones)', igual que EP-001/EP-005. Veredicto: COHERENTE. gates.coherence_link=true."
+      }
+    ]
+  },
   "history": [
     {
       "epica": "EP-005",
