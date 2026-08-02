@@ -1,6 +1,7 @@
 package com.miguel.mentaltrader.feature.historial
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,6 +52,7 @@ import java.util.Locale
 @Composable
 fun HistorialScreen(
     viewModel: HistorialViewModel? = null,
+    onOperationClick: (Long) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     if (viewModel == null) {
@@ -85,7 +87,7 @@ fun HistorialScreen(
         ) { index ->
             when (val item = items[index]) {
                 is HistorialListItem.GroupHeader -> GroupHeaderRow(item)
-                is HistorialListItem.OperationRow -> OperationCard(item.operation, viewModel)
+                is HistorialListItem.OperationRow -> OperationCard(item.operation, viewModel, onOperationClick)
                 null -> Unit
             }
         }
@@ -113,7 +115,7 @@ private fun GroupHeaderRow(header: HistorialListItem.GroupHeader) {
 }
 
 @Composable
-private fun OperationCard(operation: Operation, viewModel: HistorialViewModel) {
+private fun OperationCard(operation: Operation, viewModel: HistorialViewModel, onClick: (Long) -> Unit) {
     val context = LocalContext.current
     val images by viewModel.imagesOf(operation.id).collectAsState(initial = emptyList())
     var assetName by remember(operation.assetId) { mutableStateOf<String?>(null) }
@@ -131,7 +133,9 @@ private fun OperationCard(operation: Operation, viewModel: HistorialViewModel) {
 
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick(operation.id) }
     ) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             if (images.isNotEmpty()) {

@@ -12,13 +12,13 @@
 
 ## 2. Sub-slice EP-003-b: detalle completo de una operación (HU-018)
 
-- [x] 2.1 (parcial: solo el ViewModel) `HistorialDetalleViewModel` nuevo (`operationDao.getById(id)` + `operationImageDao.getByOperationId(id)` + nombres de catálogo resueltos vía `CatalogItemDao.getById` para Activo/Emoción antes/Emoción después/Error). `HistorialDetalleScreen` (la UI en sí) TODAVÍA NO ESCRITA -- próximo paso exacto de la próxima sesión.
-- [ ] 2.2 Secciones ordenadas igual que el formulario de registro: imagen (si existe) primero, luego "Datos generales"/"Emociones y errores"/"Resultado", "Descripción entrada" al final
-- [ ] 2.3 Omitir la sección de imagen sin dejar espacio vacío si la operación no tiene ninguna adjunta
-- [ ] 2.4 Navegación real: tocar una tarjeta del listado (EP-003-a) navega a `HistorialDetalleScreen` con el id real
+- [x] 2.1 `HistorialDetalleViewModel` (`operationDao.getById(id)` + `operationImageDao.getByOperationId(id)` + nombres de catálogo resueltos vía `CatalogItemDao.getById`) + `HistorialDetalleScreen` (Composable real)
+- [x] 2.2 Secciones ordenadas igual que el formulario de registro: imagen (si existe) primero, luego "Datos generales"/"Emociones y errores"/"Resultado", "Descripción entrada" al final
+- [x] 2.3 Se omite la sección de imagen sin dejar espacio vacío si `state.images` está vacío (`if (state.images.isNotEmpty())`)
+- [x] 2.4 Navegación real: `HistorialScreen` gana `onOperationClick`, `OperationCard` es `clickable`, `MainActivity.kt` agrega la ruta parametrizada `RUTA_DETALLE_OPERACION` (`detalle_operacion/{operationId}`, `NavType.LongType`) y navega ahí con el id real de la operación tocada
 - [x] 2.5 Tests unitarios: `HistorialDetalleViewModelTest` (4 tests: carga operación+catálogo resuelto, carga imágenes, sin imágenes queda vacío, operación inexistente no crashea) -- `testDebugUnitTest` en verde
-- [ ] 2.6 Test instrumentado: tocar una tarjeta real del listado abre el detalle real con los datos de esa operación (Room real, sin fakes)
-- [ ] 2.7 `journey_smoke` EP-003-b: desde Historial, tocar una operación real y ver su detalle completo
+- [ ] 2.6 Test instrumentado: tocar una tarjeta real del listado abre el detalle real con los datos de esa operación (Room real, sin fakes) -- diferido a la pasada final de instrumentados (sin dispositivo conectado en esta sesión)
+- [ ] 2.7 `journey_smoke` EP-003-b: desde Historial, tocar una operación real y ver su detalle completo -- diferido, misma razón que 2.6
 
 ## 3. Sub-slice EP-003-c: editar + eliminar con deshacer (HU-020, HU-021)
 

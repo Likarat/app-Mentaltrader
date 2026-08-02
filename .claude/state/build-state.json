@@ -207,21 +207,21 @@
         "kind": "hu_ac",
         "ref": "HU-018#Escenario1",
         "status": "failing",
-        "evidence": "PARCIAL: HistorialDetalleViewModel escrito y testeado en JVM (carga la operacion real por id) pero HistorialDetalleScreen (la UI que se abre al tocar la tarjeta) y la navegacion real (tasks.md 2.4) todavia NO estan escritas -- interrumpido en un punto de corte natural (contexto de sesion bajo). Sin esa navegacion, este escenario no puede cerrarse ni a nivel JVM."
+        "evidence": "Cableado real implementado: HistorialScreen.onOperationClick + OperationCard clickable -> MainActivity navega a RUTA_DETALLE_OPERACION (detalle_operacion/{operationId}, NavType.LongType) -> HistorialDetalleScreen real montado con HistorialDetalleViewModel real. assembleDebug+compileDebugAndroidTestKotlin BUILD SUCCESSFUL. Sin instrumentado/journey_smoke todavia (diferido a pasada final, sin dispositivo conectado)."
       },
       {
         "id": "HU-018-AC2",
         "kind": "hu_ac",
         "ref": "HU-018#Escenario2",
         "status": "failing",
-        "evidence": "Cubierto a nivel JVM (datos, no layout): HistorialDetalleViewModelTest.'carga la operacion con los nombres de catalogo resueltos' + 'carga las imagenes adjuntas de la operacion' (testDebugUnitTest en verde) -- expone assetName/emotionBeforeName/emotionAfterName/errorName/images ya resueltos, listos para que la UI (todavia no escrita) los ordene en secciones."
+        "evidence": "Implementado: HistorialDetalleScreen.kt renderiza imagen primero (si existe), luego DetalleSectionCard 'Datos generales'/'Emociones y errores'/'Resultado', y 'Descripcion entrada' al final -- mismo orden de lectura que OperationFormScreen. Cubierto a nivel JVM (datos): HistorialDetalleViewModelTest (testDebugUnitTest en verde). Sin verificacion instrumentada/visual todavia, diferido a pasada final."
       },
       {
         "id": "HU-018-AC3",
         "kind": "hu_ac",
         "ref": "HU-018#Escenario3",
         "status": "failing",
-        "evidence": "Cubierto a nivel JVM: HistorialDetalleViewModelTest.'sin imagenes adjuntas la lista de imagenes queda vacia' (testDebugUnitTest en verde) -- el ViewModel expone images=emptyList(), la UI (todavia no escrita) es responsable de omitir la seccion sin dejar espacio vacio."
+        "evidence": "Implementado: HistorialDetalleScreen.kt omite la seccion de imagen con `if (state.images.isNotEmpty())` (sin espacio vacio ni layout roto). Cubierto a nivel JVM: HistorialDetalleViewModelTest.'sin imagenes adjuntas la lista de imagenes queda vacia' (testDebugUnitTest en verde). Sin verificacion instrumentada/visual todavia, diferido a pasada final."
       },
       {
         "id": "HU-019-AC1",
@@ -403,7 +403,7 @@
         "kind": "integration_point",
         "ref": "presentacion(tarjeta HU-015) -> navigation -> presentacion(vista de detalle HU-018)",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Cableado real implementado de punta a punta: OperationCard.clickable(onClick) <- HistorialScreen.onOperationClick <- MainActivity navController.navigate(rutaDetalleOperacion(id)) -> RUTA_DETALLE_OPERACION real con NavType.LongType -> HistorialDetalleViewModel.Factory(operationId real) -> HistorialDetalleScreen real. assembleDebug+compileDebugAndroidTestKotlin BUILD SUCCESSFUL. Falta la corrida real (connectedDebugAndroidTest, tocar una tarjeta real y verificar el detalle) -- sin dispositivo conectado en esta sesion, diferido a la pasada final de instrumentados."
       },
       {
         "id": "INT-detalle-formulario-edicion",
@@ -457,6 +457,11 @@
     ],
     "progress_log": [
       {
+        "at": "2026-08-02T21:15:00.000000+00:00",
+        "by": "build-orchestrator",
+        "note": "EP-003-b (HU-018) COMPLETO a nivel de codigo/TDD JVM. Escrito HistorialDetalleScreen.kt: imagen primero (si existe, con `if (state.images.isNotEmpty())` para no dejar espacio vacio), secciones 'Datos generales'/'Emociones y errores'/'Resultado'/'Descripcion entrada' en ese orden (mismo orden de lectura que OperationFormScreen). Navegacion real cableada: HistorialScreen gana `onOperationClick`, OperationCard es clickable, MainActivity.kt agrega la ruta parametrizada RUTA_DETALLE_OPERACION (`detalle_operacion/{operationId}`, NavType.LongType, helper rutaDetalleOperacion(id)) y monta HistorialDetalleViewModel/Screen reales con el id real de la operacion tocada. testDebugUnitTest + assembleDebug + compileDebugAndroidTestKotlin: BUILD SUCCESSFUL, sin regresiones. tasks.md 2.1-2.5 tildadas; 2.6/2.7 (instrumentado+journey_smoke) diferidas a la pasada final unica, sin dispositivo conectado en esta sesion (decision ya vigente desde EP-002). Proximo paso: EP-003-c (HU-020+HU-021, editar + eliminar con deshacer)."
+      },
+      {
         "at": "2026-08-02T20:45:00.000000+00:00",
         "by": "build-orchestrator",
         "note": "EP-003-b (HU-018) iniciado, PAUSADO en un punto de corte natural (contexto de sesion bajo, ~35% restante) -- no un bloqueo de dispositivo esta vez, sino corte deliberado para no arrancar trabajo complejo nuevo (la UI) con poco contexto. Completado: HistorialDetalleUiState + HistorialDetalleViewModel (operationDao.getById + operationImageDao.getByOperationId + CatalogItemDao.getById resuelto para Activo/Emocion antes/Emocion despues/Error, todo en un unico init{} async) + Factory. 4 tests unitarios nuevos en HistorialDetalleViewModelTest (fakes locales de OperationDao/OperationImageDao/CatalogItemDao, ya que esta rama -- basada en main, sin el merge de EP-002 -- todavia no tiene testutil/ compartido) -- testDebugUnitTest en verde. NO escrito todavia: HistorialDetalleScreen (la UI real, secciones ordenadas imagen->datos generales->emociones->resultado->descripcion), ni la navegacion real desde una tarjeta de HistorialScreen (tasks.md 2.2/2.3/2.4). tasks.md 2.1 marcada parcial (solo ViewModel), 2.5 marcada completa. Proximo paso EXACTO: escribir HistorialDetalleScreen.kt (Composable con las secciones ya especificadas en design.md/HU-018), agregar la ruta de navegacion en MainActivity.kt (Destino o ruta ad-hoc con operationId como argumento, mismo patron que RUTA_NUEVA_OPERACION), y cablear el tap de OperationCard en HistorialScreen.kt para navegar ahi con el id real."
@@ -478,9 +483,9 @@
       }
     ],
     "session_continuity": {
-      "last_session": "2026-08-02T20:45:00.000000+00:00",
-      "stopped_at": "2026-08-02T20:45:00.000000+00:00",
-      "resume_hint": "EP-003-a (HU-015+HU-016) cerrado a nivel de codigo/TDD JVM (commit 515bc4d), solo falta instrumentado+journey_smoke (sin dispositivo, diferido a la pasada final). EP-003-b (HU-018) EN CURSO: HistorialDetalleViewModel + HistorialDetalleUiState escritos y testeados en JVM (4 tests verdes), pero HistorialDetalleScreen (la UI) y la navegacion real (tocar una tarjeta de HistorialScreen abre el detalle) TODAVIA NO EXISTEN. Sesion cortada en este punto por bajo contexto (~35% restante al momento de parar), NO por bloqueo de dispositivo. Siguiente paso EXACTO: (1) escribir HistorialDetalleScreen.kt (Composable, secciones imagen->Datos generales->Emociones y errores->Resultado->Descripcion entrada, igual orden que OperationFormScreen; omitir seccion de imagen sin espacio vacio si state.images esta vacio); (2) agregar una ruta de navegacion en MainActivity.kt con operationId como argumento (mismo patron que RUTA_NUEVA_OPERACION); (3) cablear el tap de OperationCard en HistorialScreen.kt para navegar ahi con el id real de la operacion tocada (tasks.md 2.2/2.3/2.4); (4) recien entonces instrumentado (2.6) + journey_smoke (2.7), diferidos junto con los de EP-003-a a la pasada final.",
+      "last_session": "2026-08-02T21:15:00.000000+00:00",
+      "stopped_at": "2026-08-02T21:15:00.000000+00:00",
+      "resume_hint": "EP-003-a (HU-015+HU-016) y EP-003-b (HU-018) cerrados a nivel de codigo/TDD JVM (commits 515bc4d, d5cacb3, y el commit de cierre de EP-003-b). Ambos solo les falta instrumentado+journey_smoke (sin dispositivo conectado en toda la sesion, diferido a una pasada final unica, mismo criterio que EP-002-b/c/d). Siguiente paso EXACTO: abrir EP-003-c (HU-020 editar + HU-021 eliminar con deshacer). Empezar por HU-020 (editar): OperationDao.update(operation) (Room @Update), OperationFormViewModel gana editingOperationId: Long? = null (si no es null, init carga la operacion existente via getById y prellena el estado en vez del prellenado de HU-005; save() llama update() en vez de insert() en modo edicion), boton 'Editar' en HistorialDetalleScreen navega a OperationFormScreen con ese id. Despues HU-021 (eliminar con deshacer): ver design.md decision #4 -- soft-delete SOLO en memoria del HistorialViewModel (pendingDeleteIds + Job con delay cancelable), sin tocar el schema de Room. TDD JVM primero para ambas, UI despues, igual que en EP-003-a/b.",
       "critical_recorded": false,
       "auto_continue": false
     }

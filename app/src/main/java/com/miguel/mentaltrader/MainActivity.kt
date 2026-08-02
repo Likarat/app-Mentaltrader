@@ -47,8 +47,12 @@ import com.miguel.mentaltrader.core.navigation.Destino
 import com.miguel.mentaltrader.feature.ajustes.AjustesScreen
 import com.miguel.mentaltrader.feature.ajustes.AjustesViewModel
 import com.miguel.mentaltrader.feature.etiquetas.EtiquetasScreen
+import com.miguel.mentaltrader.feature.historial.HistorialDetalleScreen
+import com.miguel.mentaltrader.feature.historial.HistorialDetalleViewModel
 import com.miguel.mentaltrader.feature.historial.HistorialScreen
 import com.miguel.mentaltrader.feature.historial.HistorialViewModel
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import com.miguel.mentaltrader.feature.metricas.InicioScreen
 import com.miguel.mentaltrader.feature.registro.OperationFormScreen
 import com.miguel.mentaltrader.feature.registro.OperationFormViewModel
@@ -68,6 +72,13 @@ class MainActivity : ComponentActivity() {
 }
 
 const val RUTA_NUEVA_OPERACION = "nueva_operacion"
+
+// HU-018: ruta parametrizada del detalle de una operación, abierta desde una tarjeta real del
+// listado de Historial (EP-003-a).
+private const val RUTA_DETALLE_OPERACION_BASE = "detalle_operacion"
+private const val ARG_OPERATION_ID = "operationId"
+const val RUTA_DETALLE_OPERACION = "$RUTA_DETALLE_OPERACION_BASE/{$ARG_OPERATION_ID}"
+fun rutaDetalleOperacion(operationId: Long) = "$RUTA_DETALLE_OPERACION_BASE/$operationId"
 const val RUTA_AJUSTES = "ajustes"
 
 /**
@@ -230,7 +241,28 @@ fun MentaltraderApp(navController: NavHostController = rememberNavController()) 
                         application.database.catalogItemDao()
                     )
                 )
-                HistorialScreen(viewModel = historialViewModel)
+                HistorialScreen(
+                    viewModel = historialViewModel,
+                    onOperationClick = { operationId ->
+                        navController.navigate(rutaDetalleOperacion(operationId))
+                    }
+                )
+            }
+            composable(
+                RUTA_DETALLE_OPERACION,
+                arguments = listOf(navArgument("operationId") { type = NavType.LongType })
+            ) { backStackEntry ->
+                val operationId = backStackEntry.arguments?.getLong("operationId") ?: 0L
+                val detalleViewModel: HistorialDetalleViewModel = viewModel(
+                    key = "detalle-$operationId",
+                    factory = HistorialDetalleViewModel.Factory(
+                        operationId,
+                        application.database.operationDao(),
+                        application.database.operationImageDao(),
+                        application.database.catalogItemDao()
+                    )
+                )
+                HistorialDetalleScreen(viewModel = detalleViewModel)
             }
             composable(Destino.Etiquetas.route) { EtiquetasScreen() }
             composable(RUTA_NUEVA_OPERACION) {
