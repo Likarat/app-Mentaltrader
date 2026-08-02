@@ -94,6 +94,7 @@
       "Bash(xargs grep -h \"tests=\")",
       "Bash(openspec --help)",
       "Bash(openspec archive *)",
+      "Bash(sed 's/classname=\"com.miguel.mentaltrader.//')",
       "Bash(git switch *)",
       "Bash(awk 'NR==61,NR==89' docs/03-backlog/epicas.md)",
       "Bash(./gradlew.bat assembleDebug --console=plain)",
@@ -122,7 +123,8 @@
       "PowerShell(git pull origin main)",
       "PowerShell(git push)",
       "PowerShell(git merge main --no-edit)",
-      "PowerShell(git commit -m \"chore: registra permisos locales\")"
+      "PowerShell(git commit -m \"chore: registra permisos locales\")",
+      "PowerShell(git commit --no-edit)"
     ]
   }
 }
