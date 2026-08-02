@@ -1,16 +1,13 @@
 package com.miguel.mentaltrader.feature.registro
 
 import com.miguel.mentaltrader.core.data.CatalogItem
-import com.miguel.mentaltrader.core.data.Operation
-import com.miguel.mentaltrader.core.data.OperationDao
 import com.miguel.mentaltrader.core.model.CatalogType
 import com.miguel.mentaltrader.core.model.Direction
 import com.miguel.mentaltrader.core.model.ResultType
 import com.miguel.mentaltrader.testutil.FakeCatalogItemDao
+import com.miguel.mentaltrader.testutil.FakeOperationDao
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -602,25 +599,5 @@ class OperationFormViewModelTest {
 
         val nuevoError = catalogItemDao.itemsOfType(CatalogType.ERROR).single { it.name == "Sobreapalancamiento" }
         assertEquals(nuevoError.id, viewModel.state.value.errorId)
-    }
-
-    private class FakeOperationDao : OperationDao {
-        val inserted = mutableListOf<Operation>()
-        private var nextId = 1L
-
-        override suspend fun insert(operation: Operation): Long {
-            val withId = operation.copy(id = nextId++)
-            inserted += withId
-            return withId.id
-        }
-
-        override fun getAllOrderedByDateDesc(): Flow<List<Operation>> =
-            MutableStateFlow(inserted.sortedByDescending { it.dateTime })
-
-        override suspend fun getById(id: Long): Operation? = inserted.find { it.id == id }
-
-        override suspend fun deleteAll() {
-            inserted.clear()
-        }
     }
 }

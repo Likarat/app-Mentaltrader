@@ -2,8 +2,12 @@ package com.miguel.mentaltrader.feature.etiquetas
 
 import com.miguel.mentaltrader.core.data.CatalogItem
 import com.miguel.mentaltrader.core.data.CatalogRepository
+import com.miguel.mentaltrader.core.data.Operation
 import com.miguel.mentaltrader.core.model.CatalogType
+import com.miguel.mentaltrader.core.model.Direction
+import com.miguel.mentaltrader.core.model.ResultType
 import com.miguel.mentaltrader.testutil.FakeCatalogItemDao
+import com.miguel.mentaltrader.testutil.FakeOperationDao
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -28,13 +32,15 @@ class EtiquetasViewModelTest {
 
     private val dispatcher = UnconfinedTestDispatcher()
     private lateinit var dao: FakeCatalogItemDao
+    private lateinit var operationDao: FakeOperationDao
     private lateinit var viewModel: EtiquetasViewModel
 
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
         dao = FakeCatalogItemDao()
-        viewModel = EtiquetasViewModel(dao, CatalogRepository(dao))
+        operationDao = FakeOperationDao()
+        viewModel = EtiquetasViewModel(dao, CatalogRepository(dao, operationDao))
     }
 
     @After
@@ -173,4 +179,69 @@ class EtiquetasViewModelTest {
 
         assertNull(viewModel.state.value.blockedDeleteMessage)
     }
+
+    // HU-012 Escenario 1: solicitar eliminar un elemento en uso deja el conteo de operaciones
+    // disponible para el diálogo de confirmación (ya existente desde HU-011), sin eliminarlo.
+    @Test
+    fun `solicitar eliminar un elemento en uso deja el conteo de operaciones disponible sin eliminarlo`() = runTest {
+        val id = dao.seed(CatalogType.ASSET, "EURUSD", isDefault = false)
+        operationDao.insert(operacionConAsset(id))
+        operationDao.insert(operacionConAsset(id))
+
+        viewModel.onRequestDelete(dao.getById(id)!!)
+
+        assertEquals(2, viewModel.state.value.pendingDeleteUsageCount)
+        assertTrue(dao.getById(id) != null)
+    }
+
+    @Test
+    fun `solicitar eliminar un elemento sin uso deja el conteo en 0`() = runTest {
+        val id = dao.seed(CatalogType.ASSET, "EURUSD", isDefault = false)
+
+        viewModel.onRequestDelete(dao.getById(id)!!)
+
+        assertEquals(0, viewModel.state.value.pendingDeleteUsageCount)
+    }
+
+    // HU-012 Escenario 2: cancelar limpia también el conteo de uso, no solo el elemento pendiente.
+    @Test
+    fun `cancelar la eliminacion pendiente limpia tambien el conteo de uso`() = runTest {
+        val id = dao.seed(CatalogType.ASSET, "EURUSD", isDefault = false)
+        operationDao.insert(operacionConAsset(id))
+        viewModel.onRequestDelete(dao.getById(id)!!)
+
+        viewModel.onCancelDelete()
+
+        assertNull(viewModel.state.value.pendingDeleteUsageCount)
+    }
+
+    // HU-012 Escenario 3: confirmar la eliminación de un elemento en uso lo retira del catálogo
+    // igual (el historial ya registrado conserva su valor porque las operaciones no se tocan).
+    @Test
+    fun `confirmar la eliminacion de un elemento en uso lo elimina y conserva las operaciones que ya lo usaban`() = runTest {
+        val id = dao.seed(CatalogType.ASSET, "EURUSD", isDefault = false)
+        val opId = operationDao.insert(operacionConAsset(id))
+        viewModel.onRequestDelete(dao.getById(id)!!)
+
+        viewModel.onConfirmDelete()
+
+        assertNull(viewModel.state.value.pendingDeleteItem)
+        assertNull(viewModel.state.value.pendingDeleteUsageCount)
+        assertNull(dao.getById(id))
+        assertEquals(id, operationDao.getById(opId)!!.assetId)
+    }
+
+    private fun operacionConAsset(assetId: Long) = Operation(
+        dateTime = 0L,
+        assetId = assetId,
+        direction = Direction.BUY,
+        quality = 5f,
+        emotionBeforeId = 1L,
+        emotionAfterId = 1L,
+        errorId = 1L,
+        result = ResultType.WIN,
+        entryDescription = "test",
+        createdAt = 0L,
+        updatedAt = 0L
+    )
 }

@@ -1,7 +1,10 @@
 package com.miguel.mentaltrader.core.data
 
 import com.miguel.mentaltrader.core.model.CatalogType
+import com.miguel.mentaltrader.core.model.Direction
+import com.miguel.mentaltrader.core.model.ResultType
 import com.miguel.mentaltrader.testutil.FakeCatalogItemDao
+import com.miguel.mentaltrader.testutil.FakeOperationDao
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -9,14 +12,16 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Tests unitarios de CatalogRepository (tasks.md 1.7, sub-slice EP-002-a): unicidad case-
- * insensitive/trim por tipo de catálogo (HU-010), protección/recreación de semillas (HU-011).
- * Usa un fake de CatalogItemDao en vez de Room (Room se ejercita en los tests instrumentados).
+ * Tests unitarios de CatalogRepository (tasks.md 1.7/3.2, sub-slices EP-002-a/c): unicidad case-
+ * insensitive/trim por tipo de catálogo (HU-010), protección/recreación de semillas (HU-011),
+ * conteo de uso por operaciones reales (HU-012). Usa fakes de CatalogItemDao/OperationDao en vez
+ * de Room (Room se ejercita en los tests instrumentados).
  */
 class CatalogRepositoryTest {
 
     private val dao = FakeCatalogItemDao()
-    private val repository = CatalogRepository(dao)
+    private val operationDao = FakeOperationDao()
+    private val repository = CatalogRepository(dao, operationDao)
 
     // HU-010 Escenario 1
     @Test
@@ -150,4 +155,56 @@ class CatalogRepositoryTest {
         assertEquals(CatalogItem.SEED_ASSET_XAUUSD, activos.first().name)
         assertTrue(activos.first().isDefault)
     }
+
+    // HU-012 Escenario 1 (a nivel de repositorio): cuenta operaciones que usan el elemento, en
+    // cualquiera de sus 4 roles posibles (Activo, Emoción antes, Emoción después, Error).
+    @Test
+    fun `usageCountOf cuenta las operaciones que usan el elemento en cualquiera de sus 4 roles`() = runTest {
+        val asset = (repository.addItem(CatalogType.ASSET, "EURUSD") as CatalogAddResult.Added).item
+        val emotion = (repository.addItem(CatalogType.EMOTION, "Confianza") as CatalogAddResult.Added).item
+        val error = (repository.addItem(CatalogType.ERROR, "Ninguno") as CatalogAddResult.Added).item
+        operationDao.insert(operacionDe(assetId = asset.id, emotionId = emotion.id, errorId = error.id))
+        operationDao.insert(operacionDe(assetId = asset.id, emotionId = emotion.id, errorId = error.id))
+
+        assertEquals(2, repository.usageCountOf(asset))
+        assertEquals(2, repository.usageCountOf(emotion))
+        assertEquals(2, repository.usageCountOf(error))
+    }
+
+    @Test
+    fun `usageCountOf es 0 para un elemento sin ninguna operacion asociada`() = runTest {
+        val sinUso = (repository.addItem(CatalogType.ASSET, "SinUso") as CatalogAddResult.Added).item
+
+        assertEquals(0, repository.usageCountOf(sinUso))
+    }
+
+    // HU-012 Escenario 3: eliminar un elemento en uso lo retira del catálogo sin tocar las
+    // operaciones que ya lo usaban -- conservan su valor histórico intacto (sin FK/cascade).
+    @Test
+    fun `eliminar un elemento en uso lo retira del catalogo sin tocar las operaciones que ya lo usaban`() = runTest {
+        val asset = (repository.addItem(CatalogType.ASSET, "EURUSD") as CatalogAddResult.Added).item
+        val emotion = (repository.addItem(CatalogType.EMOTION, "Confianza") as CatalogAddResult.Added).item
+        val error = (repository.addItem(CatalogType.ERROR, "Ninguno") as CatalogAddResult.Added).item
+        val opId = operationDao.insert(operacionDe(assetId = asset.id, emotionId = emotion.id, errorId = error.id))
+
+        val result = repository.deleteItem(asset)
+
+        assertEquals(CatalogDeleteResult.Deleted, result)
+        assertNull(dao.getById(asset.id))
+        assertEquals(asset.id, operationDao.getById(opId)!!.assetId)
+    }
+
+    private fun operacionDe(assetId: Long, emotionId: Long, errorId: Long) = Operation(
+        dateTime = 0L,
+        assetId = assetId,
+        direction = Direction.BUY,
+        quality = 5f,
+        emotionBeforeId = emotionId,
+        emotionAfterId = emotionId,
+        errorId = errorId,
+        result = ResultType.WIN,
+        entryDescription = "test",
+        createdAt = 0L,
+        updatedAt = 0L
+    )
 }

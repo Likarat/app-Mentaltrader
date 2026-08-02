@@ -108,10 +108,21 @@ fun EtiquetasScreen(viewModel: EtiquetasViewModel, modifier: Modifier = Modifier
     }
 
     state.pendingDeleteItem?.let { pending ->
+        val usageCount = state.pendingDeleteUsageCount
         AlertDialog(
             onDismissRequest = viewModel::onCancelDelete,
             title = { Text("Eliminar elemento") },
-            text = { Text("¿Estás seguro que deseas eliminar \"${pending.name}\"?") },
+            text = {
+                Text(
+                    if (usageCount != null && usageCount > 0) {
+                        "\"${pending.name}\" está en uso en $usageCount operación(es). Si lo " +
+                            "eliminás, esas operaciones conservan su valor histórico sin cambios. " +
+                            "¿Igual querés eliminarlo?"
+                    } else {
+                        "¿Estás seguro que deseas eliminar \"${pending.name}\"?"
+                    }
+                )
+            },
             confirmButton = {
                 TextButton(onClick = viewModel::onConfirmDelete) { Text("Eliminar") }
             },

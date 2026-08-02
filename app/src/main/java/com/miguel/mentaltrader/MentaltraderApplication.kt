@@ -23,7 +23,9 @@ class MentaltraderApplication : Application() {
     val dataResetService: DataResetService by lazy {
         DataResetService(database.operationDao(), database.operationImageDao(), this)
     }
-    val catalogRepository: CatalogRepository by lazy { CatalogRepository(database.catalogItemDao()) }
+    val catalogRepository: CatalogRepository by lazy {
+        CatalogRepository(database.catalogItemDao(), database.operationDao())
+    }
 
     override fun onCreate() {
         super.onCreate()

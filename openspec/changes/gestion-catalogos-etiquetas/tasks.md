@@ -22,12 +22,12 @@
 
 ## 3. Sub-slice EP-002-c: confirmar eliminación de un elemento en uso (HU-012)
 
-- [ ] 3.1 `OperationDao`: agregar `countUsageOfCatalogItem(id: Long): Int` (`OR` sobre `assetId`/`emotionBeforeId`/`emotionAfterId`/`errorId`)
-- [ ] 3.2 `CatalogRepository.deleteItem`: antes de eliminar, si `countUsageOfCatalogItem(id) > 0`, devolver un resultado que exige confirmación explícita con el conteo (no eliminar todavía)
-- [ ] 3.3 `EtiquetasViewModel`/`EtiquetasScreen`: diálogo de advertencia con el conteo real, Cancelar/Confirmar
-- [ ] 3.4 Tests unitarios: conteo correcto contra las 4 columnas de `Operation`, cancelar no modifica nada, confirmar elimina el `CatalogItem` sin tocar las filas de `Operation` que lo referencian
-- [ ] 3.5 Test instrumentado: sembrar una `Operation` real que use un `CatalogItem`, intentar eliminarlo, verificar el conteo mostrado en pantalla, confirmar y verificar que la `Operation` sembrada conserva su `id` de catálogo intacto en Room
-- [ ] 3.6 `journey_smoke` EP-002-c: registrar una operación usando un Activo, ir a Etiquetas, intentar eliminar ese Activo y ver la advertencia con conteo 1
+- [x] 3.1 `OperationDao`: agregar `countUsageOfCatalogItem(id: Long): Int` (`OR` sobre `assetId`/`emotionBeforeId`/`emotionAfterId`/`errorId`)
+- [x] 3.2 (implementado distinto al texto original, alcance negociable per INVEST de HU-012) `CatalogRepository` gana `usageCountOf(item): Int` de solo lectura; `deleteItem` NO cambió su contrato (sigue eliminando directo salvo protección de semilla) porque el diálogo de confirmación de HU-011 ya es genérico para CUALQUIER eliminación (`pendingDeleteItem`, ya construido y testeado en EP-002-a) -- reintroducir un resultado `RequiresConfirmation` habría duplicado ese gate. `EtiquetasViewModel.onRequestDelete` consulta `usageCountOf` en paralelo a abrir el diálogo existente, sin bloquear ni retrasar su apertura.
+- [x] 3.3 `EtiquetasViewModel`/`EtiquetasScreen`: el diálogo de confirmación ya existente (HU-011) ahora muestra el conteo real ("... está en uso en N operación(es) ...") cuando `pendingDeleteUsageCount > 0`, con Cancelar/Confirmar sin cambios
+- [x] 3.4 Tests unitarios: `CatalogRepositoryTest` (conteo correcto contra las 4 columnas de `Operation`, 0 sin uso, eliminar en uso no toca la `Operation` que lo referencia) + `EtiquetasViewModelTest` (conteo disponible sin eliminar, cancelar limpia el conteo, confirmar elimina y conserva la operación) -- `testDebugUnitTest --rerun` fresco en verde, sin regresiones
+- [ ] 3.5 Test instrumentado: sembrar una `Operation` real que use un `CatalogItem`, intentar eliminarlo, verificar el conteo mostrado en pantalla, confirmar y verificar que la `Operation` sembrada conserva su `id` de catálogo intacto en Room -- diferido a la pasada final de instrumentados (decisión del usuario 2026-08-02, sin dispositivo conectado en esta sesión)
+- [ ] 3.6 `journey_smoke` EP-002-c: registrar una operación usando un Activo, ir a Etiquetas, intentar eliminar ese Activo y ver la advertencia con conteo 1 -- diferido, misma razón que 3.5
 
 ## 4. Sub-slice EP-002-d: espacio en disco usado por imágenes (HU-014)
 

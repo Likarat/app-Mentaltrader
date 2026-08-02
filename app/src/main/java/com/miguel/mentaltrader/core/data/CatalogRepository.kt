@@ -23,7 +23,14 @@ sealed interface CatalogDeleteResult {
  * el formulario de registro (HU-013) — ninguno de los dos reimplementa la validación de unicidad
  * ni la protección de semillas.
  */
-class CatalogRepository(private val catalogItemDao: CatalogItemDao) {
+class CatalogRepository(
+    private val catalogItemDao: CatalogItemDao,
+    private val operationDao: OperationDao
+) {
+
+    /** HU-012: cuántas operaciones ya registradas usan [item] -- para advertir antes de eliminar,
+     * no para bloquear (la eliminación en sí la sigue decidiendo el usuario vía [deleteItem]). */
+    suspend fun usageCountOf(item: CatalogItem): Int = operationDao.countUsageOfCatalogItem(item.id)
 
     suspend fun addItem(type: CatalogType, name: String): CatalogAddResult {
         val trimmed = name.trim()

@@ -40,7 +40,7 @@ class OperationFormViewModel(
      * no reimplementa la validación de unicidad ni la protección de semillas. Sin estado propio
      * más allá del DAO, así que un default construido a partir de [catalogItemDao] es equivalente
      * a reutilizar la instancia singleton de la Application (evita tocar el Factory/DI existente). */
-    private val catalogRepository: CatalogRepository = CatalogRepository(catalogItemDao),
+    private val catalogRepository: CatalogRepository = CatalogRepository(catalogItemDao, operationDao),
     /** HU-005-AC5 (reloj del dispositivo desconfigurado): fuente del "ahora" usada para el
      * prellenado. Inyectable para poder probar el comportamiento con un reloj arbitrario
      * (pasado/futuro absurdo) sin depender de manipular el reloj real del sistema operativo,

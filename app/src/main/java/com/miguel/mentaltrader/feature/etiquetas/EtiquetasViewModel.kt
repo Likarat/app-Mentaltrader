@@ -25,6 +25,10 @@ data class EtiquetasUiState(
     val editFieldValue: String = "",
     val editError: String? = null,
     val pendingDeleteItem: CatalogItem? = null,
+    /** HU-012: cantidad de operaciones que usan [pendingDeleteItem], para mostrar la advertencia
+     * con conteo en el diálogo de confirmación. Null mientras se está consultando o si no hay
+     * ninguna eliminación pendiente. */
+    val pendingDeleteUsageCount: Int? = null,
     val blockedDeleteMessage: String? = null
 )
 
@@ -89,11 +93,19 @@ class EtiquetasViewModel(
     }
 
     fun onRequestDelete(item: CatalogItem) {
-        _state.value = _state.value.copy(pendingDeleteItem = item)
+        _state.value = _state.value.copy(pendingDeleteItem = item, pendingDeleteUsageCount = null)
+        // HU-012 Escenario 1: consulta el conteo de uso para enriquecer el diálogo de confirmación
+        // ya existente (HU-011) -- no reemplaza el paso de confirmar/cancelar, solo agrega el dato.
+        viewModelScope.launch {
+            val count = catalogRepository.usageCountOf(item)
+            if (_state.value.pendingDeleteItem?.id == item.id) {
+                _state.value = _state.value.copy(pendingDeleteUsageCount = count)
+            }
+        }
     }
 
     fun onCancelDelete() {
-        _state.value = _state.value.copy(pendingDeleteItem = null)
+        _state.value = _state.value.copy(pendingDeleteItem = null, pendingDeleteUsageCount = null)
     }
 
     fun onConfirmDelete() {
@@ -101,9 +113,13 @@ class EtiquetasViewModel(
         viewModelScope.launch {
             when (val result = catalogRepository.deleteItem(item)) {
                 CatalogDeleteResult.Deleted ->
-                    _state.value = _state.value.copy(pendingDeleteItem = null)
+                    _state.value = _state.value.copy(pendingDeleteItem = null, pendingDeleteUsageCount = null)
                 is CatalogDeleteResult.Blocked ->
-                    _state.value = _state.value.copy(pendingDeleteItem = null, blockedDeleteMessage = result.reason)
+                    _state.value = _state.value.copy(
+                        pendingDeleteItem = null,
+                        pendingDeleteUsageCount = null,
+                        blockedDeleteMessage = result.reason
+                    )
             }
         }
     }
