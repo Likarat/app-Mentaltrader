@@ -41,6 +41,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -125,7 +126,14 @@ fun OperationFormScreen(
                 items = assets,
                 selectedId = state.assetId,
                 onSelected = viewModel::onAssetSelected,
-                errorText = state.fieldErrors[OperationFormState.FIELD_ASSET]
+                errorText = state.fieldErrors[OperationFormState.FIELD_ASSET],
+                isAdding = state.addingCatalogField == OperationFormState.FIELD_ASSET,
+                addText = state.addCatalogText,
+                addError = state.addCatalogError,
+                onAddRequested = { viewModel.onStartAddCatalogItem(OperationFormState.FIELD_ASSET) },
+                onAddTextChange = viewModel::onAddCatalogTextChange,
+                onConfirmAdd = viewModel::onConfirmAddCatalogItem,
+                onCancelAdd = viewModel::onCancelAddCatalogItem
             )
 
             Text("Dirección")
@@ -162,7 +170,14 @@ fun OperationFormScreen(
                 items = emotions,
                 selectedId = state.emotionBeforeId,
                 onSelected = viewModel::onEmotionBeforeSelected,
-                errorText = state.fieldErrors[OperationFormState.FIELD_EMOTION_BEFORE]
+                errorText = state.fieldErrors[OperationFormState.FIELD_EMOTION_BEFORE],
+                isAdding = state.addingCatalogField == OperationFormState.FIELD_EMOTION_BEFORE,
+                addText = state.addCatalogText,
+                addError = state.addCatalogError,
+                onAddRequested = { viewModel.onStartAddCatalogItem(OperationFormState.FIELD_EMOTION_BEFORE) },
+                onAddTextChange = viewModel::onAddCatalogTextChange,
+                onConfirmAdd = viewModel::onConfirmAddCatalogItem,
+                onCancelAdd = viewModel::onCancelAddCatalogItem
             )
             OutlinedTextField(
                 value = state.emotionBeforeReason,
@@ -176,7 +191,14 @@ fun OperationFormScreen(
                 items = emotions,
                 selectedId = state.emotionAfterId,
                 onSelected = viewModel::onEmotionAfterSelected,
-                errorText = state.fieldErrors[OperationFormState.FIELD_EMOTION_AFTER]
+                errorText = state.fieldErrors[OperationFormState.FIELD_EMOTION_AFTER],
+                isAdding = state.addingCatalogField == OperationFormState.FIELD_EMOTION_AFTER,
+                addText = state.addCatalogText,
+                addError = state.addCatalogError,
+                onAddRequested = { viewModel.onStartAddCatalogItem(OperationFormState.FIELD_EMOTION_AFTER) },
+                onAddTextChange = viewModel::onAddCatalogTextChange,
+                onConfirmAdd = viewModel::onConfirmAddCatalogItem,
+                onCancelAdd = viewModel::onCancelAddCatalogItem
             )
             OutlinedTextField(
                 value = state.emotionAfterReason,
@@ -190,7 +212,14 @@ fun OperationFormScreen(
                 items = errorsCatalog,
                 selectedId = state.errorId,
                 onSelected = viewModel::onErrorSelected,
-                errorText = state.fieldErrors[OperationFormState.FIELD_ERROR]
+                errorText = state.fieldErrors[OperationFormState.FIELD_ERROR],
+                isAdding = state.addingCatalogField == OperationFormState.FIELD_ERROR,
+                addText = state.addCatalogText,
+                addError = state.addCatalogError,
+                onAddRequested = { viewModel.onStartAddCatalogItem(OperationFormState.FIELD_ERROR) },
+                onAddTextChange = viewModel::onAddCatalogTextChange,
+                onConfirmAdd = viewModel::onConfirmAddCatalogItem,
+                onCancelAdd = viewModel::onCancelAddCatalogItem
             )
             OutlinedTextField(
                 value = state.errorReason,
@@ -397,40 +426,85 @@ private fun CatalogDropdown(
     items: List<CatalogItem>,
     selectedId: Long?,
     onSelected: (Long) -> Unit,
-    errorText: String?
+    errorText: String?,
+    isAdding: Boolean,
+    addText: String,
+    addError: String?,
+    onAddRequested: () -> Unit,
+    onAddTextChange: (String) -> Unit,
+    onConfirmAdd: () -> Unit,
+    onCancelAdd: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
     val selectedName = items.firstOrNull { it.id == selectedId }?.name ?: ""
 
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = it },
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        OutlinedTextField(
-            value = selectedName,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text(label) },
-            isError = errorText != null,
-            supportingText = { Text(errorText ?: "") },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .menuAnchor(androidx.compose.material3.ExposedDropdownMenuAnchorType.PrimaryNotEditable, true)
-        )
-        ExposedDropdownMenu(
+    Column(modifier = Modifier.fillMaxWidth()) {
+        ExposedDropdownMenuBox(
             expanded = expanded,
-            onDismissRequest = { expanded = false }
+            onExpandedChange = { expanded = it },
+            modifier = Modifier.fillMaxWidth()
         ) {
-            items.forEach { item ->
+            OutlinedTextField(
+                value = selectedName,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text(label) },
+                isError = errorText != null,
+                supportingText = { Text(errorText ?: "") },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .menuAnchor(androidx.compose.material3.ExposedDropdownMenuAnchorType.PrimaryNotEditable, true)
+            )
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                items.forEach { item ->
+                    androidx.compose.material3.DropdownMenuItem(
+                        text = { Text(item.name) },
+                        onClick = {
+                            onSelected(item.id)
+                            expanded = false
+                        }
+                    )
+                }
                 androidx.compose.material3.DropdownMenuItem(
-                    text = { Text(item.name) },
+                    text = { Text("+ Agregar nueva") },
                     onClick = {
-                        onSelected(item.id)
+                        onAddRequested()
                         expanded = false
                     }
                 )
+            }
+        }
+
+        // HU-013: campo inline para crear un elemento de catálogo sin salir del formulario,
+        // reutilizando CatalogRepository.addItem (misma validación de HU-010, no se reimplementa
+        // aquí). El foco se recupera al mostrar un error de duplicado (Escenario 3: el campo
+        // permanece abierto y con foco para corregir el nombre).
+        if (isAdding) {
+            val focusRequester = remember { androidx.compose.ui.focus.FocusRequester() }
+            LaunchedEffect(addError) {
+                if (addError != null) focusRequester.requestFocus()
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedTextField(
+                    value = addText,
+                    onValueChange = onAddTextChange,
+                    label = { Text("Nuevo valor para $label") },
+                    isError = addError != null,
+                    supportingText = { Text(addError ?: "") },
+                    modifier = Modifier
+                        .weight(1f)
+                        .focusRequester(focusRequester)
+                )
+                androidx.compose.material3.Button(onClick = onConfirmAdd) { Text("Agregar") }
+                androidx.compose.material3.TextButton(onClick = onCancelAdd) { Text("Cancelar") }
             }
         }
     }

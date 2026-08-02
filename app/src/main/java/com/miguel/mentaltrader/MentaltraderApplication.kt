@@ -2,6 +2,7 @@ package com.miguel.mentaltrader
 
 import android.app.Application
 import com.miguel.mentaltrader.core.data.AppDatabase
+import com.miguel.mentaltrader.core.data.CatalogRepository
 import com.miguel.mentaltrader.core.data.CatalogSeeder
 import com.miguel.mentaltrader.core.data.DataResetService
 import com.miguel.mentaltrader.core.image.ImageProcessor
@@ -21,6 +22,9 @@ class MentaltraderApplication : Application() {
     val imageProcessor: ImageProcessor by lazy { ImageProcessor(this) }
     val dataResetService: DataResetService by lazy {
         DataResetService(database.operationDao(), database.operationImageDao(), this)
+    }
+    val catalogRepository: CatalogRepository by lazy {
+        CatalogRepository(database.catalogItemDao(), database.operationDao())
     }
 
     override fun onCreate() {

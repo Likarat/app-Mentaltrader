@@ -1,8 +1,10 @@
 package com.miguel.mentaltrader.core.data
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 import com.miguel.mentaltrader.core.model.CatalogType
 import kotlinx.coroutines.flow.Flow
 
@@ -14,6 +16,12 @@ interface CatalogItemDao {
     @Insert
     suspend fun insertAll(items: List<CatalogItem>)
 
+    @Update
+    suspend fun update(item: CatalogItem)
+
+    @Delete
+    suspend fun delete(item: CatalogItem)
+
     @Query("SELECT * FROM catalog_item WHERE type = :type ORDER BY name ASC")
     fun getByType(type: CatalogType): Flow<List<CatalogItem>>
 
@@ -22,4 +30,11 @@ interface CatalogItemDao {
 
     @Query("SELECT * FROM catalog_item WHERE id = :id")
     suspend fun getById(id: Long): CatalogItem?
+
+    /** Unicidad case-insensitive/trim dentro del mismo [type] (HU-010), excluyendo el propio id al editar (HU-011). */
+    @Query(
+        "SELECT COUNT(*) FROM catalog_item WHERE type = :type " +
+            "AND LOWER(TRIM(name)) = LOWER(TRIM(:name)) AND id != :excludeId"
+    )
+    suspend fun countByTypeAndNameIgnoreCaseExcludingId(type: CatalogType, name: String, excludeId: Long): Int
 }

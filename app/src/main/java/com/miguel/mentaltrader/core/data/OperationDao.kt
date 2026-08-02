@@ -19,4 +19,13 @@ interface OperationDao {
     /** "Borrar todo" (Ajustes): elimina todas las operaciones, conserva los catálogos. */
     @Query("DELETE FROM operation")
     suspend fun deleteAll()
+
+    /** HU-012: cuántas operaciones referencian este elemento de catálogo, en cualquiera de sus 4
+     * roles posibles (Activo, Emoción antes/después, Error) -- usado para advertir antes de
+     * eliminarlo, no para bloquear la eliminación en sí. */
+    @Query(
+        "SELECT COUNT(*) FROM operation WHERE assetId = :id OR emotionBeforeId = :id " +
+            "OR emotionAfterId = :id OR errorId = :id"
+    )
+    suspend fun countUsageOfCatalogItem(id: Long): Int
 }
