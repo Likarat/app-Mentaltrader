@@ -121,7 +121,12 @@
       "Bash(\"/c/Python314/python.exe\" -c \"print\\(open\\(r'C:\\\\Users\\\\migue\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-migue-Desktop-automatizacion-proyectos-App-Mentaltrader\\\\4752548e-83ff-4acd-a98f-68e3ef157216\\\\scratchpad\\\\test.txt'\\).read\\(\\)\\)\")",
       "Bash(\"/c/Program Files/Git/bin/git.exe\" diff --stat -- .claude/state/build-state.json)",
       "Bash(\"/c/Program Files/Git/bin/git.exe\" diff -- .claude/state/build-state.json)",
-      "PowerShell(git add -A)"
+      "PowerShell(git add -A)",
+      "PowerShell(openspec status --change historial-estudio-operaciones --json)",
+      "PowerShell(openspec instructions design --change historial-estudio-operaciones)",
+      "PowerShell(openspec instructions specs --change historial-estudio-operaciones)",
+      "PowerShell(openspec validate historial-estudio-operaciones --strict --json)",
+      "PowerShell(openspec instructions tasks --change historial-estudio-operaciones)"
     ]
   }
 }
