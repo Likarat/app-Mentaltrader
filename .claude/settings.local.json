@@ -112,7 +112,11 @@
       "PowerShell(git add .claude/settings.local.json .claude/state/build-state.json app/src/main/java/com/miguel/mentaltrader/feature/registro/OperationFormScreen.kt app/src/main/java/com/miguel/mentaltrader/feature/registro/OperationFormState.kt app/src/main/java/com/miguel/mentaltrader/feature/registro/OperationFormViewModel.kt app/src/test/java/com/miguel/mentaltrader/feature/registro/OperationFormViewModelTest.kt openspec/changes/gestion-catalogos-etiquetas/tasks.md app/src/androidTest/java/com/miguel/mentaltrader/OperationFormCatalogInlineAddTest.kt)",
       "PowerShell(git add -A -- ':!.claude/settings.local.json')",
       "PowerShell(git add .claude/settings.local.json)",
-      "PowerShell(.\\\\gradlew.bat assembleDebug compileDebugAndroidTestKotlin --console=plain 2>&1)"
+      "PowerShell(.\\\\gradlew.bat assembleDebug compileDebugAndroidTestKotlin --console=plain 2>&1)",
+      "PowerShell(python \"C:\\\\Users\\\\migue\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-migue-Desktop-automatizacion-proyectos-App-Mentaltrader\\\\4752548e-83ff-4acd-a98f-68e3ef157216\\\\scratchpad\\\\pause_ep002.py\")",
+      "PowerShell(python -c \"import jsonschema, json; jsonschema.Draft202012Validator\\(json.load\\(open\\('.claude/state/build-state.schema.json'\\)\\)\\).validate\\(json.load\\(open\\('.claude/state/build-state.json'\\)\\)\\); print\\('SCHEMA OK'\\)\")",
+      "PowerShell(python -c \"import jsonschema, json, io; schema=json.load\\(io.open\\('.claude/state/build-state.schema.json',encoding='utf-8'\\)\\); data=json.load\\(io.open\\('.claude/state/build-state.json',encoding='utf-8'\\)\\); jsonschema.Draft202012Validator\\(schema\\).validate\\(data\\); print\\('SCHEMA OK'\\)\")",
+      "PowerShell(git push -u origin feature/ep-002-gestion-catalogos-etiquetas)"
     ]
   }
 }
