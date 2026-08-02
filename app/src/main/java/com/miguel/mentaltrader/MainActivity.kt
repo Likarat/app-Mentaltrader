@@ -232,7 +232,9 @@ fun MentaltraderApp(navController: NavHostController = rememberNavController()) 
                 val etiquetasViewModel: EtiquetasViewModel = viewModel(
                     factory = EtiquetasViewModel.Factory(
                         application.database.catalogItemDao(),
-                        application.catalogRepository
+                        application.catalogRepository,
+                        application.database.operationImageDao(),
+                        application.filesDir
                     )
                 )
                 EtiquetasScreen(viewModel = etiquetasViewModel)

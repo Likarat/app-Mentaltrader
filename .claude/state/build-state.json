@@ -82,7 +82,7 @@
         "hus": [
           "HU-014"
         ],
-        "status": "pending",
+        "status": "in_progress",
         "journey_smoke": false
       }
     ],
@@ -190,21 +190,21 @@
         "kind": "hu_ac",
         "ref": "HU-014#Escenario1",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Cubierto a nivel JVM: EtiquetasViewModelTest.'al abrir Etiquetas con imagenes reales expone el espacio total aproximado en disco' (archivos reales via TemporaryFolder, testDebugUnitTest en verde). Sin instrumentado todavia (diferido a pasada final, sin dispositivo conectado)."
       },
       {
         "id": "HU-014-AC2",
         "kind": "hu_ac",
         "ref": "HU-014#Escenario2",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Cubierto a nivel JVM: EtiquetasViewModelTest.'al abrir Etiquetas sin ninguna imagen el espacio en disco es 0' + DiskSpaceCalculatorTest.'totalBytes es 0 cuando no hay ninguna ruta' (testDebugUnitTest en verde). Sin instrumentado todavia, misma razon que AC1."
       },
       {
         "id": "HU-014-AC3",
         "kind": "hu_ac",
         "ref": "HU-014#Escenario3",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Cubierto a nivel JVM: EtiquetasViewModelTest.'al reabrir Etiquetas tras eliminar una operacion con imagenes el espacio recalculado baja' (borra archivo real + fila, segunda apertura del ViewModel refleja la baja) + DiskSpaceCalculatorTest.'totalBytes ignora en silencio una ruta cuyo archivo ya no existe' (testDebugUnitTest en verde). Sin instrumentado todavia, misma razon que AC1."
       },
       {
         "id": "INT-etiquetas-screen-catalogitemdao",
@@ -232,7 +232,7 @@
         "kind": "integration_point",
         "ref": "datos(OperationImageDao.getAll() -> File(filePath).length() por imagen real en filesDir) -> presentacion(texto de espacio total de HU-014)",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Cableado real implementado: OperationImageDao.getAll() (Room real) <- EtiquetasViewModel.init (mapea filePath + ImageProcessor.thumbnailPathFor) <- DiskSpaceCalculator.totalBytes (File.length() real, con withContext(ioDispatcher) inyectable para tests) <- EtiquetasScreen ('Espacio usado por imagenes: ...', EtiquetasUiState.formatDiskSpaceKbMb). Verificado a nivel JVM con archivos reales en TemporaryFolder; falta la corrida real contra Room + filesDir del dispositivo (connectedDebugAndroidTest) -- sin dispositivo conectado en esta sesion, diferido a la pasada final de instrumentados."
       },
       {
         "id": "INT-seed-recreation-on-empty-catalog",
@@ -243,6 +243,11 @@
       }
     ],
     "progress_log": [
+      {
+        "at": "2026-08-02T16:45:00.000000+00:00",
+        "by": "build-orchestrator",
+        "note": "EP-002-d (HU-014) TDD JVM completo y verde -- CIERRA LA LOGICA DE NEGOCIO DE LOS 4 SUB-SLICES DE EP-002 (a/b/c/d), a falta de una unica pasada final de instrumentados+journey_smoke. Implementado: DiskSpaceCalculator (core.image, funcion pura sobre java.io.File: suma File.length() de rutas existentes, ignora en silencio las que no); EtiquetasViewModel gana operationImageDao/filesDir/ioDispatcher (inyectable, default Dispatchers.IO) y calcula diskSpaceBytes una sola vez en init (reutiliza ImageProcessor.thumbnailPathFor, no duplica esa logica); EtiquetasUiState.formatDiskSpaceKbMb (KB sin decimales / MB 1 decimal, Locale.US fijo); EtiquetasScreen muestra 'Espacio usado por imagenes: ...' arriba de las pestañas. EtiquetasViewModel.Factory y su call site en MainActivity.kt actualizados (application.database.operationImageDao() + application.filesDir). testutil.FakeOperationImageDao nuevo (fake compartido, primera ocurrencia). Tests nuevos: DiskSpaceCalculatorTest (3, con TemporaryFolder real) + 6 en EtiquetasViewModelTest (Escenarios 1-3 de HU-014 con archivos reales + 3 de formatDiskSpaceKbMb) -- testDebugUnitTest --rerun fresco en verde sin regresiones; assembleDebug + compileDebugAndroidTestKotlin BUILD SUCCESSFUL. Instrumentado (4.5) y journey_smoke (4.7) diferidos a la pasada final unica, sin dispositivo conectado en esta sesion (decision explicita del usuario 2026-08-02). tasks.md 4.1-4.4/4.6 tildadas (4.6 con evidencia JVM, no instrumentada); 4.5/4.7 pendientes. sub_slices[EP-002-d].status=in_progress. PROXIMO PASO EXACTO para la proxima sesion (con dispositivo conectado): (1) adb devices debe listar uno: (2) correr connectedDebugAndroidTest completo (incluye OperationFormCatalogInlineAddTest de EP-002-b, y escribir+correr los instrumentados pendientes de EP-002-c/HU-012 y EP-002-d/HU-014 que todavia no existen como archivo); (3) journey_smoke real (capturas adb) de EP-002-b/c/d; (4) recien entonces wiring-adversarial-verifier sobre la epica completa y dor-dod-gatekeeper para wiring_verified+dod."
+      },
       {
         "at": "2026-08-02T16:15:00.000000+00:00",
         "by": "build-orchestrator",
@@ -285,9 +290,9 @@
       }
     ],
     "session_continuity": {
-      "last_session": "2026-08-02T15:30:00.000000+00:00",
-      "stopped_at": "2026-08-02T15:30:00.000000+00:00",
-      "resume_hint": "EP-002-b (HU-013) TDD JVM completo y verde (7 tests nuevos en OperationFormViewModelTest, testDebugUnitTest --rerun fresco sin regresiones) y UI cableada (CatalogDropdown con '+ Agregar nueva' + campo inline en los 4 selectores). PAUSADO por falta de dispositivo/emulador conectado (adb devices vacio) -- NO por decision de alcance. tasks.md 2.1-2.5 tildadas; 2.6 (instrumentado) escrito en app/src/androidTest/java/com/miguel/mentaltrader/OperationFormCatalogInlineAddTest.kt (4 tests, compileDebugAndroidTestKotlin en verde) pero SIN EJECUTAR todavia; 2.7 (journey_smoke) tampoco corrido. Siguiente paso exacto en cuanto haya un dispositivo/emulador: conectar (`adb devices` debe listar uno), correr `./gradlew.bat connectedDebugAndroidTest --console=plain` filtrando o incluyendo OperationFormCatalogInlineAddTest, verificar los 4 tests en verde, actualizar wiring_checklist HU-013-AC1..4 e INT-registro-form-inline-add a passing con la evidencia real, y recien despues journey_smoke EP-002-b (crear un Activo nuevo inline en 'Nueva operacion' y completar el resto del formulario sin salir, con capturas adb reales). Tras cerrar EP-002-b: sub_slices[EP-002-c] (HU-012, confirmar eliminacion en uso) es el siguiente.",
+      "last_session": "2026-08-02T16:45:00.000000+00:00",
+      "stopped_at": "2026-08-02T16:45:00.000000+00:00",
+      "resume_hint": "Los 4 sub-slices de EP-002 (a/b/c/d) tienen su logica de negocio completa: EP-002-a esta DONE de punta a punta (instrumentado + journey_smoke reales, ver commit f70213e). EP-002-b/c/d tienen TDD JVM verde y UI cableada (commits 2304493/3da227f/siguiente), pero NINGUNO tiene instrumentado ni journey_smoke corridos todavia -- diferido a proposito a una pasada final unica por decision explicita del usuario (2026-08-02, sin dispositivo conectado en toda la sesion, adb devices vacio). NO es un recorte de alcance: la epica sigue sin poder cerrarse (dod) hasta que esa pasada corra. Siguiente paso exacto en cuanto haya un dispositivo/emulador conectado (verificar con `adb devices`): (1) correr `./gradlew.bat connectedDebugAndroidTest --console=plain` -- ya existe OperationFormCatalogInlineAddTest.kt (EP-002-b, 4 tests) escrito y compilando, verificarlo en verde; (2) escribir y correr los instrumentados que TODAVIA NO EXISTEN como archivo para EP-002-c (HU-012: sembrar una Operation real que use un CatalogItem, intentar eliminarlo, verificar el conteo en pantalla, confirmar y verificar que la Operation conserva su id de catalogo -- tasks.md 3.5) y EP-002-d (HU-014: guardar una operacion con imagen real, abrir Etiquetas, verificar el total > 0 y coherente -- tasks.md 4.5); (3) journey_smoke real de EP-002-b/c/d con capturas adb (tasks.md 2.7/3.6/4.7); (4) actualizar a passing con evidencia real todo wiring_checklist de HU-012/HU-013/HU-014 + los 3 integration_point relacionados (hoy failing con evidencia JVM documentada, no instrumentada); (5) marcar sub_slices[EP-002-b/c/d].status=done y journey_smoke=true; (6) recien entonces wiring-adversarial-verifier sobre la epica completa (incluye revisar los items ya conocidos y deliberadamente diferidos de EP-002-a: HU-010-AC2/AC3, HU-011-AC4+INT-seed-recreation-on-empty-catalog) y dor-dod-gatekeeper para cerrar wiring_verified+dod de EP-002.",
       "critical_recorded": false,
       "auto_continue": false
     }

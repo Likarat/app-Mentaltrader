@@ -9,13 +9,21 @@ import com.miguel.mentaltrader.core.data.CatalogItem
 import com.miguel.mentaltrader.core.data.CatalogItemDao
 import com.miguel.mentaltrader.core.data.CatalogRepository
 import com.miguel.mentaltrader.core.data.CatalogUpdateResult
+import com.miguel.mentaltrader.core.data.OperationImageDao
+import com.miguel.mentaltrader.core.image.DiskSpaceCalculator
+import com.miguel.mentaltrader.core.image.ImageProcessor
 import com.miguel.mentaltrader.core.model.CatalogType
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.util.Locale
 
 data class EtiquetasUiState(
     val selectedType: CatalogType = CatalogType.ASSET,
@@ -29,16 +37,48 @@ data class EtiquetasUiState(
      * con conteo en el diálogo de confirmación. Null mientras se está consultando o si no hay
      * ninguna eliminación pendiente. */
     val pendingDeleteUsageCount: Int? = null,
-    val blockedDeleteMessage: String? = null
-)
+    val blockedDeleteMessage: String? = null,
+    /** HU-014: espacio total aproximado (bytes) ocupado por las imágenes + miniaturas ya
+     * guardadas. 0 por defecto (Escenario 2: sin imágenes todavía), se recalcula una vez al
+     * abrir la pestaña (no en tiempo real). */
+    val diskSpaceBytes: Long = 0L
+) {
+    companion object {
+        /** Formatea a KB (sin decimales) o MB (1 decimal) para presentación -- cálculo
+         * aproximado, no exacto al byte (spec de HU-014). Locale.US fijo para no depender del
+         * separador decimal regional del dispositivo (mismo cuidado que el parseo de HU-004). */
+        fun formatDiskSpaceKbMb(bytes: Long): String {
+            val kb = bytes / 1024.0
+            return if (kb < 1024) {
+                String.format(Locale.US, "%.0f KB", kb)
+            } else {
+                String.format(Locale.US, "%.1f MB", kb / 1024.0)
+            }
+        }
+    }
+}
 
 class EtiquetasViewModel(
     private val catalogItemDao: CatalogItemDao,
-    private val catalogRepository: CatalogRepository
+    private val catalogRepository: CatalogRepository,
+    private val operationImageDao: OperationImageDao,
+    private val filesDir: File,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(EtiquetasUiState())
     val state: StateFlow<EtiquetasUiState> = _state.asStateFlow()
+
+    init {
+        // HU-014: se calcula una sola vez al abrir la pestaña (no en tiempo real), reutilizando
+        // las rutas ya guardadas por ImageProcessor (imagen + miniatura) sin duplicar esa lógica.
+        viewModelScope.launch {
+            val images = operationImageDao.getAll()
+            val paths = images.flatMap { listOf(it.filePath, ImageProcessor.thumbnailPathFor(it.filePath)) }
+            val bytes = withContext(ioDispatcher) { DiskSpaceCalculator.totalBytes(filesDir, paths) }
+            _state.value = _state.value.copy(diskSpaceBytes = bytes)
+        }
+    }
 
     val assets: StateFlow<List<CatalogItem>> =
         catalogItemDao.getByType(CatalogType.ASSET).stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -130,11 +170,13 @@ class EtiquetasViewModel(
 
     class Factory(
         private val catalogItemDao: CatalogItemDao,
-        private val catalogRepository: CatalogRepository
+        private val catalogRepository: CatalogRepository,
+        private val operationImageDao: OperationImageDao,
+        private val filesDir: File
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return EtiquetasViewModel(catalogItemDao, catalogRepository) as T
+            return EtiquetasViewModel(catalogItemDao, catalogRepository, operationImageDao, filesDir) as T
         }
     }
 }

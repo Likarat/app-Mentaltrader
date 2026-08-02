@@ -52,6 +52,13 @@ fun EtiquetasScreen(viewModel: EtiquetasViewModel, modifier: Modifier = Modifier
     val selectedTabIndex = TABS.indexOfFirst { it.first == state.selectedType }
 
     Column(modifier = modifier.fillMaxSize()) {
+        // HU-014: espacio aproximado en disco de todas las imágenes adjuntas, calculado una vez
+        // al abrir la pestaña (ver EtiquetasViewModel.init).
+        Text(
+            "Espacio usado por imágenes: ${EtiquetasUiState.formatDiskSpaceKbMb(state.diskSpaceBytes)}",
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        )
+
         SecondaryTabRow(selectedTabIndex = selectedTabIndex) {
             TABS.forEach { (type, label) ->
                 Tab(

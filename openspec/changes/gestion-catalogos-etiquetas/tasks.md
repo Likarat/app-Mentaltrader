@@ -31,13 +31,13 @@
 
 ## 4. Sub-slice EP-002-d: espacio en disco usado por imágenes (HU-014)
 
-- [ ] 4.1 `OperationImageDao` o `ImageProcessor`: método de agregación que liste todas las rutas (`filePath` + su miniatura vía `thumbnailPathFor`) y sume `File(path).length()` de las que existan, ignorando silenciosamente las que no
-- [ ] 4.2 `EtiquetasViewModel`: cargar el total (bytes) bajo `Dispatchers.IO` al entrar a la pestaña, formatear a KB/MB para presentación
-- [ ] 4.3 `EtiquetasScreen`: mostrar el total (o "0" sin imágenes, sin error)
-- [ ] 4.4 Tests unitarios: suma correcta sobre archivos reales de prueba, caso cero, archivo faltante no crashea (se cuenta como 0)
-- [ ] 4.5 Test instrumentado: guardar una operación con imagen real (reutilizando el pipeline de `ImageProcessor` de EP-001), abrir Etiquetas y verificar que el total mostrado es > 0 y coherente con el tamaño real del archivo en disco
-- [ ] 4.6 Test de recálculo tras eliminar (Escenario 3): sin UI de eliminar-operación todavía (HU-021/EP-003 no construida) — borrar directamente la fila de `Operation`/`OperationImage` y el archivo real en el test (mismo patrón que `DataResetServiceTest`), reabrir Etiquetas y verificar que el total bajó
-- [ ] 4.7 `journey_smoke` EP-002-d: registrar una operación con imagen, abrir Etiquetas, ver el espacio > 0
+- [x] 4.1 `DiskSpaceCalculator` nuevo (`core.image`, función pura): lista todas las rutas (`filePath` + su miniatura vía `ImageProcessor.thumbnailPathFor`) y suma `File(path).length()` de las que existan, ignorando silenciosamente las que no
+- [x] 4.2 `EtiquetasViewModel`: gana `operationImageDao`/`filesDir`/`ioDispatcher` (inyectable para tests, default `Dispatchers.IO`), carga el total (bytes) una sola vez en `init` al entrar a la pestaña; `EtiquetasUiState.formatDiskSpaceKbMb` formatea a KB (sin decimales)/MB (1 decimal), `Locale.US` fijo
+- [x] 4.3 `EtiquetasScreen`: muestra "Espacio usado por imágenes: ..." arriba de las pestañas (0 KB por defecto sin imágenes, sin error)
+- [x] 4.4 Tests unitarios: `DiskSpaceCalculatorTest` (suma correcta sobre archivos reales de prueba vía `TemporaryFolder`, caso cero, archivo faltante no crashea) + `EtiquetasViewModelTest` (expone el total con imágenes reales, 0 sin ninguna, formatDiskSpaceKbMb) -- `testDebugUnitTest --rerun` fresco en verde, sin regresiones
+- [ ] 4.5 Test instrumentado: guardar una operación con imagen real (reutilizando el pipeline de `ImageProcessor` de EP-001), abrir Etiquetas y verificar que el total mostrado es > 0 y coherente con el tamaño real del archivo en disco -- diferido a la pasada final de instrumentados (decisión del usuario 2026-08-02, sin dispositivo conectado en esta sesión)
+- [x] 4.6 Test de recálculo tras eliminar (Escenario 3), a nivel JVM: `EtiquetasViewModelTest.'al reabrir Etiquetas tras eliminar una operacion con imagenes el espacio recalculado baja'` borra el archivo real + la fila de `OperationImage` y una segunda apertura (nueva instancia del ViewModel) refleja la baja -- falta la variante instrumentada real, diferida junto con 4.5
+- [ ] 4.7 `journey_smoke` EP-002-d: registrar una operación con imagen, abrir Etiquetas, ver el espacio > 0 -- diferido, misma razón que 4.5
 
 ## 5. Cierre del change completo
 
