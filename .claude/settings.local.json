@@ -120,7 +120,9 @@
       "PowerShell(git fetch origin)",
       "PowerShell(git checkout main)",
       "PowerShell(git pull origin main)",
-      "PowerShell(git push)"
+      "PowerShell(git push)",
+      "PowerShell(git merge main --no-edit)",
+      "PowerShell(git commit -m \"chore: registra permisos locales\")"
     ]
   }
 }
