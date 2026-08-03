@@ -11,12 +11,16 @@ import androidx.paging.cachedIn
 import androidx.paging.filter
 import androidx.paging.insertSeparators
 import androidx.paging.map
+import com.miguel.mentaltrader.core.data.CatalogItem
 import com.miguel.mentaltrader.core.data.CatalogItemDao
 import com.miguel.mentaltrader.core.data.MonthSummary
 import com.miguel.mentaltrader.core.data.Operation
 import com.miguel.mentaltrader.core.data.OperationDao
 import com.miguel.mentaltrader.core.data.OperationImageDao
 import com.miguel.mentaltrader.core.image.ImageProcessor
+import com.miguel.mentaltrader.core.model.CatalogType
+import com.miguel.mentaltrader.core.model.ResultType
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -28,10 +32,12 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.io.File
+import java.time.LocalDate
 import java.time.YearMonth
 
 /**
@@ -42,7 +48,13 @@ import java.time.YearMonth
  * HU-021: también gestiona el soft-delete temporal en memoria (design.md decisión #4):
  * eliminar no toca Room de inmediato, solo agrega el id a [pendingDeleteIds] y programa el
  * borrado físico real tras [UNDO_WINDOW_MS] salvo que se cancele con [onUndoDelete].
+ *
+ * HU-022/HU-023: también gestiona [filterState] (etiqueta + fecha/periodo + búsqueda de texto,
+ * combinados con AND) -- cada cambio reconstruye el `Pager` con
+ * [OperationDao.pagingSourceFiltered] vía `flatMapLatest` (design.md decisión #5: el filtrado
+ * corre en SQL, no en memoria, para que la paginación siga sin cargar el histórico completo).
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 class HistorialViewModel(
     private val operationDao: OperationDao,
     private val operationImageDao: OperationImageDao,
@@ -84,10 +96,36 @@ class HistorialViewModel(
      * query, ver [monthSummaries] y [historial]). */
     val collapsedMonths: StateFlow<Set<YearMonth>> = _collapsedMonths.asStateFlow()
 
+    private val _filterState = MutableStateFlow(HistorialFilterState())
+    /** HU-022/HU-023: filtro + búsqueda actualmente activos (todos los campos nulos == "Limpiar
+     * filtros" ya aplicado, HU-022 Escenario 4). */
+    val filterState: StateFlow<HistorialFilterState> = _filterState.asStateFlow()
+
+    /** HU-022 Escenario 1: opciones reales para los selectores de filtro por etiqueta (mismo
+     * catálogo de EP-002 que ya usa `OperationFormViewModel` para el formulario). */
+    val assets: Flow<List<CatalogItem>> = catalogItemDao.getByType(CatalogType.ASSET)
+    val emotions: Flow<List<CatalogItem>> = catalogItemDao.getByType(CatalogType.EMOTION)
+    val errorsCatalog: Flow<List<CatalogItem>> = catalogItemDao.getByType(CatalogType.ERROR)
+
     val historial: Flow<PagingData<HistorialListItem>> =
-        Pager(config = PagingConfig(pageSize = PAGE_SIZE, enablePlaceholders = false)) {
-            operationDao.pagingSourceOrderedByDateDesc()
-        }.flow
+        filterState
+            .flatMapLatest { filter ->
+                Pager(config = PagingConfig(pageSize = PAGE_SIZE, enablePlaceholders = false)) {
+                    operationDao.pagingSourceFiltered(
+                        assetId = filter.assetId,
+                        result = filter.result,
+                        errorId = filter.errorId,
+                        emotionBeforeId = filter.emotionBeforeId,
+                        emotionAfterId = filter.emotionAfterId,
+                        dateFrom = filter.dateFrom,
+                        dateTo = filter.dateTo,
+                        // HU-023: los comodines `%` van del lado del llamador (design.md
+                        // decisión #5), no de la query -- así `pagingSourceFiltered` sigue siendo
+                        // una @Query de Room sin lógica condicional embebida en el parámetro.
+                        searchText = filter.searchText?.trim()?.takeIf { it.isNotEmpty() }?.let { "%$it%" }
+                    )
+                }.flow
+            }
             .map { pagingData: PagingData<Operation> ->
                 pagingData.insertSeparators<Operation, Any> { before, after ->
                     HistorialSeparators.between(before, after)
@@ -147,6 +185,65 @@ class HistorialViewModel(
         } else {
             _collapsedMonths.value + month
         }
+    }
+
+    // ---- HU-022/HU-023: filtro + búsqueda (todos combinados con AND, ver HistorialFilterMatcher) ----
+
+    /** HU-022 Escenario 1: filtrar por Activo (`null` quita ese criterio). */
+    fun onFilterAsset(assetId: Long?) {
+        _filterState.value = _filterState.value.copy(assetId = assetId)
+    }
+
+    /** HU-022 Escenario 1: filtrar por Resultado (`null` quita ese criterio). */
+    fun onFilterResult(result: ResultType?) {
+        _filterState.value = _filterState.value.copy(result = result)
+    }
+
+    /** HU-022 Escenario 1: filtrar por Error (`null` quita ese criterio). */
+    fun onFilterError(errorId: Long?) {
+        _filterState.value = _filterState.value.copy(errorId = errorId)
+    }
+
+    /** HU-022 Escenario 1: filtrar por Emoción antes de operar (`null` quita ese criterio). */
+    fun onFilterEmotionBefore(emotionId: Long?) {
+        _filterState.value = _filterState.value.copy(emotionBeforeId = emotionId)
+    }
+
+    /** HU-022 Escenario 1: filtrar por Emoción después de operar (`null` quita ese criterio). */
+    fun onFilterEmotionAfter(emotionId: Long?) {
+        _filterState.value = _filterState.value.copy(emotionAfterId = emotionId)
+    }
+
+    /** HU-022 Escenario 2: selecciona un periodo predefinido (resuelve `dateFrom`/`dateTo` reales
+     * vía [PeriodoFiltroRange], lógica pura ya testeada aparte) o [PeriodoFiltro.PERSONALIZADO]
+     * (no fija rango propio -- espera [onCustomDateRange]). `null` quita el filtro de fecha. */
+    fun onSelectPeriodo(periodo: PeriodoFiltro?, today: LocalDate = LocalDate.now()) {
+        _filterState.value = when {
+            periodo == null -> _filterState.value.copy(selectedPeriodo = null, dateFrom = null, dateTo = null)
+            periodo == PeriodoFiltro.PERSONALIZADO -> _filterState.value.copy(selectedPeriodo = periodo)
+            else -> {
+                val range = PeriodoFiltroRange.rangeFor(periodo, today)
+                _filterState.value.copy(selectedPeriodo = periodo, dateFrom = range?.first, dateTo = range?.second)
+            }
+        }
+    }
+
+    /** HU-022 Escenario 2: rango de fecha personalizado elegido por el usuario (selector de fecha
+     * real en HistorialScreen, tras elegir [PeriodoFiltro.PERSONALIZADO]). */
+    fun onCustomDateRange(from: Long?, to: Long?) {
+        _filterState.value = _filterState.value.copy(selectedPeriodo = PeriodoFiltro.PERSONALIZADO, dateFrom = from, dateTo = to)
+    }
+
+    /** HU-023 Escenario 1/2: texto de búsqueda libre, combinado con AND junto a los demás
+     * filtros ya activos (ver [HistorialFilterMatcher] para la semántica exacta). */
+    fun onSearchTextChanged(text: String?) {
+        _filterState.value = _filterState.value.copy(searchText = text)
+    }
+
+    /** HU-022 Escenario 4: "Limpiar filtros" -- remueve TODOS los criterios (etiqueta, fecha,
+     * búsqueda) de una sola vez y vuelve al listado completo agrupado por mes. */
+    fun onClearFilters() {
+        _filterState.value = HistorialFilterState()
     }
 
     companion object {

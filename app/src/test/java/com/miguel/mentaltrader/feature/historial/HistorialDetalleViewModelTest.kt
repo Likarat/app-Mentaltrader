@@ -153,6 +153,18 @@ class HistorialDetalleViewModelTest {
         override fun monthlySummaries(): Flow<List<com.miguel.mentaltrader.core.data.MonthSummary>> =
             throw UnsupportedOperationException("No usado por HistorialDetalleViewModelTest")
 
+        override fun pagingSourceFiltered(
+            assetId: Long?,
+            result: com.miguel.mentaltrader.core.model.ResultType?,
+            errorId: Long?,
+            emotionBeforeId: Long?,
+            emotionAfterId: Long?,
+            dateFrom: Long?,
+            dateTo: Long?,
+            searchText: String?
+        ): androidx.paging.PagingSource<Int, Operation> =
+            throw UnsupportedOperationException("No usado por HistorialDetalleViewModelTest")
+
         override suspend fun deleteById(id: Long) {
             inserted.removeAll { it.id == id }
         }

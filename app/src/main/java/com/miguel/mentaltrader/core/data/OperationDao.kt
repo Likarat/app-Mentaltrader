@@ -5,6 +5,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import com.miguel.mentaltrader.core.model.ResultType
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -55,6 +56,62 @@ interface OperationDao {
         """
     )
     fun monthlySummaries(): Flow<List<MonthSummary>>
+
+    /** HU-022/HU-023: misma fuente que [pagingSourceOrderedByDateDesc] (no cambia su contrato,
+     * design.md sección "Non-Goals"), pero con todos los criterios de filtro/búsqueda como
+     * parámetros OPCIONALES nulos -- patrón `(:param IS NULL OR columna = :param)`, design.md
+     * decisión #5 (se descarta `@RawQuery`: el número de combinaciones de filtro es fijo y
+     * pequeño, no justifica perder la verificación en tiempo de compilación de Room). Con todos
+     * los parámetros en `null` se comporta exactamente igual que [pagingSourceOrderedByDateDesc]
+     * (mismo orden, mismas filas). Todos los criterios se combinan con AND (HU-022 Escenario 3,
+     * HU-023 Escenario 2). [searchText] (ya con los comodines `%` agregados por el llamador, o
+     * `null` si no hay búsqueda) hace `LIKE` sobre los 4 campos de texto libre de la operación
+     * ([Operation.entryDescription]/[Operation.emotionBeforeReason]/[Operation.emotionAfterReason]/
+     * [Operation.errorReason]) Y TAMBIÉN sobre el nombre de catálogo (Activo/Emoción antes/Emoción
+     * después/Error) ya asociado a esa operación -- HU-023 Escenario 1: "...o nombres de catálogo
+     * seleccionados [de la operación] contengan esa palabra" -- de ahí los `LEFT JOIN` contra
+     * `catalog_item`. Misma semántica exacta que [HistorialFilterMatcher.matches] (lógica pura
+     * testeada en JVM, ver su KDoc) -- la equivalencia real de esta query contra Room/SQLite queda
+     * pendiente de un test instrumentado (tasks.md 5.6), diferido a la pasada final única sin
+     * dispositivo conectado en esta sesión. */
+    @Query(
+        """
+        SELECT o.* FROM operation o
+        LEFT JOIN catalog_item ca ON ca.id = o.assetId
+        LEFT JOIN catalog_item ceb ON ceb.id = o.emotionBeforeId
+        LEFT JOIN catalog_item cea ON cea.id = o.emotionAfterId
+        LEFT JOIN catalog_item cer ON cer.id = o.errorId
+        WHERE (:assetId IS NULL OR o.assetId = :assetId)
+          AND (:result IS NULL OR o.result = :result)
+          AND (:errorId IS NULL OR o.errorId = :errorId)
+          AND (:emotionBeforeId IS NULL OR o.emotionBeforeId = :emotionBeforeId)
+          AND (:emotionAfterId IS NULL OR o.emotionAfterId = :emotionAfterId)
+          AND (:dateFrom IS NULL OR o.dateTime >= :dateFrom)
+          AND (:dateTo IS NULL OR o.dateTime <= :dateTo)
+          AND (
+            :searchText IS NULL
+            OR o.entryDescription LIKE :searchText
+            OR o.emotionBeforeReason LIKE :searchText
+            OR o.emotionAfterReason LIKE :searchText
+            OR o.errorReason LIKE :searchText
+            OR ca.name LIKE :searchText
+            OR ceb.name LIKE :searchText
+            OR cea.name LIKE :searchText
+            OR cer.name LIKE :searchText
+          )
+        ORDER BY o.dateTime DESC
+        """
+    )
+    fun pagingSourceFiltered(
+        assetId: Long?,
+        result: ResultType?,
+        errorId: Long?,
+        emotionBeforeId: Long?,
+        emotionAfterId: Long?,
+        dateFrom: Long?,
+        dateTo: Long?,
+        searchText: String?
+    ): PagingSource<Int, Operation>
 
     /** "Borrar todo" (Ajustes): elimina todas las operaciones, conserva los catálogos. */
     @Query("DELETE FROM operation")

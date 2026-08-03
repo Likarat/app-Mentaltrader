@@ -185,6 +185,107 @@ class HistorialViewModelTest {
         assertFalse(julio in viewModel.collapsedMonths.value)
     }
 
+    // HU-022/HU-023 (sub-slice EP-003-e): el estado de filtro por defecto no tiene ningún
+    // criterio activo (equivalente a "Limpiar filtros" ya aplicado, HU-022 Escenario 4).
+    @Test
+    fun `el filterState inicial esta vacio (sin ningun criterio activo)`() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+
+        assertTrue(viewModel.filterState.value.isEmpty)
+    }
+
+    // HU-022 Escenario 1: cada setter de filtro de etiqueta actualiza solo su propio campo.
+    @Test
+    fun `onFilterAsset actualiza solo el assetId del filtro`() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+
+        viewModel.onFilterAsset(10L)
+
+        assertEquals(10L, viewModel.filterState.value.assetId)
+        assertNull(viewModel.filterState.value.result)
+    }
+
+    @Test
+    fun `onFilterResult actualiza solo el resultado del filtro`() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+
+        viewModel.onFilterResult(ResultType.LOSS)
+
+        assertEquals(ResultType.LOSS, viewModel.filterState.value.result)
+    }
+
+    // HU-022 Escenario 3: combinar dos filtros de etiqueta a la vez deja ambos campos activos en
+    // el mismo HistorialFilterState (la combinación AND real la aplica HistorialFilterMatcher /
+    // la query de OperationDao sobre ese único estado, ver su propio test).
+    @Test
+    fun `combinar Activo y Resultado deja ambos activos a la vez en el mismo filterState`() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+
+        viewModel.onFilterAsset(10L)
+        viewModel.onFilterResult(ResultType.WIN)
+
+        assertEquals(10L, viewModel.filterState.value.assetId)
+        assertEquals(ResultType.WIN, viewModel.filterState.value.result)
+    }
+
+    // HU-022 Escenario 2: seleccionar un periodo predefinido resuelve dateFrom/dateTo reales vía
+    // PeriodoFiltroRange (misma lógica pura ya testeada en PeriodoFiltroRangeTest).
+    @Test
+    fun `onSelectPeriodo resuelve dateFrom y dateTo reales para un periodo predefinido`() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+        val hoy = java.time.LocalDate.of(2026, 8, 15)
+
+        viewModel.onSelectPeriodo(PeriodoFiltro.ULTIMA_SEMANA, hoy)
+
+        val esperado = PeriodoFiltroRange.rangeFor(PeriodoFiltro.ULTIMA_SEMANA, hoy)
+        assertEquals(esperado?.first, viewModel.filterState.value.dateFrom)
+        assertEquals(esperado?.second, viewModel.filterState.value.dateTo)
+        assertEquals(PeriodoFiltro.ULTIMA_SEMANA, viewModel.filterState.value.selectedPeriodo)
+    }
+
+    // Personalizado no resuelve rango propio -- espera el rango explícito del usuario.
+    @Test
+    fun `onSelectPeriodo Personalizado no fija dateFrom ni dateTo hasta que se elige el rango`() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+
+        viewModel.onSelectPeriodo(PeriodoFiltro.PERSONALIZADO, java.time.LocalDate.of(2026, 8, 15))
+
+        assertNull(viewModel.filterState.value.dateFrom)
+        assertNull(viewModel.filterState.value.dateTo)
+        assertEquals(PeriodoFiltro.PERSONALIZADO, viewModel.filterState.value.selectedPeriodo)
+
+        viewModel.onCustomDateRange(from = 100L, to = 200L)
+
+        assertEquals(100L, viewModel.filterState.value.dateFrom)
+        assertEquals(200L, viewModel.filterState.value.dateTo)
+    }
+
+    // HU-023 Escenario 1/2: el texto de búsqueda es un criterio más del mismo filterState.
+    @Test
+    fun `onSearchTextChanged actualiza el texto de busqueda sin tocar los demas filtros`() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+
+        viewModel.onFilterAsset(10L)
+        viewModel.onSearchTextChanged("ruptura")
+
+        assertEquals(10L, viewModel.filterState.value.assetId)
+        assertEquals("ruptura", viewModel.filterState.value.searchText)
+    }
+
+    // HU-022 Escenario 4: "Limpiar filtros" restaura el estado por defecto (sin ningún criterio).
+    @Test
+    fun `onClearFilters restaura el filterState por defecto`() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+        viewModel.onFilterAsset(10L)
+        viewModel.onFilterResult(ResultType.WIN)
+        viewModel.onSearchTextChanged("ruptura")
+        viewModel.onSelectPeriodo(PeriodoFiltro.ESTE_MES, java.time.LocalDate.of(2026, 8, 15))
+
+        viewModel.onClearFilters()
+
+        assertTrue(viewModel.filterState.value.isEmpty)
+    }
+
     private class FakeOperationDao : OperationDao {
         val inserted = mutableListOf<Operation>()
         var deleteByIdCallCount = 0
@@ -211,6 +312,18 @@ class HistorialViewModelTest {
 
         override fun monthlySummaries(): Flow<List<MonthSummary>> =
             throw UnsupportedOperationException("No usado por estos tests (requiere Room real, cálculo SQL, ver tasks.md 4.5)")
+
+        override fun pagingSourceFiltered(
+            assetId: Long?,
+            result: ResultType?,
+            errorId: Long?,
+            emotionBeforeId: Long?,
+            emotionAfterId: Long?,
+            dateFrom: Long?,
+            dateTo: Long?,
+            searchText: String?
+        ): androidx.paging.PagingSource<Int, Operation> =
+            throw UnsupportedOperationException("No usado por HistorialViewModelTest (requiere Room real, ver tasks.md 5.6; la lógica de filtro/búsqueda se testea aparte, sin Room, en HistorialFilterMatcherTest)")
 
         override suspend fun deleteById(id: Long) {
             deleteByIdCallCount++
