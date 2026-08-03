@@ -126,15 +126,20 @@ interface OperationDao {
     @Query("DELETE FROM operation")
     suspend fun deleteAll()
 
-    /** HU-026 Escenario 1: resumen agregado de TODAS las operaciones -- EP-004-a asume "el
-     * periodo ya seleccionado" es el conjunto completo (design.md decisión #1: el selector real
-     * de periodo llega recién con HU-028/EP-004-b, esta query se extenderá ahí con
-     * dateFrom/dateTo opcionales, mismo patrón evolutivo que [pagingSourceOrderedByDateDesc] ->
-     * [pagingSourceFiltered] en EP-003). Una sola fila agregada (un `GROUP BY` implícito de "todo
-     * el universo"), calculada en SQL (design.md decisión #2, "no en memoria", misma consistencia
-     * que [monthlySummaries]). El `CASE WHEN COUNT(*) = 0` y los `COALESCE` evitan tanto la
-     * división por cero como los `NULL` de `AVG`/`SUM` sobre cero filas (HU-026 Escenario 4:
-     * valores neutros, sin errores ni caídas). */
+    /** HU-026 Escenario 1 / HU-028 Escenario 1: resumen agregado de las operaciones -- [dateFrom]/
+     * [dateTo] opcionales (`null` en ambos == TODAS las operaciones, mismo comportamiento exacto
+     * que tenía esta query sin parámetros en EP-004-a) siguen el mismo patrón
+     * `(:param IS NULL OR columna...)` que [pagingSourceFiltered] en EP-003 (design.md decisión
+     * #2: esta query se extendía aquí, en EP-004-b, sin romper su contrato -- se optó por AGREGAR
+     * los parámetros opcionales a la MISMA función en vez de una sobrecarga separada, ya que Room
+     * no distingue funciones por nombre+aridad para una sola query real y este proyecto ya no
+     * mantiene una variante "sin filtro" de `pagingSourceFiltered`/`pagingSourceOrderedByDateDesc`
+     * en paralelo). Una sola fila agregada (un `GROUP BY` implícito de "todo el rango"), calculada
+     * en SQL (design.md decisión #2, "no en memoria", misma consistencia que [monthlySummaries]).
+     * El `CASE WHEN COUNT(*) = 0` y los `COALESCE` evitan tanto la división por cero como los
+     * `NULL` de `AVG`/`SUM` sobre cero filas (HU-026 Escenario 4: valores neutros, sin errores ni
+     * caídas) -- también cuando el rango de fechas no contiene ninguna operación (HU-031
+     * Escenario 2, EP-004-c). */
     @Query(
         """
         SELECT
@@ -152,59 +157,78 @@ interface OperationDao {
             COALESCE(SUM(resultInR), 0.0) AS totalResultInR,
             CASE WHEN COUNT(*) = 0 THEN 0.0 ELSE COALESCE(SUM(resultInR), 0.0) / COUNT(*) END AS avgResultInR
         FROM operation
+        WHERE (:dateFrom IS NULL OR dateTime >= :dateFrom)
+          AND (:dateTo IS NULL OR dateTime <= :dateTo)
         """
     )
-    fun metricsSummary(): Flow<OperationMetricsSummary>
+    fun metricsSummary(dateFrom: Long?, dateTo: Long?): Flow<OperationMetricsSummary>
 
-    /** HU-026 Escenario 2: valor de `resultInR` de cada operación, ordenado cronológicamente
-     * ascendente (la más antigua primero) -- proyección liviana de una sola columna (NO la
-     * entidad [Operation] completa, sigue el mandato de "no cargar todo a memoria" incluso para
-     * esta lista ordenada) para que `InicioViewModel` construya el punto-a-punto del R acumulado
-     * en Kotlin puro (`ResultInRCumulativeSeries`, testeada aparte en JVM sin Room). Se resuelve
-     * así (post-procesamiento fuera de SQL) y no con una función de ventana (`SUM() OVER`, que
+    /** HU-026 Escenario 2 / HU-028 Escenario 1: valor de `resultInR` de cada operación DENTRO del
+     * rango [dateFrom]/[dateTo] opcional (mismo criterio "`null` en ambos == todas" que
+     * [metricsSummary]), ordenado cronológicamente ascendente (la más antigua primero) --
+     * proyección liviana de una sola columna (NO la entidad [Operation] completa, sigue el
+     * mandato de "no cargar todo a memoria" incluso para esta lista ordenada) para que
+     * `InicioViewModel` construya el punto-a-punto del R acumulado en Kotlin puro
+     * (`ResultInRCumulativeSeries`, testeada aparte en JVM sin Room). Se resuelve así
+     * (post-procesamiento fuera de SQL) y no con una función de ventana (`SUM() OVER`, que
      * requeriría SQLite >= 3.25) porque el SQLite embebido de minSdk 27 (Android 8.1) no la
      * soporta de forma confiable en todo el rango de dispositivos objetivo -- ver design.md
-     * decisión #1 de este change. */
-    @Query("SELECT resultInR FROM operation ORDER BY dateTime ASC")
-    fun resultInROrderedByDateAsc(): Flow<List<Float?>>
+     * decisión #1/#3 de este change. */
+    @Query(
+        """
+        SELECT resultInR FROM operation
+        WHERE (:dateFrom IS NULL OR dateTime >= :dateFrom)
+          AND (:dateTo IS NULL OR dateTime <= :dateTo)
+        ORDER BY dateTime ASC
+        """
+    )
+    fun resultInROrderedByDateAsc(dateFrom: Long?, dateTo: Long?): Flow<List<Float?>>
 
-    /** HU-027 Escenario 1/3: ranking de emociones más frecuentes en TODAS las operaciones (mismo
-     * alcance "periodo asumido" que [metricsSummary], design.md decisión #1). Cuenta CADA
-     * aparición de un `CatalogItem` de tipo EMOTION en cualquiera de sus 2 roles posibles
-     * ([Operation.emotionBeforeId] y [Operation.emotionAfterId]) vía `UNION ALL` -- agrupando por
-     * `CatalogItem.id` sin distinguir el rol (HU-027 nota técnica: "agrupando por
-     * `CatalogItem.id`"). Desempate determinístico por nombre ascendente (HU-027 Escenario 3:
-     * mismo orden en cada render). */
+    /** HU-027 Escenario 1/3 / HU-028 Escenario 1: ranking de emociones más frecuentes DENTRO del
+     * rango [dateFrom]/[dateTo] opcional (mismo criterio "`null` en ambos == todas" que
+     * [metricsSummary]) -- el filtro se aplica DENTRO de cada rama del `UNION ALL` (misma
+     * operación, mismo `dateTime`, filtrado antes de combinar los 2 roles). Cuenta CADA aparición
+     * de un `CatalogItem` de tipo EMOTION en cualquiera de sus 2 roles posibles
+     * ([Operation.emotionBeforeId] y [Operation.emotionAfterId]), agrupando por `CatalogItem.id`
+     * sin distinguir el rol (HU-027 nota técnica: "agrupando por `CatalogItem.id`"). Desempate
+     * determinístico por nombre ascendente (HU-027 Escenario 3: mismo orden en cada render). */
     @Query(
         """
         SELECT ci.id AS id, ci.name AS name, COUNT(*) AS frequency
         FROM (
             SELECT emotionBeforeId AS emotionId FROM operation
+            WHERE (:dateFrom IS NULL OR dateTime >= :dateFrom)
+              AND (:dateTo IS NULL OR dateTime <= :dateTo)
             UNION ALL
             SELECT emotionAfterId AS emotionId FROM operation
+            WHERE (:dateFrom IS NULL OR dateTime >= :dateFrom)
+              AND (:dateTo IS NULL OR dateTime <= :dateTo)
         ) e
         JOIN catalog_item ci ON ci.id = e.emotionId
         GROUP BY ci.id
         ORDER BY frequency DESC, ci.name ASC
         """
     )
-    fun emotionRanking(): Flow<List<CatalogRankingItem>>
+    fun emotionRanking(dateFrom: Long?, dateTo: Long?): Flow<List<CatalogRankingItem>>
 
-    /** HU-027 Escenario 2/3: ranking de errores más frecuentes en TODAS las operaciones (mismo
-     * alcance que [emotionRanking]). Agrupa por `CatalogItem.id` de [Operation.errorId] -- incluye
-     * la semilla "Ninguno" (`CatalogItem.SEED_ERROR_NINGUNO`) como cualquier otro valor si es el
-     * más usado, sin exclusión especial (HU-027 nota técnica). Mismo desempate determinístico que
+    /** HU-027 Escenario 2/3 / HU-028 Escenario 1: ranking de errores más frecuentes DENTRO del
+     * rango [dateFrom]/[dateTo] opcional (mismo alcance que [emotionRanking]). Agrupa por
+     * `CatalogItem.id` de [Operation.errorId] -- incluye la semilla "Ninguno"
+     * (`CatalogItem.SEED_ERROR_NINGUNO`) como cualquier otro valor si es el más usado, sin
+     * exclusión especial (HU-027 nota técnica). Mismo desempate determinístico que
      * [emotionRanking]. */
     @Query(
         """
         SELECT ci.id AS id, ci.name AS name, COUNT(*) AS frequency
         FROM operation o
         JOIN catalog_item ci ON ci.id = o.errorId
+        WHERE (:dateFrom IS NULL OR o.dateTime >= :dateFrom)
+          AND (:dateTo IS NULL OR o.dateTime <= :dateTo)
         GROUP BY ci.id
         ORDER BY frequency DESC, ci.name ASC
         """
     )
-    fun errorRanking(): Flow<List<CatalogRankingItem>>
+    fun errorRanking(dateFrom: Long?, dateTo: Long?): Flow<List<CatalogRankingItem>>
 
     /** HU-012: cuántas operaciones referencian este elemento de catálogo, en cualquiera de sus 4
      * roles posibles (Activo, Emoción antes/después, Error) -- usado para advertir antes de

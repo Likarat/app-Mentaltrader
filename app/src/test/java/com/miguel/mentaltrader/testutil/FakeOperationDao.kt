@@ -81,15 +81,23 @@ class FakeOperationDao : OperationDao {
             it.assetId == id || it.emotionBeforeId == id || it.emotionAfterId == id || it.errorId == id
         }
 
-    override fun metricsSummary(): Flow<OperationMetricsSummary> =
+    override fun metricsSummary(dateFrom: Long?, dateTo: Long?): Flow<OperationMetricsSummary> =
         throw UnsupportedOperationException("Requiere Room real (agregación SQL), no ejercitado contra este fake")
 
-    override fun resultInROrderedByDateAsc(): Flow<List<Float?>> =
-        allOperations.map { list -> list.sortedBy { it.dateTime }.map { it.resultInR } }
+    /** HU-028 (EP-004-b): SÍ filtra por [dateFrom]/[dateTo] (mismo criterio `>= dateFrom` /
+     * `<= dateTo` que la query real de Room) -- es la única de las 4 queries nuevas de EP-004 con
+     * implementación real en este fake (ver KDoc de la clase), y `InicioViewModelTest` la usa para
+     * testear el recálculo/aislamiento real entre periodos sucesivos (HU-028 Escenario 2). */
+    override fun resultInROrderedByDateAsc(dateFrom: Long?, dateTo: Long?): Flow<List<Float?>> =
+        allOperations.map { list ->
+            list.filter { (dateFrom == null || it.dateTime >= dateFrom) && (dateTo == null || it.dateTime <= dateTo) }
+                .sortedBy { it.dateTime }
+                .map { it.resultInR }
+        }
 
-    override fun emotionRanking(): Flow<List<CatalogRankingItem>> =
+    override fun emotionRanking(dateFrom: Long?, dateTo: Long?): Flow<List<CatalogRankingItem>> =
         throw UnsupportedOperationException("Requiere Room real (JOIN/GROUP BY agregado), no ejercitado contra este fake")
 
-    override fun errorRanking(): Flow<List<CatalogRankingItem>> =
+    override fun errorRanking(dateFrom: Long?, dateTo: Long?): Flow<List<CatalogRankingItem>> =
         throw UnsupportedOperationException("Requiere Room real (JOIN/GROUP BY agregado), no ejercitado contra este fake")
 }
