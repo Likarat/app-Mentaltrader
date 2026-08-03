@@ -221,7 +221,8 @@
       "Bash(git show *)",
       "Read(//c/Users/migue/AppData/Local/Temp/claude/C--Users-migue-Desktop-automatizacion-proyectos-App-Mentaltrader/57a06090-6578-4335-8518-cbb758ed94dd/scratchpad/**)",
       "Bash(git merge *)",
-      "Bash(Get-Content -Raw .claude/settings.local.json)"
+      "Bash(Get-Content -Raw .claude/settings.local.json)",
+      "PowerShell(python \"C:\\\\Users\\\\migue\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-migue-Desktop-automatizacion-proyectos-App-Mentaltrader\\\\57a06090-6578-4335-8518-cbb758ed94dd\\\\scratchpad\\\\pause_ep003.py\")"
     ]
   }
 }

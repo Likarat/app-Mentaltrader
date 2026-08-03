@@ -15,7 +15,116 @@
     "source": "Sin mockups formales — decisión de producto explícita (Especificacion_Bitacora_Trading.md §1: \"No hay mockups previos; la UI se ajusta de forma iterativa durante el desarrollo\"). Fuente de verdad visual: PRD/spec descriptivos (tema oscuro por defecto, layout de una columna, orden de campos ya fijado).",
     "notes": "gate fidelity (fase smoke) se evalúa contra la descripción textual del PRD/spec, no contra un export visual (no aplica MCP chrome-devtools screenshot-vs-prototipo en el sentido estricto; se evalúa consistencia con la descripción)."
   },
-  "active_slice": null,
+  "active_slice": {
+    "epica": "EP-004",
+    "hus": [
+      "HU-026",
+      "HU-027",
+      "HU-028",
+      "HU-029",
+      "HU-030",
+      "HU-031"
+    ],
+    "openspec_change": "metricas-deteccion-patrones-inicio",
+    "branch": "feature/ep-004-metricas-deteccion-patrones",
+    "phase": "dor",
+    "layer": "business",
+    "gates": {
+      "dor": true,
+      "tdd": false,
+      "journey_smoke": false,
+      "coherence_link": false,
+      "data": false,
+      "fidelity": false,
+      "api": null,
+      "wiring_verified": false,
+      "dod": false
+    },
+    "updated_at": "2026-08-03T13:00:00.000000+00:00",
+    "updated_by": "build-orchestrator (dor-dod-gatekeeper no disponible en esta sesión, DoR conducido directamente)",
+    "notes": "DoR PASA para EP-004 (Métricas y detección de patrones / Inicio), con troceo obligatorio en sub_slices[]. Precondición: scaffold.confirmed=true y design_source.confirmed=true, ya confirmados en build-state.json (no re-derivados). active_slice estaba en null (EP-003 pausada, no archivada, movida a history[] a pedido explícito del usuario; su change 'historial-estudio-operaciones' sigue sin archivar en openspec/changes/). Rama actual verificada con git real: feature/ep-004-metricas-deteccion-patrones, creada desde main con PR #6 (EP-003) ya mergeado (git log confirma 83eb63d 'Merge pull request #6...' en main y en esta rama). Caveat real detectado (criterio 5, no asumido): EP-002 (catálogos) está MERGEADA a main (CatalogItemDao.kt real y funcional verificado por lectura directa, incluye getByType/countByType/countByTypeAndNameIgnoreCaseExcludingId, y OperationDao ya hace LEFT JOIN contra catalog_item con éxito en EP-003/HU-022-023), pero su épica NO está archivada en build-state.json: sigue en history[] con phase='green', gates.dod=false y gates.wiring_verified=false (pendiente únicamente de la misma pasada final de instrumentados con dispositivo real que EP-003, sin cambios de lógica/esquema pendientes). Es decir: la dependencia de DATOS está satisfecha y verificada con evidencia real de código, pero el cierre BUROCRÁTICO de EP-002 en el arnés sigue abierto. No se trata de cimiento sin construir (EP-004 es layer=business, su cimiento fundacional es EP-005, ya archivado con dor=dod=true) sino de una épica de negocio hermana proveedora de datos que aún no cerró su DoD. Se documenta como caveat NO bloqueante (mismo criterio de riesgo tolerado ya usado en este proyecto para HU-034-AC2/EP-005 y el recordatorio retroactivo INT-hu034-retro-cierre de EP-003): se agrega el item INT-ep002-catalogo-dependencia-abierta a wiring_checklist como recordatorio explícito de re-verificar el ranking de HU-027 contra EP-002 una vez esa épica cierre wiring_verified/dod, por si la pasada final de instrumentados de EP-002 revelara algún ajuste real en semillas/catálogos.\n\nChecklist DoR: (1) EP-004 existe en docs/03-backlog/epicas.md (línea 130) con trazabilidad al Obj.3 del PRD (detección de patrones), OK. (2) 6 HU enumeradas en hus[]: HU-026 a HU-031, coinciden 1:1 con la sección 'Historias previstas' de EP-004 en epicas.md y con la fila 'Trazabilidad rápida' de backlog.md, OK. (3) Frontmatter completo (id/titulo/epica/prioridad/complejidad/estado) + estado:lista en las 6, verificado archivo por archivo (docs/04-historias/HU-026..031), OK. (4) AC en G/W/T proporcional a complejidad, conteo real verificado: HU-026=4 escenarios (M), HU-027=4 (S), HU-028=3 (S), HU-029=3 (S), HU-030=3 (S), HU-031=3 (S) — total 20 escenarios AC. Todas caen en el rango 3-5 esperado; las S con 3 escenarios cubren happy+edge+edge o happy+happy+edge reales, sin relleno cosmético, mismo criterio de HU-005/HU-009 (EP-001) ya aprobado. (5) INVEST 6/6 en las 6, razonado explícitamente en cada archivo (no solo checkbox), verificado contra el contenido real: Independent confirmado contra las dependencias intra-épica declaradas (HU-027 no depende de HU-026 pese a compartir supuesto de 'periodo ya seleccionado'; HU-028 depende de HU-026/027 solo como consumidor, no al revés; HU-029 depende de HU-028; HU-030 depende de HU-028/029; HU-031 depende de HU-026/027/028/029 y reutiliza HU-025 de EP-003 sin duplicar lógica) — ninguna depende circularmente de otra épica de negocio hermana (EP-002 sí es dependencia de datos externa, ya evaluada en el caveat de arriba, no de alcance). (6) Dependencias externas: EP-001 (Operation, incluye resultInR usado en monthlySummaries y en el R acumulado de HU-026) archivada con dod=true, verificado leyendo OperationDao.kt real (insert/getById/monthlySummaries/pagingSourceFiltered ya operativos) — satisfecha sin reservas. EP-002 (CatalogItemDao) con caveat documentado arriba, no bloqueante. (7) Cimiento: EP-004 es layer=business; su cimiento fundacional es EP-005 (navegación/tema/persistencia offline), ya archivado con dor=dod=true — sin dependencia de cimiento sin construir. (8) Gate de tamaño: 6 HU excede el umbral por defecto de 3, se decompone en sub_slices[] (4 grupos, construidos DE A UNO con journey_smoke verde entre cada uno). epicas.md NO declara para EP-004 ninguna partición vertical explícita post-INVEST (a diferencia de EP-001/002/003/005), así que el agrupamiento se basa puramente en dependencia + prioridad MoSCoW de backlog.md restringida a las filas propias de EP-004 (ignorando el interleaving de otras épicas), mismo criterio ya documentado en los DoR de EP-002 y EP-003. Orden real de las 6 HU de EP-004 en backlog.md: HU-026 (Must, M, fila 14), HU-027 (Must, S, fila 15), HU-028 (Should, S, fila 26), HU-031 (Should, S, fila 27), HU-029 (Could, S, fila 33), HU-030 (Could, S, fila 34). Resultado: EP-004-a = HU-026+HU-027 (núcleo Must: tarjetas+gráficas+ranking, ambas asumen explícitamente 'algún periodo ya seleccionado' en su propio §Contexto, sin depender del selector — walking skeleton de la pestaña Inicio, PRIMERO, análogo a EP-003-a). EP-004-b = HU-028 (selector de periodo predefinido, Should, aislado y standalone, conecta un rango de fechas real con el núcleo ya construido). EP-004-c = HU-031 (estado vacío, Should, se secuencia después de tener al menos un selector real de periodo para poder probar de verdad su Escenario 2 'sin datos para el periodo seleccionado' sin inventar datos — mismo criterio que ubicó HU-025/EP-003-f después de los filtros de EP-003-e). EP-004-d = HU-029+HU-030 (Could: rango personalizado + persistencia del filtro; se agrupan juntas porque HU-030 Escenario 2 exige explícitamente restaurar un rango personalizado persistido, es decir depende funcionalmente de que HU-029 exista, mismo patrón de pareja dependiente que HU-022+HU-023 en EP-003-e). Cobertura verificada: las 4 entradas de sub_slices[] cubren exactamente las 6 HU sin huecos ni solapamientos. (9) Fuente de diseño: design_source.confirmed=true (fuente descriptiva PRD/spec, sin mockups formales), mismo tratamiento que las épicas anteriores, satisfecho. (9-bis, criterio propio de esta épica) Librería de gráficas: Especificacion_Bitacora_Trading.md §2 dice literalmente 'Librería ligera compatible con Compose (a confirmar en diseño técnico), evitando soluciones pesadas'. Verificado en .claude/config/stack-allowlist.json (v1.1): NINGUNA librería de gráficos está en 'allow' hoy, y 'deny_examples' incluye explícitamente 'cualquier gráfica \"pesada\"'. La decisión final (Canvas/Compose puro vs. una librería ligera tipo Vico) queda EXPLÍCITAMENTE diferida al diseño técnico del change (fase change/tdd, no un bloqueante de DoR, tal como la propia spec lo declara 'a confirmar'). Recomendación no vinculante para esa fase: Compose Canvas puro (androidx.compose.foundation, ya cubierto por el patrón 'androidx.compose.*' del allowlist, cero dependencia nueva) es consistente con la preferencia ya demostrada en este proyecto de evitar dependencias nuevas cuando la lógica se puede resolver con Compose/Kotlin puro (ver HistorialSeparators/HistorialFilterMatcher/HistorialGroupCollapse, todos lógica pura sin librería adicional, y la decisión ya tomada en EP-003-a de NO agregar androidx.paging:paging-testing). Si en diseño técnico se opta por una librería externa, requerirá actualizar stack-allowlist.json antes (stack-guard.sh la bloquearía hoy). gates iniciales: dor=true, resto en false; api=null (app nativa sin backend ni endpoints); fidelity=false (la épica toca UI — gráficas y tarjetas —, arranca en false, NO null); wiring_verified=false. wiring_checklist inicializado con 20 items hu_ac (uno por cada uno de los 20 escenarios AC de las 6 HU, conteo verificado programáticamente contra los archivos reales) más 6 integration_point (5 puntos de integración entre capas relevantes de esta épica más 1 recordatorio explícito del caveat EP-002 documentado arriba), todos failing con evidence vacío. openspec_change queda declarado como metricas-deteccion-patrones-inicio (slug aún NO creado, opsx:new todavía no se corrió) para que building-a-slice lo cree en el próximo paso; branch ya existe y coincide (feature/ep-004-metricas-deteccion-patrones, verificado con git branch --show-current). Próximo paso: opsx:new para crear el change metricas-deteccion-patrones-inicio, y arrancar TDD (red) sobre HU-026 (sub_slice EP-004-a), primera HU sin ninguna dependencia pendiente dentro de la propia épica.",
+    "files_scope": [
+      "app/src/main/java/**/feature/inicio/**",
+      "app/src/main/java/**/core/data/**",
+      "app/src/main/java/**/core/model/**",
+      "app/src/main/java/com/miguel/mentaltrader/MainActivity.kt"
+    ],
+    "sub_slices": [
+      {
+        "id": "EP-004-a",
+        "title": "Núcleo de métricas: resumen numérico, gráficas de R acumulado/distribución de resultados y ranking de emociones/errores (periodo ya asumido)",
+        "hus": [
+          "HU-026",
+          "HU-027"
+        ],
+        "status": "pending",
+        "journey_smoke": false
+      },
+      {
+        "id": "EP-004-b",
+        "title": "Selector de periodo predefinido (Día/Semana/Mes/Últimos 3 meses)",
+        "hus": [
+          "HU-028"
+        ],
+        "status": "pending",
+        "journey_smoke": false
+      },
+      {
+        "id": "EP-004-c",
+        "title": "Estado vacío en Inicio (primera vez, reutiliza HU-025; sin datos para el periodo seleccionado)",
+        "hus": [
+          "HU-031"
+        ],
+        "status": "pending",
+        "journey_smoke": false
+      },
+      {
+        "id": "EP-004-d",
+        "title": "Rango de fechas personalizado y persistencia del filtro de periodo entre sesiones",
+        "hus": [
+          "HU-029",
+          "HU-030"
+        ],
+        "status": "pending",
+        "journey_smoke": false
+      }
+    ],
+    "wiring_checklist": [
+      { "id": "HU-026-AC1", "kind": "hu_ac", "ref": "HU-026#Escenario1", "status": "failing" },
+      { "id": "HU-026-AC2", "kind": "hu_ac", "ref": "HU-026#Escenario2", "status": "failing" },
+      { "id": "HU-026-AC3", "kind": "hu_ac", "ref": "HU-026#Escenario3", "status": "failing" },
+      { "id": "HU-026-AC4", "kind": "hu_ac", "ref": "HU-026#Escenario4", "status": "failing" },
+      { "id": "HU-027-AC1", "kind": "hu_ac", "ref": "HU-027#Escenario1", "status": "failing" },
+      { "id": "HU-027-AC2", "kind": "hu_ac", "ref": "HU-027#Escenario2", "status": "failing" },
+      { "id": "HU-027-AC3", "kind": "hu_ac", "ref": "HU-027#Escenario3", "status": "failing" },
+      { "id": "HU-027-AC4", "kind": "hu_ac", "ref": "HU-027#Escenario4", "status": "failing" },
+      { "id": "HU-028-AC1", "kind": "hu_ac", "ref": "HU-028#Escenario1", "status": "failing" },
+      { "id": "HU-028-AC2", "kind": "hu_ac", "ref": "HU-028#Escenario2", "status": "failing" },
+      { "id": "HU-028-AC3", "kind": "hu_ac", "ref": "HU-028#Escenario3", "status": "failing" },
+      { "id": "HU-029-AC1", "kind": "hu_ac", "ref": "HU-029#Escenario1", "status": "failing" },
+      { "id": "HU-029-AC2", "kind": "hu_ac", "ref": "HU-029#Escenario2", "status": "failing" },
+      { "id": "HU-029-AC3", "kind": "hu_ac", "ref": "HU-029#Escenario3", "status": "failing" },
+      { "id": "HU-030-AC1", "kind": "hu_ac", "ref": "HU-030#Escenario1", "status": "failing" },
+      { "id": "HU-030-AC2", "kind": "hu_ac", "ref": "HU-030#Escenario2", "status": "failing" },
+      { "id": "HU-030-AC3", "kind": "hu_ac", "ref": "HU-030#Escenario3", "status": "failing" },
+      { "id": "HU-031-AC1", "kind": "hu_ac", "ref": "HU-031#Escenario1", "status": "failing" },
+      { "id": "HU-031-AC2", "kind": "hu_ac", "ref": "HU-031#Escenario2", "status": "failing" },
+      { "id": "HU-031-AC3", "kind": "hu_ac", "ref": "HU-031#Escenario3", "status": "failing" },
+      { "id": "INT-operationdao-metricas-agregadas", "kind": "integration_point", "ref": "core/data(OperationDao, agregaciones SQL nuevas de tarjetas/serie-R/distribución)->feature/inicio(InicioViewModel/InicioScreen)", "status": "failing" },
+      { "id": "INT-catalogdao-ranking-periodo", "kind": "integration_point", "ref": "core/data(OperationDao/CatalogItemDao, conteo agrupado por catálogo dentro del rango de fechas)->feature/inicio(ranking de emociones/errores, HU-027)", "status": "failing" },
+      { "id": "INT-selector-periodo-recalculo", "kind": "integration_point", "ref": "feature/inicio(selector de periodo, HU-028/HU-029)->feature/inicio(recálculo real de tarjetas/gráficas/ranking de HU-026/HU-027 sobre el mismo rango de fechas)", "status": "failing" },
+      { "id": "INT-datastore-periodo-persistencia", "kind": "integration_point", "ref": "feature/inicio(selector de periodo)->core/data(DataStore Preferences, HU-030, mismo mecanismo que HU-024/EP-003)", "status": "failing" },
+      { "id": "INT-emptystate-inicio-reutiliza-hu025", "kind": "integration_point", "ref": "feature/historial(HistorialEmptyState, HU-025/EP-003)->feature/inicio(reutilizado sin duplicar lógica, HU-031 Escenario1)", "status": "failing" },
+      { "id": "INT-ep002-catalogo-dependencia-abierta", "kind": "integration_point", "ref": "core/data(CatalogItemDao, EP-002 mergeada a main pero con dor-dod aún abierto/dod=false)->feature/inicio(ranking HU-027, recordatorio de re-verificar contra el cierre final de EP-002)", "status": "failing" }
+    ],
+    "progress_log": [
+      {
+        "at": "2026-08-03T13:00:00.000000+00:00",
+        "by": "build-orchestrator (DoR directo, dor-dod-gatekeeper no disponible en esta sesión)",
+        "note": "DoR evaluado y APROBADO para EP-004 (Métricas y detección de patrones / Inicio), con troceo obligatorio en 4 sub_slices[] (EP-004-a: HU-026+HU-027 núcleo de métricas/ranking; EP-004-b: HU-028 selector predefinido; EP-004-c: HU-031 estado vacío; EP-004-d: HU-029+HU-030 rango personalizado+persistencia). Checklist completo de 9 puntos (incl. librería de gráficas) documentado en 'notes' de este mismo slice, mismo nivel de detalle que los DoR previos de EP-001/002/003/005. Hallazgo real no asumido: EP-002 (dependencia de datos vía CatalogItemDao para el ranking de HU-027) está mergeada a main y funcional (verificado leyendo CatalogItemDao.kt/OperationDao.kt reales), pero su épica sigue abierta en el arnés (history[], phase=green, dod=false, wiring_verified=false) — documentado como caveat NO bloqueante con recordatorio propio en wiring_checklist (INT-ep002-catalogo-dependencia-abierta). Verificado con git real (no asumido): rama actual feature/ep-004-metricas-deteccion-patrones, creada desde main con el merge de PR #6 (EP-003) ya presente en el log (commit 83eb63d). scaffold.confirmed=true y design_source.confirmed=true reutilizados sin re-derivar. wiring_checklist inicializado con 20 items hu_ac + 6 integration_point, todos failing, sin evidence todavía. gates: dor=true, api=null, resto false (fidelity=false por tocar UI, no null). Próximo paso: opsx:new para crear el change 'metricas-deteccion-patrones-inicio' y arrancar TDD (red) sobre HU-026 (sub_slice EP-004-a)."
+      }
+    ]
+  },
   "history": [
     {
       "epica": "EP-005",
