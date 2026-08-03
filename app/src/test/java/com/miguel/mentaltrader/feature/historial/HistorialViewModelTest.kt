@@ -437,6 +437,18 @@ class HistorialViewModelTest {
             inserted.count {
                 it.assetId == id || it.emotionBeforeId == id || it.emotionAfterId == id || it.errorId == id
             }
+
+        override fun metricsSummary(): Flow<com.miguel.mentaltrader.core.data.OperationMetricsSummary> =
+            throw UnsupportedOperationException("No usado por HistorialViewModelTest (EP-004, feature/inicio)")
+
+        override fun resultInROrderedByDateAsc(): Flow<List<Float?>> =
+            throw UnsupportedOperationException("No usado por HistorialViewModelTest (EP-004, feature/inicio)")
+
+        override fun emotionRanking(): Flow<List<com.miguel.mentaltrader.core.data.CatalogRankingItem>> =
+            throw UnsupportedOperationException("No usado por HistorialViewModelTest (EP-004, feature/inicio)")
+
+        override fun errorRanking(): Flow<List<com.miguel.mentaltrader.core.data.CatalogRankingItem>> =
+            throw UnsupportedOperationException("No usado por HistorialViewModelTest (EP-004, feature/inicio)")
     }
 
     private class FakeOperationImageDao : OperationImageDao {
