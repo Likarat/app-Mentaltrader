@@ -2,6 +2,7 @@ package com.miguel.mentaltrader.feature.historial
 
 import com.miguel.mentaltrader.core.data.CatalogItem
 import com.miguel.mentaltrader.core.data.CatalogItemDao
+import com.miguel.mentaltrader.core.data.MonthSummary
 import com.miguel.mentaltrader.core.data.Operation
 import com.miguel.mentaltrader.core.data.OperationDao
 import com.miguel.mentaltrader.core.data.OperationImage
@@ -9,6 +10,7 @@ import com.miguel.mentaltrader.core.data.OperationImageDao
 import com.miguel.mentaltrader.core.model.CatalogType
 import com.miguel.mentaltrader.core.model.Direction
 import com.miguel.mentaltrader.core.model.ResultType
+import java.time.YearMonth
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -148,6 +150,41 @@ class HistorialViewModelTest {
         assertEquals(1, operationDao.deleteByIdCallCount)
     }
 
+    // HU-017 Escenario 2: colapsar/expandir un mes es estado de UI puro del ViewModel -- no toca
+    // Room, y colapsar un mes no afecta el estado de otro.
+    @Test
+    fun `colapsar un mes lo agrega a collapsedMonths`() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+        val agosto = YearMonth.of(2026, 8)
+
+        viewModel.onToggleMonth(agosto)
+
+        assertTrue(agosto in viewModel.collapsedMonths.value)
+    }
+
+    @Test
+    fun `expandir un mes ya colapsado lo quita de collapsedMonths`() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+        val agosto = YearMonth.of(2026, 8)
+
+        viewModel.onToggleMonth(agosto)
+        viewModel.onToggleMonth(agosto)
+
+        assertFalse(agosto in viewModel.collapsedMonths.value)
+    }
+
+    @Test
+    fun `colapsar un mes no afecta el estado de otro mes`() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+        val agosto = YearMonth.of(2026, 8)
+        val julio = YearMonth.of(2026, 7)
+
+        viewModel.onToggleMonth(agosto)
+
+        assertTrue(agosto in viewModel.collapsedMonths.value)
+        assertFalse(julio in viewModel.collapsedMonths.value)
+    }
+
     private class FakeOperationDao : OperationDao {
         val inserted = mutableListOf<Operation>()
         var deleteByIdCallCount = 0
@@ -171,6 +208,9 @@ class HistorialViewModelTest {
             val index = inserted.indexOfFirst { it.id == operation.id }
             if (index >= 0) inserted[index] = operation
         }
+
+        override fun monthlySummaries(): Flow<List<MonthSummary>> =
+            throw UnsupportedOperationException("No usado por estos tests (requiere Room real, cálculo SQL, ver tasks.md 4.5)")
 
         override suspend fun deleteById(id: Long) {
             deleteByIdCallCount++

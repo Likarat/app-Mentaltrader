@@ -12,6 +12,7 @@ import androidx.paging.filter
 import androidx.paging.insertSeparators
 import androidx.paging.map
 import com.miguel.mentaltrader.core.data.CatalogItemDao
+import com.miguel.mentaltrader.core.data.MonthSummary
 import com.miguel.mentaltrader.core.data.Operation
 import com.miguel.mentaltrader.core.data.OperationDao
 import com.miguel.mentaltrader.core.data.OperationImageDao
@@ -25,10 +26,13 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.io.File
+import java.time.YearMonth
 
 /**
  * HU-015/HU-016: listado de Historial agrupado por mes/día y paginado (Paging 3) sobre
@@ -64,6 +68,21 @@ class HistorialViewModel(
      * no estaba compuesta en el instante exacto, p.ej. si "Eliminar" se disparó desde el detalle
      * y recién después se vuelve al listado). */
     val deleteRequested: SharedFlow<Long> = _deleteRequested.asSharedFlow()
+
+    /** HU-017: resumen mensual (conteo, % ganadas, R acumulado), calculado en SQL vía
+     * [OperationDao.monthlySummaries] -- query aparte de la paginación, no derivada de ella
+     * (design.md decisión #2). Envuelta en `flow { emitAll(...) }` para diferir la llamada real
+     * al DAO hasta que alguien colecte (mismo motivo que el `pagingSourceFactory` de [historial]
+     * es una lambda perezosa): evita invocar `monthlySummaries()` en la sola construcción del
+     * ViewModel, algo que rompería cualquier test que no la use pero sí construya el ViewModel. */
+    val monthSummaries: Flow<List<MonthSummary>> = flow {
+        emitAll(operationDao.monthlySummaries())
+    }
+
+    private val _collapsedMonths = MutableStateFlow<Set<YearMonth>>(emptySet())
+    /** HU-017 Escenario 2: meses actualmente colapsados -- estado de UI puro (no afecta ninguna
+     * query, ver [monthSummaries] y [historial]). */
+    val collapsedMonths: StateFlow<Set<YearMonth>> = _collapsedMonths.asStateFlow()
 
     val historial: Flow<PagingData<HistorialListItem>> =
         Pager(config = PagingConfig(pageSize = PAGE_SIZE, enablePlaceholders = false)) {
@@ -117,6 +136,17 @@ class HistorialViewModel(
     fun onUndoDelete(operationId: Long) {
         pendingDeleteJobs.remove(operationId)?.cancel()
         _pendingDeleteIds.value = _pendingDeleteIds.value - operationId
+    }
+
+    /** HU-017 Escenario 2: alterna colapsar/expandir el grupo de [month], sin afectar el estado
+     * de ningún otro mes. Estado de UI puro (no relanza ninguna query, ver design.md decisión
+     * #2). */
+    fun onToggleMonth(month: YearMonth) {
+        _collapsedMonths.value = if (month in _collapsedMonths.value) {
+            _collapsedMonths.value - month
+        } else {
+            _collapsedMonths.value + month
+        }
     }
 
     companion object {

@@ -34,12 +34,12 @@
 
 ## 4. Sub-slice EP-003-d: resumen mensual + colapsar/expandir (HU-017)
 
-- [ ] 4.1 `OperationDao`: query de agregación por mes (`GROUP BY strftime('%Y-%m', ...)`: conteo, % ganadas, R acumulado) — `Flow<List<MonthSummary>>`, sin paginar
-- [ ] 4.2 `HistorialViewModel`: expone el resumen mensual + `collapsedMonths: Set<YearMonth>` (estado de UI puro) con `onToggleMonth(month)`
-- [ ] 4.3 `HistorialScreen`: encabezado de mes muestra el resumen real y colapsa/expande sus operaciones al tocarlo, sin afectar otros meses
-- [ ] 4.4 Tests unitarios: cálculo de agregación correcto (conteo, % ganadas, R acumulado) contra datos de prueba; colapsar un mes no afecta el estado de otro
-- [ ] 4.5 Test instrumentado: tocar el encabezado de un mes real colapsa/expande sus operaciones en pantalla
-- [ ] 4.6 `journey_smoke` EP-003-d: ver el resumen real de un mes y colapsar/expandir su grupo
+- [x] 4.1 `OperationDao`: query de agregación por mes (`GROUP BY strftime('%Y-%m', ...)`: conteo, % ganadas, R acumulado) — `Flow<List<MonthSummary>>`, sin paginar. `COUNT(*)` por grupo siempre es >= 1 (evita división por cero en `winRatePercent`, HU-017 Escenario 3)
+- [x] 4.2 `HistorialViewModel`: expone `monthSummaries: Flow<List<MonthSummary>>` (envuelta en `flow { emitAll(...) }` para diferir la llamada real al DAO hasta que alguien colecte) + `collapsedMonths: StateFlow<Set<YearMonth>>` (estado de UI puro) con `onToggleMonth(month)`
+- [x] 4.3 `HistorialScreen`: encabezado de mes muestra el resumen real (vía `MonthSummaryFormatting.summaryText`, coloreado según `MonthSummary.resultSign`) y colapsa/expande sus operaciones al tocarlo (`HistorialGroupCollapse.isVisible` por item, no por posición -- funciona con la virtualización de LazyColumn), sin afectar otros meses
+- [x] 4.4 Tests unitarios: `MonthSummaryTest` (signo del R acumulado, formateo del 0% sin error de cálculo -- 5 tests) + `HistorialGroupCollapseTest` (mes de un item, encabezado de mes siempre visible, ocultar día/operación de un mes colapsado, colapsar un mes no afecta otro -- 7 tests) + `HistorialViewModelTest` (colapsar/expandir `collapsedMonths`, aislamiento entre meses -- 3 tests). El cálculo real de agregación en SQL (`GROUP BY` de 4.1) no es testeable en JVM sin Room real (mismo criterio que `pagingSourceOrderedByDateDesc`, HU-016) -- se verifica en el instrumentado de 4.5, diferido
+- [ ] 4.5 Test instrumentado: tocar el encabezado de un mes real colapsa/expande sus operaciones en pantalla; verificar el cálculo real de `monthlySummaries` (conteo/%/R) contra datos sembrados en Room real -- diferido a la pasada final de instrumentados (sin dispositivo conectado en esta sesión, mismo criterio que EP-003-a/b/c)
+- [ ] 4.6 `journey_smoke` EP-003-d: ver el resumen real de un mes y colapsar/expandir su grupo -- diferido, misma razón que 4.5
 
 ## 5. Sub-slice EP-003-e: filtros por etiqueta/fecha + búsqueda (HU-022, HU-023)
 

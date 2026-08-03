@@ -15,6 +15,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -35,7 +37,11 @@ import androidx.compose.ui.unit.dp
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import coil.compose.AsyncImage
+import com.miguel.mentaltrader.core.data.MonthSummary
+import com.miguel.mentaltrader.core.data.MonthSummaryFormatting
 import com.miguel.mentaltrader.core.data.Operation
+import com.miguel.mentaltrader.core.data.ResultSign
+import com.miguel.mentaltrader.core.data.resultSign
 import com.miguel.mentaltrader.core.image.ImageProcessor
 import com.miguel.mentaltrader.core.model.ResultType
 import java.io.File
@@ -68,6 +74,11 @@ fun HistorialScreen(
     // depender de que un refresh de Paging ya haya ocurrido para ocultar la fila de inmediato
     // (ver el riesgo documentado en design.md sobre el orden filter/insertSeparators).
     val pendingDeleteIds by viewModel.pendingDeleteIds.collectAsState()
+    // HU-017: mismo criterio -- colapsar/expandir es estado de UI puro (design.md decisión #2),
+    // se aplica al renderizar (no re-filtra el PagingData) para no depender de un refresh de
+    // Paging para reaccionar de inmediato al toque del usuario.
+    val collapsedMonths by viewModel.collapsedMonths.collectAsState()
+    val monthSummaries by viewModel.monthSummaries.collectAsState(initial = emptyList())
 
     if (items.itemCount == 0) {
         Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -91,9 +102,19 @@ fun HistorialScreen(
             }
         ) { index ->
             when (val item = items[index]) {
-                is HistorialListItem.GroupHeader -> GroupHeaderRow(item)
+                is HistorialListItem.GroupHeader -> {
+                    if (HistorialGroupCollapse.isVisible(item, collapsedMonths)) {
+                        val month = item.monthOf()
+                        GroupHeaderRow(
+                            header = item,
+                            summary = monthSummaries.find { it.yearMonth == month },
+                            collapsed = month in collapsedMonths,
+                            onToggleMonth = { viewModel.onToggleMonth(month) }
+                        )
+                    }
+                }
                 is HistorialListItem.OperationRow -> {
-                    if (item.operation.id !in pendingDeleteIds) {
+                    if (item.operation.id !in pendingDeleteIds && HistorialGroupCollapse.isVisible(item, collapsedMonths)) {
                         OperationCard(item.operation, viewModel, onOperationClick)
                     }
                 }
@@ -103,24 +124,72 @@ fun HistorialScreen(
     }
 }
 
+/**
+ * HU-015/HU-016: encabezado de mes o de día. HU-017: cuando el encabezado es el de un mes
+ * ([header.month] no nulo) además muestra el resumen agregado ([summary]) y un ícono de
+ * colapsar/expandir; tocar esa fila alterna [collapsed] para ese mes sin afectar los demás (el
+ * cálculo de qué otras filas se ocultan lo decide [HistorialGroupCollapse] en el llamador). El
+ * toggle deliberadamente no es visualmente protagonista (icono pequeño, mismo tamaño de texto que
+ * el resto del encabezado) -- HU-017 nota técnica: "esta opción existe, pero no es protagonista
+ * visualmente".
+ */
 @Composable
-private fun GroupHeaderRow(header: HistorialListItem.GroupHeader) {
+private fun GroupHeaderRow(
+    header: HistorialListItem.GroupHeader,
+    summary: MonthSummary?,
+    collapsed: Boolean,
+    onToggleMonth: () -> Unit
+) {
     Column {
         header.month?.let { month ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+                    .clickable { onToggleMonth() },
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.padding(end = 8.dp)) {
+                    Text(
+                        month.month.getDisplayName(JavaTextStyle.FULL, SPANISH_LOCALE).replaceFirstChar { it.uppercase() } +
+                            " ${month.year}",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    // HU-017 Escenario 1/3/4: resumen agregado del mes (conteo, % ganadas, R
+                    // acumulado), calculado en SQL (OperationDao.monthlySummaries), coloreado
+                    // según el signo del R acumulado.
+                    if (summary != null) {
+                        Text(
+                            MonthSummaryFormatting.summaryText(summary),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = monthSummaryColor(summary.resultSign)
+                        )
+                    }
+                }
+                Icon(
+                    imageVector = if (collapsed) Icons.Filled.ExpandMore else Icons.Filled.ExpandLess,
+                    contentDescription = if (collapsed) "Expandir mes" else "Colapsar mes",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        if (!collapsed) {
             Text(
-                month.month.getDisplayName(JavaTextStyle.FULL, SPANISH_LOCALE).replaceFirstChar { it.uppercase() } +
-                    " ${month.year}",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(top = 8.dp)
+                header.day.format(DAY_HEADER_FORMATTER),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        Text(
-            header.day.format(DAY_HEADER_FORMATTER),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
     }
+}
+
+@Composable
+private fun monthSummaryColor(sign: ResultSign) = when (sign) {
+    ResultSign.POSITIVE -> MaterialTheme.colorScheme.tertiary
+    ResultSign.NEGATIVE -> MaterialTheme.colorScheme.error
+    ResultSign.NEUTRAL -> MaterialTheme.colorScheme.onSurfaceVariant
 }
 
 @Composable

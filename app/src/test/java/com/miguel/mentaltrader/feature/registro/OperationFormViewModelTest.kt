@@ -623,6 +623,9 @@ class OperationFormViewModelTest {
             if (index >= 0) inserted[index] = operation
         }
 
+        override fun monthlySummaries(): Flow<List<com.miguel.mentaltrader.core.data.MonthSummary>> =
+            throw UnsupportedOperationException("No usado por OperationFormViewModelTest (feature de Historial, EP-003)")
+
         override suspend fun deleteById(id: Long) {
             inserted.removeAll { it.id == id }
         }
