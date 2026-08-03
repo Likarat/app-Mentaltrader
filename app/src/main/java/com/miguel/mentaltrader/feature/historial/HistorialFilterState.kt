@@ -1,5 +1,6 @@
 package com.miguel.mentaltrader.feature.historial
 
+import com.miguel.mentaltrader.core.data.HistorialFilterSnapshot
 import com.miguel.mentaltrader.core.data.Operation
 import com.miguel.mentaltrader.core.model.ResultType
 import java.time.LocalDate
@@ -49,6 +50,60 @@ data class HistorialFilterState(
     /** HU-022 Escenario 4: "Limpiar filtros" restaura este estado exacto (sin ningún criterio
      * activo, listado completo agrupado por mes). */
     val isEmpty: Boolean get() = this == HistorialFilterState()
+
+    /** HU-024: convierte a [HistorialFilterSnapshot] (tipos neutrales de `core.data`, sin `Long`
+     * de periodo ni enum de `feature.historial`) para persistir vía `HistorialFilterRepository`.
+     * [customRangeStart]/[customRangeEnd] del snapshot solo se completan cuando el periodo activo
+     * es [PeriodoFiltro.PERSONALIZADO] -- un periodo predefinido se recalcula relativo al "hoy"
+     * real al restaurar (ver [HistorialFilterState.fromSnapshot]), así que no tiene sentido
+     * persistir su rango de fechas ya resuelto (quedaría con una fecha vieja congelada). */
+    fun toSnapshot(): HistorialFilterSnapshot = HistorialFilterSnapshot(
+        periodName = selectedPeriodo?.name,
+        customRangeStart = if (selectedPeriodo == PeriodoFiltro.PERSONALIZADO) dateFrom else null,
+        customRangeEnd = if (selectedPeriodo == PeriodoFiltro.PERSONALIZADO) dateTo else null,
+        searchText = searchText,
+        assetId = assetId,
+        result = result,
+        errorId = errorId,
+        emotionBeforeId = emotionBeforeId,
+        emotionAfterId = emotionAfterId
+    )
+
+    companion object {
+        /** HU-024 Escenario 1/2/3: reconstruye un [HistorialFilterState] real a partir de un
+         * [HistorialFilterSnapshot] persistido -- [today] explícito (no `LocalDate.now()` directo)
+         * para que la resolución de un periodo predefinido sea determinista/testeable, igual que
+         * [PeriodoFiltroRange.rangeFor]. Sin snapshot previo (todos los campos en `null`, Escenario
+         * 3) devuelve exactamente `HistorialFilterState()` -- el estado por defecto. */
+        fun fromSnapshot(snapshot: HistorialFilterSnapshot, today: LocalDate = LocalDate.now()): HistorialFilterState {
+            val periodo = snapshot.periodName?.let { name -> PeriodoFiltro.entries.firstOrNull { it.name == name } }
+            var dateFrom: Long? = null
+            var dateTo: Long? = null
+            when (periodo) {
+                null -> Unit
+                PeriodoFiltro.PERSONALIZADO -> {
+                    dateFrom = snapshot.customRangeStart
+                    dateTo = snapshot.customRangeEnd
+                }
+                else -> {
+                    val range = PeriodoFiltroRange.rangeFor(periodo, today)
+                    dateFrom = range?.first
+                    dateTo = range?.second
+                }
+            }
+            return HistorialFilterState(
+                assetId = snapshot.assetId,
+                result = snapshot.result,
+                errorId = snapshot.errorId,
+                emotionBeforeId = snapshot.emotionBeforeId,
+                emotionAfterId = snapshot.emotionAfterId,
+                dateFrom = dateFrom,
+                dateTo = dateTo,
+                searchText = snapshot.searchText,
+                selectedPeriodo = periodo
+            )
+        }
+    }
 }
 
 /** HU-023 Escenario 1: nombres de catálogo ya resueltos (Activo/Emoción antes/Emoción después/

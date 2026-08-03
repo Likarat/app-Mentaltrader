@@ -4,6 +4,7 @@ import android.app.Application
 import com.miguel.mentaltrader.core.data.AppDatabase
 import com.miguel.mentaltrader.core.data.CatalogSeeder
 import com.miguel.mentaltrader.core.data.DataResetService
+import com.miguel.mentaltrader.core.data.HistorialFilterRepository
 import com.miguel.mentaltrader.core.image.ImageProcessor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -22,6 +23,10 @@ class MentaltraderApplication : Application() {
     val dataResetService: DataResetService by lazy {
         DataResetService(database.operationDao(), database.operationImageDao(), this)
     }
+    /** HU-024: singleton real de app (mismo criterio que [database]) -- un solo DataStore Preferences
+     * para todo el ciclo de vida del proceso, vía el `Context.historialFilterDataStore` interno de
+     * [HistorialFilterRepository]. */
+    val historialFilterRepository: HistorialFilterRepository by lazy { HistorialFilterRepository(this) }
 
     override fun onCreate() {
         super.onCreate()

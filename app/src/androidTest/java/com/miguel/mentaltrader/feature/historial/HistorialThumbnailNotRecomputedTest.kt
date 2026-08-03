@@ -10,6 +10,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.room.Room
 import androidx.test.platform.app.InstrumentationRegistry
 import com.miguel.mentaltrader.core.data.AppDatabase
+import com.miguel.mentaltrader.core.data.HistorialFilterRepository
 import com.miguel.mentaltrader.core.data.Operation
 import com.miguel.mentaltrader.core.data.OperationImage
 import com.miguel.mentaltrader.core.image.ImageProcessor
@@ -43,7 +44,12 @@ class HistorialThumbnailNotRecomputedTest {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val database = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build()
         val imageProcessor = ImageProcessor(context)
-        val viewModel = HistorialViewModel(database.operationDao(), database.operationImageDao(), database.catalogItemDao())
+        val viewModel = HistorialViewModel(
+            database.operationDao(),
+            database.operationImageDao(),
+            database.catalogItemDao(),
+            HistorialFilterRepository(context)
+        )
 
         val filePath = runBlocking {
             val operationId = database.operationDao().insert(

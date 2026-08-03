@@ -182,6 +182,7 @@ fun MentaltraderApp(navController: NavHostController = rememberNavController()) 
             application.database.operationDao(),
             application.database.operationImageDao(),
             application.database.catalogItemDao(),
+            application.historialFilterRepository,
             application
         )
     )

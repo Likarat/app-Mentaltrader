@@ -166,7 +166,28 @@
       "Bash(powershell -Command \"\\(Select-String -Path app/build/test-results/testDebugUnitTest/*.xml -Pattern 'tests=\\\\\"' -AllMatches\\).Matches.Value\")",
       "Bash(powershell -Command \"./gradlew.bat assembleDebug compileDebugAndroidTestKotlin 2>&1 | Select-Object -Last 150\")",
       "Bash(powershell -Command \"Get-Content -Raw .claude/state/build-state.json | ConvertFrom-Json | Out-Null; if \\($?\\) { Write-Output 'JSON OK' }\")",
-      "Bash(powershell -File \"C:\\\\Users\\\\migue\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-migue-Desktop-automatizacion-proyectos-App-Mentaltrader\\\\bf3b493e-176f-44d8-8444-c6af85b1660e\\\\scratchpad\\\\validate_json.ps1\")"
+      "Bash(powershell -File \"C:\\\\Users\\\\migue\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-migue-Desktop-automatizacion-proyectos-App-Mentaltrader\\\\bf3b493e-176f-44d8-8444-c6af85b1660e\\\\scratchpad\\\\validate_json.ps1\")",
+      "Bash(powershell -Command \"./gradlew.bat testDebugUnitTest --console=plain 2>&1 | Select-Object -Last 20\")",
+      "Bash(xargs grep -o 'tests=\"[0-9]*\"')",
+      "Bash(awk -F'\"' '{s+=$2} END {print s}')",
+      "Bash(powershell -NoProfile -Command \"./gradlew.bat testDebugUnitTest 2>&1 | Select-Object -Last 60\")",
+      "Bash(powershell -NoProfile -Command \"Start-Sleep -Seconds 60\")",
+      "Bash(powershell -NoProfile -Command \"git status\")",
+      "Bash(powershell -NoProfile -Command \"git diff -- .claude/settings.local.json\")",
+      "PowerShell(git status --porcelain=v1)",
+      "PowerShell(.\\\\gradlew.bat testDebugUnitTest --console=plain 2>&1)",
+      "Bash(git status *)",
+      "Bash(powershell -Command \"./gradlew.bat testDebugUnitTest --tests '*HistorialVisorImagenNavigationTest*' 2>&1 | Select-Object -Last 60\")",
+      "Bash(powershell -Command \"./gradlew.bat testDebugUnitTest 2>&1 | Select-Object -Last 120\")",
+      "PowerShell(.\\\\gradlew.bat testDebugUnitTest assembleDebug compileDebugAndroidTestKotlin --console=plain 2>&1 | Select-Object -Last 25)",
+      "Bash(echo \"exit:$?\")",
+      "Bash(curl -s \"https://dl.google.com/android/maven2/androidx/datastore/datastore-preferences/maven-metadata.xml\")",
+      "Bash(curl -sv \"https://dl.google.com/android/maven2/androidx/datastore/datastore-preferences/maven-metadata.xml\")",
+      "Bash(curl -sk \"https://dl.google.com/android/maven2/androidx/datastore/datastore-preferences/maven-metadata.xml\")",
+      "Bash(./gradlew.bat testDebugUnitTest --tests \"com.miguel.mentaltrader.core.data.HistorialFilterRepositoryTest\")",
+      "Bash(./gradlew.bat testDebugUnitTest assembleDebug compileDebugAndroidTestKotlin)",
+      "Bash([ -s \"$out\" ])",
+      "Bash(break)"
     ]
   }
 }

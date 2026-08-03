@@ -13,6 +13,7 @@ import androidx.paging.insertSeparators
 import androidx.paging.map
 import com.miguel.mentaltrader.core.data.CatalogItem
 import com.miguel.mentaltrader.core.data.CatalogItemDao
+import com.miguel.mentaltrader.core.data.HistorialFilterRepository
 import com.miguel.mentaltrader.core.data.MonthSummary
 import com.miguel.mentaltrader.core.data.Operation
 import com.miguel.mentaltrader.core.data.OperationDao
@@ -56,12 +57,19 @@ import java.time.YearMonth
  *
  * HU-025: también expone [totalOperationCount], para que `HistorialScreen` distinga "primera vez"
  * de "sin resultados de filtro" cuando el listado paginado queda vacío (ver [HistorialEmptyState]).
+ *
+ * HU-024: [filterState] se restaura desde [HistorialFilterRepository] al construirse (Escenario
+ * 1/2/3, ver `init`) y se persiste de nuevo tras cada uno de los 9 setters de filtro/búsqueda
+ * (vía [persistFilterState]).
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class HistorialViewModel(
     private val operationDao: OperationDao,
     private val operationImageDao: OperationImageDao,
     private val catalogItemDao: CatalogItemDao,
+    /** HU-024: persiste/restaura el último [HistorialFilterState] aplicado (DataStore Preferences,
+     * design.md decisión #6). */
+    private val filterRepository: HistorialFilterRepository,
     /** Borra los archivos (imagen completa + miniatura cacheada) de una imagen ya eliminada de
      * Room. Abstraído como lambda (en vez de recibir un `Context` de Android directamente) para
      * poder testear en JVM puro la lógica de expiración del "deshacer" con un fake, igual que el
@@ -108,6 +116,30 @@ class HistorialViewModel(
     /** HU-022/HU-023: filtro + búsqueda actualmente activos (todos los campos nulos == "Limpiar
      * filtros" ya aplicado, HU-022 Escenario 4). */
     val filterState: StateFlow<HistorialFilterState> = _filterState.asStateFlow()
+
+    init {
+        // HU-024 Escenario 1/2/3: restaura el último filtro persistido (o el estado por defecto
+        // `HistorialFilterState()` si nunca se guardó ninguno) apenas se construye el ViewModel --
+        // `filterRepository.load()` es `suspend` (lee DataStore real), así que corre en su propia
+        // corrutina de `viewModelScope`, sin bloquear la construcción. Riesgo aceptado y
+        // documentado (ventana angosta, no verificada aún de forma instrumentada): si algún setter
+        // de filtro se llamara en la fracción de segundo entre construir el ViewModel y que esta
+        // restauración termine de leer disco, esta asignación lo pisaría al completarse -- en la
+        // práctica el usuario no puede tocar un filtro antes de que la pantalla siquiera termine de
+        // componerse, pero queda anotado igual que otros riesgos ya documentados en este archivo
+        // (p.ej. el GroupHeader huérfano de HU-021).
+        viewModelScope.launch {
+            _filterState.value = HistorialFilterState.fromSnapshot(filterRepository.load())
+        }
+    }
+
+    /** HU-024: persiste el [HistorialFilterState] COMPLETO vigente en ese instante -- se llama al
+     * final de cada uno de los 9 setters de filtro/búsqueda (HU-022/HU-023), en una corrutina
+     * propia de `viewModelScope` para no bloquear al llamador (evento de UI/recomposición). */
+    private fun persistFilterState() {
+        val snapshot = _filterState.value.toSnapshot()
+        viewModelScope.launch { filterRepository.save(snapshot) }
+    }
 
     /** HU-022 Escenario 1: opciones reales para los selectores de filtro por etiqueta (mismo
      * catálogo de EP-002 que ya usa `OperationFormViewModel` para el formulario). */
@@ -200,26 +232,31 @@ class HistorialViewModel(
     /** HU-022 Escenario 1: filtrar por Activo (`null` quita ese criterio). */
     fun onFilterAsset(assetId: Long?) {
         _filterState.value = _filterState.value.copy(assetId = assetId)
+        persistFilterState()
     }
 
     /** HU-022 Escenario 1: filtrar por Resultado (`null` quita ese criterio). */
     fun onFilterResult(result: ResultType?) {
         _filterState.value = _filterState.value.copy(result = result)
+        persistFilterState()
     }
 
     /** HU-022 Escenario 1: filtrar por Error (`null` quita ese criterio). */
     fun onFilterError(errorId: Long?) {
         _filterState.value = _filterState.value.copy(errorId = errorId)
+        persistFilterState()
     }
 
     /** HU-022 Escenario 1: filtrar por Emoción antes de operar (`null` quita ese criterio). */
     fun onFilterEmotionBefore(emotionId: Long?) {
         _filterState.value = _filterState.value.copy(emotionBeforeId = emotionId)
+        persistFilterState()
     }
 
     /** HU-022 Escenario 1: filtrar por Emoción después de operar (`null` quita ese criterio). */
     fun onFilterEmotionAfter(emotionId: Long?) {
         _filterState.value = _filterState.value.copy(emotionAfterId = emotionId)
+        persistFilterState()
     }
 
     /** HU-022 Escenario 2: selecciona un periodo predefinido (resuelve `dateFrom`/`dateTo` reales
@@ -234,24 +271,30 @@ class HistorialViewModel(
                 _filterState.value.copy(selectedPeriodo = periodo, dateFrom = range?.first, dateTo = range?.second)
             }
         }
+        persistFilterState()
     }
 
     /** HU-022 Escenario 2: rango de fecha personalizado elegido por el usuario (selector de fecha
      * real en HistorialScreen, tras elegir [PeriodoFiltro.PERSONALIZADO]). */
     fun onCustomDateRange(from: Long?, to: Long?) {
         _filterState.value = _filterState.value.copy(selectedPeriodo = PeriodoFiltro.PERSONALIZADO, dateFrom = from, dateTo = to)
+        persistFilterState()
     }
 
     /** HU-023 Escenario 1/2: texto de búsqueda libre, combinado con AND junto a los demás
      * filtros ya activos (ver [HistorialFilterMatcher] para la semántica exacta). */
     fun onSearchTextChanged(text: String?) {
         _filterState.value = _filterState.value.copy(searchText = text)
+        persistFilterState()
     }
 
     /** HU-022 Escenario 4: "Limpiar filtros" -- remueve TODOS los criterios (etiqueta, fecha,
-     * búsqueda) de una sola vez y vuelve al listado completo agrupado por mes. */
+     * búsqueda) de una sola vez y vuelve al listado completo agrupado por mes. También persiste
+     * ese estado "vacío" (HU-024): si el usuario limpia los filtros y cierra la app, reabrirla
+     * debe mostrar Historial sin ningún filtro activo, no el filtro que tenía antes de limpiarlo. */
     fun onClearFilters() {
         _filterState.value = HistorialFilterState()
+        persistFilterState()
     }
 
     companion object {
@@ -265,6 +308,7 @@ class HistorialViewModel(
         private val operationDao: OperationDao,
         private val operationImageDao: OperationImageDao,
         private val catalogItemDao: CatalogItemDao,
+        private val filterRepository: HistorialFilterRepository,
         private val appContext: Context
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
@@ -273,6 +317,7 @@ class HistorialViewModel(
                 operationDao,
                 operationImageDao,
                 catalogItemDao,
+                filterRepository,
                 deleteImageFiles = { filePath ->
                     File(appContext.filesDir, filePath).delete()
                     File(appContext.filesDir, ImageProcessor.thumbnailPathFor(filePath)).delete()

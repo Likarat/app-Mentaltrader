@@ -1,7 +1,12 @@
 package com.miguel.mentaltrader.feature.historial
 
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.emptyPreferences
 import com.miguel.mentaltrader.core.data.CatalogItem
 import com.miguel.mentaltrader.core.data.CatalogItemDao
+import com.miguel.mentaltrader.core.data.HistorialFilterRepository
+import com.miguel.mentaltrader.core.data.HistorialFilterSnapshot
 import com.miguel.mentaltrader.core.data.MonthSummary
 import com.miguel.mentaltrader.core.data.Operation
 import com.miguel.mentaltrader.core.data.OperationDao
@@ -18,6 +23,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -64,10 +70,19 @@ class HistorialViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun createViewModel() = HistorialViewModel(
+    // HU-024 (sub-slice EP-003-h): HistorialViewModel ahora requiere un HistorialFilterRepository
+    // real -- se le da uno de verdad respaldado por un DataStore EN MEMORIA (no un archivo real en
+    // disco, ya que estos tests no ejercitan la persistencia real de HU-024 en sí, eso lo cubre
+    // HistorialFilterRepositoryTest aparte con un DataStore real sobre archivo temporal). Se
+    // reutiliza la clase de producción HistorialFilterRepository sin fakear su lógica interna, solo
+    // se fakea el DataStore subyacente (2 miembros: `data` + `updateData`).
+    private fun createViewModel(
+        filterRepository: HistorialFilterRepository = HistorialFilterRepository(FakeInMemoryPreferencesDataStore())
+    ) = HistorialViewModel(
         operationDao,
         operationImageDao,
         catalogItemDao,
+        filterRepository,
         deleteImageFiles = { filePath -> deletedFiles += filePath }
     )
 
@@ -287,6 +302,63 @@ class HistorialViewModelTest {
         assertTrue(viewModel.filterState.value.isEmpty)
     }
 
+    // HU-024 (sub-slice EP-003-h) Escenario 1: al construirse, el ViewModel restaura el último
+    // filtro persistido -- wiring real entre HistorialViewModel.init y HistorialFilterRepository
+    // (no un fake del repositorio: se usa la clase real con un DataStore en memoria pre-poblado).
+    @Test
+    fun `al construirse restaura el filterState desde el repository si habia un filtro guardado`() = runTest(dispatcher) {
+        val repository = HistorialFilterRepository(FakeInMemoryPreferencesDataStore())
+        repository.save(HistorialFilterSnapshot(assetId = 77L, searchText = "restaurado"))
+
+        val viewModel = createViewModel(filterRepository = repository)
+        advanceUntilIdle() // deja correr la corrutina de restauración lanzada en `init`
+
+        assertEquals(77L, viewModel.filterState.value.assetId)
+        assertEquals("restaurado", viewModel.filterState.value.searchText)
+    }
+
+    // HU-024 Escenario 3: sin ningún filtro guardado previamente, el ViewModel abre con el estado
+    // por defecto (ninguna restauración de más).
+    @Test
+    fun `al construirse sin ningun filtro guardado previamente el filterState queda vacio`() = runTest(dispatcher) {
+        val repository = HistorialFilterRepository(FakeInMemoryPreferencesDataStore())
+
+        val viewModel = createViewModel(filterRepository = repository)
+        advanceUntilIdle()
+
+        assertTrue(viewModel.filterState.value.isEmpty)
+    }
+
+    // HU-024: cambiar cualquiera de los 9 setters de filtro persiste el nuevo HistorialFilterState
+    // completo en el repository -- wiring real (no solo el fake del repositorio).
+    @Test
+    fun `onFilterAsset persiste el nuevo filterState en el repository`() = runTest(dispatcher) {
+        val repository = HistorialFilterRepository(FakeInMemoryPreferencesDataStore())
+        val viewModel = createViewModel(filterRepository = repository)
+        advanceUntilIdle()
+
+        viewModel.onFilterAsset(55L)
+        advanceUntilIdle()
+
+        assertEquals(55L, repository.load().assetId)
+    }
+
+    // HU-024 Escenario 1 (combinado con HU-022 Escenario 4): limpiar los filtros también persiste
+    // el estado "vacío" -- si el usuario limpia y cierra la app, debe reabrir sin filtro activo.
+    @Test
+    fun `onClearFilters persiste el filterState vacio en el repository`() = runTest(dispatcher) {
+        val repository = HistorialFilterRepository(FakeInMemoryPreferencesDataStore())
+        val viewModel = createViewModel(filterRepository = repository)
+        advanceUntilIdle()
+        viewModel.onFilterAsset(10L)
+        advanceUntilIdle()
+
+        viewModel.onClearFilters()
+        advanceUntilIdle()
+
+        assertEquals(HistorialFilterSnapshot(), repository.load())
+    }
+
     // HU-025 (sub-slice EP-003-f): totalOperationCount refleja el conteo real de operaciones de
     // OperationDao.countAll -- HistorialScreen lo combina con items.itemCount y filterState.isEmpty
     // (vía HistorialEmptyState.resolve, testeado aparte en HistorialEmptyStateTest) para distinguir
@@ -410,5 +482,20 @@ class HistorialViewModelTest {
         override suspend fun countByType(type: CatalogType): Int = items.count { it.type == type }
 
         override suspend fun getById(id: Long): CatalogItem? = items.find { it.id == id }
+    }
+
+    // HU-024: fake EN MEMORIA del DataStore subyacente (no del repositorio -- HistorialViewModelTest
+    // reutiliza el HistorialFilterRepository de producción de verdad, ver createViewModel()). Solo
+    // implementa el contrato mínimo de androidx.datastore.core.DataStore (2 miembros), sin tocar el
+    // filesystem -- la persistencia real a disco se verifica aparte en HistorialFilterRepositoryTest.
+    private class FakeInMemoryPreferencesDataStore : DataStore<Preferences> {
+        private val state = MutableStateFlow(emptyPreferences())
+        override val data: Flow<Preferences> = state
+
+        override suspend fun updateData(transform: suspend (t: Preferences) -> Preferences): Preferences {
+            val updated = transform(state.value)
+            state.value = updated
+            return updated
+        }
     }
 }
