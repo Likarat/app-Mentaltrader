@@ -216,7 +216,12 @@
       "PowerShell(git commit -m \"chore: registra permisos locales\")",
       "PowerShell(git commit --no-edit)",
       "PowerShell(.\\\\gradlew.bat testDebugUnitTest assembleDebug compileDebugAndroidTestKotlin --console=plain 2>&1 | Select-Object -Last 150)",
-      "PowerShell(.\\\\gradlew.bat testDebugUnitTest assembleDebug compileDebugAndroidTestKotlin --console=plain 2>&1)"
+      "PowerShell(.\\\\gradlew.bat testDebugUnitTest assembleDebug compileDebugAndroidTestKotlin --console=plain 2>&1)",
+      "Bash(git stash *)",
+      "Bash(git show *)",
+      "Read(//c/Users/migue/AppData/Local/Temp/claude/C--Users-migue-Desktop-automatizacion-proyectos-App-Mentaltrader/57a06090-6578-4335-8518-cbb758ed94dd/scratchpad/**)",
+      "Bash(git merge *)",
+      "Bash(Get-Content -Raw .claude/settings.local.json)"
     ]
   }
 }
