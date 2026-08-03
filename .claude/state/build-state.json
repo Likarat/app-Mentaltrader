@@ -1173,6 +1173,289 @@
           "note": "DoD evaluado y APROBADO para EP-001 (Registro rapido de operaciones). Checklist del DoD reducido (inner loop): (1) tdd=true, re-verificado con evidencia fresca en esta sesion: `testDebugUnitTest --rerun` -> BUILD SUCCESSFUL, 32/32 PASSED (ImageProcessorTest 6, DestinoTest 3, OperationFormViewModelTest 23; 0 failures/errors, XML de resultados con timestamp 2026-07-31T13:24Z). Los 37 items hu_ac de wiring_checklist tienen cita de test real (unitario JVM o instrumentado en dispositivo real, Motorola Edge 50 Fusion) para cada escenario AC de las 9 HU, sin ninguno en failing. (2) journey_smoke=true, ya cerrado con evidencia real de OperationFormJourneyTest end-to-end (FAB->formulario completo->Guardar->Historial) en dispositivo real; no re-ejecutado en esta sesion por ausencia de dispositivo conectado (adb devices vacio), consistente con las instrucciones de esta ronda. (3) coherence_link=true, re-verificado con evidencia fresca: `openspec validate registro-rapido-operaciones --type change --strict --json` -> valid:true, 0 issues. (4) data=true, ya cerrado (Room real con entidades Operation/CatalogItem/OperationImage, persistencia verificada en dispositivo real). (5) api=null, N/A (app nativa sin backend/endpoints). (6) fidelity=true, ya cerrado contra la fuente de diseno descriptiva (design_source.applies=true, sin mockup formal, decision de producto documentada en design_source.notes; no aplica MCP chrome-devtools por ser app nativa no web). (6-bis) sub_slices[]: las 4 entradas (EP-001-a/b/c/d) estan en status=done, cada una con journey_smoke=true -- OK, ninguna pendiente. (7) wiring_verified=true: CIERRE POR DECISION EXPLICITA DEL USUARIO (dueño del producto), no del modelo, documentada en el progress_log del 2026-07-31T00:00:00 -- tras 3 rondas reales del wiring-adversarial-verifier (2026-07-29/30, cada una con bugs reales de producto encontrados y corregidos con evidencia ejecutada en dispositivo real: CatalogSeeder, condicion de carrera del prellenado, TopAppBar, back-gesture de HU-009, isDirty permanente en true, huecos de render real en HU-006) mas su propia verificacion manual repetida, el usuario decidio no correr una 4a ronda adversarial. Esto se aparta explicitamente de la regla dura #6 de CLAUDE.md (que exige que ese gate lo cierre un subagente adversarial de contexto virgen); la desviacion esta documentada con trazabilidad completa (mismo patron ya aceptado para la decision de 'Borrar todo' sin HU formal, 2026-07-30T04:15) y no fue tomada por este gatekeeper ni por ningun otro agente -- se respeta la decision del dueño del producto sin reabrirla. (8) Documentacion: `tasks.md` revisado completo -- las 5 secciones (22 items) estan todas tildadas [x], sin ningun item oculto o vaciado de contenido pese a estar marcado; las notas de alcance (imagen picker no automatizable via UI, rango de tamaño de archivo de HU-007-AC1 no ajustado, 'Borrar todo' sin HU formal) estan documentadas explicitamente como decisiones de producto, no como items completados a medias disfrazados. Back-references verificadas archivo por archivo: `docs/03-backlog/epicas.md` (seccion EP-001, linea 28) y las 9 HU (`docs/04-historias/HU-001-registrar-campos-minimos.md` .. `HU-009-confirmar-salida-formulario.md`) tienen la linea `**Construccion**: openspec_change: registro-rapido-operaciones (rama feature/ep-001-registro-rapido-operaciones)`, mismo patron ya usado en el cierre de EP-005. (9) Hooks automatizados (lint-typecheck.sh, stack-guard.sh, gitflow-guard.sh): no re-ejecutados manualmente en esta ronda (corren via hooks del arnes en cada Write/Edit/Bash real); compileDebugKotlin UP-TO-DATE/BUILD SUCCESSFUL en la corrida de testDebugUnitTest de esta sesion no mostro errores de compilacion/lint. Sin bloqueantes encontrados. No se re-ejecuto la suite instrumentada (connectedDebugAndroidTest) en esta sesion por ausencia de dispositivo conectado -- se acepta la evidencia ya acumulada de las rondas previas (29/30 de julio 2026) mas la decision explicita del usuario sobre wiring_verified, tal como fue instruido para esta evaluacion. gates.dod=true. Siguiente paso (no le corresponde a este gate): PR + archivado del change, delegado al build-orchestrator."
         }
       ]
+    },
+    {
+      "epica": "EP-002",
+      "hus": [
+        "HU-010",
+        "HU-011",
+        "HU-012",
+        "HU-013",
+        "HU-014"
+      ],
+      "openspec_change": "gestion-catalogos-etiquetas",
+      "branch": "feature/ep-002-gestion-catalogos-etiquetas",
+      "phase": "green",
+      "layer": "business",
+      "gates": {
+        "dor": true,
+        "tdd": false,
+        "journey_smoke": false,
+        "coherence_link": true,
+        "data": false,
+        "fidelity": false,
+        "api": null,
+        "wiring_verified": false,
+        "dod": false
+      },
+      "updated_at": "2026-08-02T17:00:00.000000+00:00",
+      "updated_by": "build-orchestrator (movido a history[] a pedido explicito del usuario, PAUSADO no archivado)",
+      "notes": "PAUSADO, NO ARCHIVADO -- moved a history[] el 2026-08-02 para liberar active_slice y abrir EP-003, a pedido explicito del usuario ('necesito avanzar y no puedo estancarme'), sin dispositivo/emulador conectado en toda la sesion para correr la pasada de instrumentados+journey_smoke que faltaba. gates.dod=false y gates.wiring_verified=false siguen en false a proposito: la epica NO esta terminada, solo se congela su progreso aqui para no bloquear el resto del trabajo. Estado real al pausar: EP-002-a 100% cerrado con evidencia real (commit f70213e). EP-002-b/c/d con logica de negocio completa y TDD JVM verde (commits 2304493/3da227f/fb4b077), pero CERO evidencia instrumentada/journey_smoke. Retomar exactamente desde session_continuity.resume_hint de este mismo objeto en cuanto haya un dispositivo conectado -- NO reabrir como una epica nueva, es la MISMA EP-002 con su change 'gestion-catalogos-etiquetas' todavia sin archivar en openspec/changes/.",
+      "files_scope": [
+        "app/src/main/java/**/feature/etiquetas/**",
+        "app/src/main/java/**/feature/registro/**",
+        "app/src/main/java/**/core/data/**",
+        "app/src/main/java/**/core/model/**"
+      ],
+      "sub_slices": [
+        {
+          "id": "EP-002-a",
+          "title": "Administracion completa de catalogos (agregar, editar, eliminar con proteccion de semillas)",
+          "hus": [
+            "HU-010",
+            "HU-011"
+          ],
+          "status": "done",
+          "journey_smoke": true
+        },
+        {
+          "id": "EP-002-b",
+          "title": "Agregar etiqueta inline sin salir del formulario de operacion",
+          "hus": [
+            "HU-013"
+          ],
+          "status": "pending",
+          "journey_smoke": false
+        },
+        {
+          "id": "EP-002-c",
+          "title": "Confirmar eliminacion de un elemento de catalogo en uso",
+          "hus": [
+            "HU-012"
+          ],
+          "status": "pending",
+          "journey_smoke": false
+        },
+        {
+          "id": "EP-002-d",
+          "title": "Ver espacio en disco usado por imagenes",
+          "hus": [
+            "HU-014"
+          ],
+          "status": "pending",
+          "journey_smoke": false
+        }
+      ],
+      "wiring_checklist": [
+        {
+          "id": "HU-010-AC1",
+          "kind": "hu_ac",
+          "ref": "HU-010#Escenario1",
+          "status": "passing",
+          "evidence": "EtiquetasCatalogManagementTest.agregarUnActivoLoMuestraDeInmediatoEnElSelectorDelFormularioDeRegistro — PASSED en Motorola Edge 50 Fusion (connectedDebugAndroidTest, 38/38, 2026-08-02). Ademas verificado visualmente (journey_smoke 1.9): se agrego \"EURJPY-smoke\" en Activos via la app real y aparecio de inmediato en el selector \"Activo\" de \"Nueva operacion\" (capturas reales adb screencap + taps por coordenadas reales de uiautomator dump)."
+        },
+        {
+          "id": "HU-010-AC2",
+          "kind": "hu_ac",
+          "ref": "HU-010#Escenario2",
+          "status": "failing",
+          "evidence": "PENDIENTE de nivel instrumentado (fuera del alcance literal de tasks.md 1.8 en esta pasada). Cubierto solo a nivel JVM: CatalogRepositoryTest (unicidad case-insensitive/trim) + EtiquetasViewModelTest (addError visible en el estado). Falta un test instrumentado que confirme el mensaje \"Este valor ya existe en el catalogo\" renderizado en pantalla real, no solo en el StateFlow."
+        },
+        {
+          "id": "HU-010-AC3",
+          "kind": "hu_ac",
+          "ref": "HU-010#Escenario3",
+          "status": "failing",
+          "evidence": "PENDIENTE de nivel instrumentado (fuera del alcance literal de tasks.md 1.8 en esta pasada). Cubierto a nivel JVM por CatalogRepositoryTest (unicidad no cruza type). No se agrego un test instrumentado dedicado a este edge en este pase."
+        },
+        {
+          "id": "HU-011-AC1",
+          "kind": "hu_ac",
+          "ref": "HU-011#Escenario1",
+          "status": "passing",
+          "evidence": "EtiquetasCatalogManagementTest.editarUnElementoActualizaElNombreMostrado — PASSED en Motorola Edge 50 Fusion (connectedDebugAndroidTest, 38/38, 2026-08-02): edita un elemento real en Room via CatalogRepository.updateItem y confirma que el nombre nuevo se ve en la lista renderizada y el nombre viejo desaparece."
+        },
+        {
+          "id": "HU-011-AC2",
+          "kind": "hu_ac",
+          "ref": "HU-011#Escenario2",
+          "status": "passing",
+          "evidence": "EtiquetasCatalogManagementTest.eliminarUnElementoSinUsoLoEliminaDeInmediatoSinConfirmacion — PASSED en Motorola Edge 50 Fusion (connectedDebugAndroidTest, 38/38, 2026-08-02): elimina un elemento real sin uso, confirma ausencia de cualquier dialogo de confirmacion y que desaparece de la lista renderizada."
+        },
+        {
+          "id": "HU-011-AC3",
+          "kind": "hu_ac",
+          "ref": "HU-011#Escenario3",
+          "status": "passing",
+          "evidence": "EtiquetasCatalogManagementTest.intentarEliminarLaSemillaNingunoMuestraElMensajeDeBloqueoVisibleEnPantalla — PASSED en Motorola Edge 50 Fusion (connectedDebugAndroidTest, 38/38, 2026-08-02): intenta eliminar la semilla \"Ninguno\" (Errores) y confirma el dialogo \"No se puede eliminar\" con el mensaje real visible en pantalla; el elemento sigue en el catalogo tras dismiss."
+        },
+        {
+          "id": "HU-011-AC4",
+          "kind": "hu_ac",
+          "ref": "HU-011#Escenario4",
+          "status": "failing",
+          "evidence": "PENDIENTE de nivel instrumentado (fuera del alcance literal de tasks.md 1.8 en esta pasada). Cubierto a nivel JVM por CatalogRepositoryTest (recreacion automatica al vaciar, via CatalogRepository.deleteItem -> CatalogSeeder.ensureSeeded). Falta un test instrumentado que vacie un catalogo real hasta 0 y confirme que la semilla reaparece en la lista renderizada."
+        },
+        {
+          "id": "HU-012-AC1",
+          "kind": "hu_ac",
+          "ref": "HU-012#Escenario1",
+          "status": "failing",
+          "evidence": "Cubierto a nivel JVM: EtiquetasViewModelTest.'solicitar eliminar un elemento en uso deja el conteo de operaciones disponible sin eliminarlo' + CatalogRepositoryTest.'usageCountOf cuenta las operaciones...' (testDebugUnitTest en verde). Diseno: se reutiliza el dialogo de confirmacion generico ya existente de HU-011 (pendingDeleteItem), enriquecido con pendingDeleteUsageCount -- ver tasks.md 3.2/3.3. Sin instrumentado todavia (diferido a pasada final, sin dispositivo conectado)."
+        },
+        {
+          "id": "HU-012-AC2",
+          "kind": "hu_ac",
+          "ref": "HU-012#Escenario2",
+          "status": "failing",
+          "evidence": "Cubierto a nivel JVM: EtiquetasViewModelTest.'cancelar la eliminacion pendiente limpia tambien el conteo de uso' (testDebugUnitTest en verde). Sin instrumentado todavia, misma razon que AC1."
+        },
+        {
+          "id": "HU-012-AC3",
+          "kind": "hu_ac",
+          "ref": "HU-012#Escenario3",
+          "status": "failing",
+          "evidence": "Cubierto a nivel JVM: EtiquetasViewModelTest.'confirmar la eliminacion de un elemento en uso lo elimina y conserva las operaciones que ya lo usaban' + CatalogRepositoryTest.'eliminar un elemento en uso lo retira del catalogo sin tocar las operaciones que ya lo usaban' (testDebugUnitTest en verde, sin FK/cascade real que pudiera alterar el valor historico). Sin instrumentado todavia, misma razon que AC1."
+        },
+        {
+          "id": "HU-013-AC1",
+          "kind": "hu_ac",
+          "ref": "HU-013#Escenario1",
+          "status": "failing",
+          "evidence": "Cubierto a nivel JVM: OperationFormViewModelTest.'iniciar el alta inline de Activo muestra el campo sin tocar el resto del estado' (testDebugUnitTest en verde). Instrumentado escrito (OperationFormCatalogInlineAddTest.tocarAgregarNuevaEnActivoMuestraElCampoInlineDeAlta, compileDebugAndroidTestKotlin en verde) pero SIN EJECUTAR: sin dispositivo/emulador conectado en esta sesion (adb devices vacio)."
+        },
+        {
+          "id": "HU-013-AC2",
+          "kind": "hu_ac",
+          "ref": "HU-013#Escenario2",
+          "status": "failing",
+          "evidence": "Cubierto a nivel JVM: OperationFormViewModelTest.'confirmar el alta inline de un Activo lo crea lo selecciona automaticamente y conserva el resto del formulario' + tests de Emocion despues/Error (testDebugUnitTest en verde). Instrumentado escrito (OperationFormCatalogInlineAddTest.confirmarElAltaInlineDeUnActivoLoSeleccionaYConservaElRestoDelFormulario) pero SIN EJECUTAR, misma razon que AC1."
+        },
+        {
+          "id": "HU-013-AC3",
+          "kind": "hu_ac",
+          "ref": "HU-013#Escenario3",
+          "status": "failing",
+          "evidence": "Cubierto a nivel JVM: OperationFormViewModelTest.'confirmar el alta inline con nombre duplicado mantiene el campo abierto con el mensaje de error' (testDebugUnitTest en verde). Instrumentado escrito (OperationFormCatalogInlineAddTest.confirmarElAltaInlineConNombreDuplicadoMantieneElCampoAbiertoConElMensajeDeError, incluye FocusRequester al mostrar el error) pero SIN EJECUTAR, misma razon que AC1."
+        },
+        {
+          "id": "HU-013-AC4",
+          "kind": "hu_ac",
+          "ref": "HU-013#Escenario4",
+          "status": "failing",
+          "evidence": "Cubierto a nivel JVM: OperationFormViewModelTest.'cancelar el alta inline cierra el campo sin crear ningun elemento' (testDebugUnitTest en verde). Instrumentado escrito (OperationFormCatalogInlineAddTest.cancelarElCampoInlineCierraElCampoSinCrearNingunElemento) pero SIN EJECUTAR, misma razon que AC1."
+        },
+        {
+          "id": "HU-014-AC1",
+          "kind": "hu_ac",
+          "ref": "HU-014#Escenario1",
+          "status": "failing",
+          "evidence": "Cubierto a nivel JVM: EtiquetasViewModelTest.'al abrir Etiquetas con imagenes reales expone el espacio total aproximado en disco' (archivos reales via TemporaryFolder, testDebugUnitTest en verde). Sin instrumentado todavia (diferido a pasada final, sin dispositivo conectado)."
+        },
+        {
+          "id": "HU-014-AC2",
+          "kind": "hu_ac",
+          "ref": "HU-014#Escenario2",
+          "status": "failing",
+          "evidence": "Cubierto a nivel JVM: EtiquetasViewModelTest.'al abrir Etiquetas sin ninguna imagen el espacio en disco es 0' + DiskSpaceCalculatorTest.'totalBytes es 0 cuando no hay ninguna ruta' (testDebugUnitTest en verde). Sin instrumentado todavia, misma razon que AC1."
+        },
+        {
+          "id": "HU-014-AC3",
+          "kind": "hu_ac",
+          "ref": "HU-014#Escenario3",
+          "status": "failing",
+          "evidence": "Cubierto a nivel JVM: EtiquetasViewModelTest.'al reabrir Etiquetas tras eliminar una operacion con imagenes el espacio recalculado baja' (borra archivo real + fila, segunda apertura del ViewModel refleja la baja) + DiskSpaceCalculatorTest.'totalBytes ignora en silencio una ruta cuyo archivo ya no existe' (testDebugUnitTest en verde). Sin instrumentado todavia, misma razon que AC1."
+        },
+        {
+          "id": "INT-etiquetas-screen-catalogitemdao",
+          "kind": "integration_point",
+          "ref": "presentacion(EtiquetasScreen, hoy placeholder) -> datos(CatalogItemDao: insert/update/delete reales, reemplazando el placeholder de EP-005)",
+          "status": "passing",
+          "evidence": "EtiquetasCatalogManagementTest (4/4 PASSED, Motorola Edge 50 Fusion, connectedDebugAndroidTest 38/38, 2026-08-02): EtiquetasScreen real (SecondaryTabRow Activos/Emociones/Errores + alta/edicion/baja) queda cableada contra CatalogItemDao real via CatalogRepository, sin fakes ni base in-memory (misma DB de produccion del dispositivo). Se corrigio ademas AppNavigationTest.tocarEtiquetasMuestraLaPantallaDeEtiquetas, que seguia asertando el placeholder de EP-005 ya reemplazado (desincronizado desde 1.6, expuesto por esta corrida real)."
+        },
+        {
+          "id": "INT-registro-form-inline-add",
+          "kind": "integration_point",
+          "ref": "presentacion(OperationFormScreen/ViewModel, EP-001 ya archivada) -> datos(CatalogItemDao.insert reutilizado por HU-013 via punto de entrada + Agregar nueva)",
+          "status": "failing",
+          "evidence": "Cableado real implementado: OperationFormViewModel.onConfirmAddCatalogItem invoca CatalogRepository.addItem (mismo repositorio de HU-010/EtiquetasViewModel, sin reimplementar la validacion) y CatalogDropdown expone '+ Agregar nueva' en los 4 selectores (Activo/Emocion antes/Emocion despues/Error). Verificado a nivel JVM (fake DAO) y compila el instrumentado real (Room in-memory), pero falta la corrida real end-to-end (connectedDebugAndroidTest) -- sin dispositivo conectado en esta sesion."
+        },
+        {
+          "id": "INT-catalogitem-usage-count",
+          "kind": "integration_point",
+          "ref": "datos(nueva query: contar Operation.assetId/emotionBeforeId/emotionAfterId/errorId == CatalogItem.id) -> presentacion(advertencia de HU-012 con conteo real)",
+          "status": "failing",
+          "evidence": "Cableado real implementado: OperationDao.countUsageOfCatalogItem (Room @Query real) <- CatalogRepository.usageCountOf <- EtiquetasViewModel.onRequestDelete (consulta async) <- EtiquetasScreen (dialogo de HU-011 muestra el conteo si > 0). Verificado a nivel JVM (fakes); falta la corrida real contra Room (connectedDebugAndroidTest) -- sin dispositivo conectado en esta sesion, diferido a la pasada final de instrumentados."
+        },
+        {
+          "id": "INT-disk-space-aggregation",
+          "kind": "integration_point",
+          "ref": "datos(OperationImageDao.getAll() -> File(filePath).length() por imagen real en filesDir) -> presentacion(texto de espacio total de HU-014)",
+          "status": "failing",
+          "evidence": "Cableado real implementado: OperationImageDao.getAll() (Room real) <- EtiquetasViewModel.init (mapea filePath + ImageProcessor.thumbnailPathFor) <- DiskSpaceCalculator.totalBytes (File.length() real, con withContext(ioDispatcher) inyectable para tests) <- EtiquetasScreen ('Espacio usado por imagenes: ...', EtiquetasUiState.formatDiskSpaceKbMb). Verificado a nivel JVM con archivos reales en TemporaryFolder; falta la corrida real contra Room + filesDir del dispositivo (connectedDebugAndroidTest) -- sin dispositivo conectado en esta sesion, diferido a la pasada final de instrumentados."
+        },
+        {
+          "id": "INT-seed-recreation-on-empty-catalog",
+          "kind": "integration_point",
+          "ref": "datos(logica de recreacion automatica de semilla, hoy solo existe en CatalogSeeder.ensureSeeded al arrancar la app) -> disparada tambien tras un delete real que vacia el catalogo (HU-011 Escenario 4)",
+          "status": "failing",
+          "evidence": "PENDIENTE de nivel instrumentado, misma razon que HU-011-AC4 (fuera del alcance literal de tasks.md 1.8 en esta pasada). CatalogRepository.deleteItem SI dispara CatalogSeeder.ensureSeeded cuando countByType llega a 0 (verificado por CatalogRepositoryTest, JVM), pero falta confirmar en un test instrumentado que la semilla recreada se vea en la lista renderizada real."
+        }
+      ],
+      "progress_log": [
+        {
+          "at": "2026-08-02T16:45:00.000000+00:00",
+          "by": "build-orchestrator",
+          "note": "EP-002-d (HU-014) TDD JVM completo y verde -- CIERRA LA LOGICA DE NEGOCIO DE LOS 4 SUB-SLICES DE EP-002 (a/b/c/d), a falta de una unica pasada final de instrumentados+journey_smoke. Implementado: DiskSpaceCalculator (core.image, funcion pura sobre java.io.File: suma File.length() de rutas existentes, ignora en silencio las que no); EtiquetasViewModel gana operationImageDao/filesDir/ioDispatcher (inyectable, default Dispatchers.IO) y calcula diskSpaceBytes una sola vez en init (reutiliza ImageProcessor.thumbnailPathFor, no duplica esa logica); EtiquetasUiState.formatDiskSpaceKbMb (KB sin decimales / MB 1 decimal, Locale.US fijo); EtiquetasScreen muestra 'Espacio usado por imagenes: ...' arriba de las pestañas. EtiquetasViewModel.Factory y su call site en MainActivity.kt actualizados (application.database.operationImageDao() + application.filesDir). testutil.FakeOperationImageDao nuevo (fake compartido, primera ocurrencia). Tests nuevos: DiskSpaceCalculatorTest (3, con TemporaryFolder real) + 6 en EtiquetasViewModelTest (Escenarios 1-3 de HU-014 con archivos reales + 3 de formatDiskSpaceKbMb) -- testDebugUnitTest --rerun fresco en verde sin regresiones; assembleDebug + compileDebugAndroidTestKotlin BUILD SUCCESSFUL. Instrumentado (4.5) y journey_smoke (4.7) diferidos a la pasada final unica, sin dispositivo conectado en esta sesion (decision explicita del usuario 2026-08-02). tasks.md 4.1-4.4/4.6 tildadas (4.6 con evidencia JVM, no instrumentada); 4.5/4.7 pendientes. sub_slices[EP-002-d].status=in_progress. PROXIMO PASO EXACTO para la proxima sesion (con dispositivo conectado): (1) adb devices debe listar uno: (2) correr connectedDebugAndroidTest completo (incluye OperationFormCatalogInlineAddTest de EP-002-b, y escribir+correr los instrumentados pendientes de EP-002-c/HU-012 y EP-002-d/HU-014 que todavia no existen como archivo); (3) journey_smoke real (capturas adb) de EP-002-b/c/d; (4) recien entonces wiring-adversarial-verifier sobre la epica completa y dor-dod-gatekeeper para wiring_verified+dod."
+        },
+        {
+          "at": "2026-08-02T16:15:00.000000+00:00",
+          "by": "build-orchestrator",
+          "note": "EP-002-c (HU-012) TDD JVM completo y verde. Implementado: OperationDao.countUsageOfCatalogItem (Query real, OR sobre assetId/emotionBeforeId/emotionAfterId/errorId); CatalogRepository gana operationDao como dependencia obligatoria (constructor cambia de (catalogItemDao) a (catalogItemDao, operationDao) -- actualizado en MentaltraderApplication.catalogRepository y en el default de OperationFormViewModel.catalogRepository) + metodo usageCountOf(item) de solo lectura; deleteItem NO cambia su contrato (decision de diseno: el dialogo de confirmacion generico de HU-011 ya cubre 'permitir confirmar o cancelar' para CUALQUIER eliminacion, asi que se evito duplicar ese gate con un CatalogDeleteResult.RequiresConfirmation -- alcance negociable segun el propio checklist INVEST de HU-012, documentado en tasks.md 3.2). EtiquetasViewModel.onRequestDelete ahora tambien dispara una consulta async a usageCountOf sin bloquear la apertura del dialogo existente; EtiquetasScreen muestra el conteo real en el mismo AlertDialog cuando > 0. testutil.FakeOperationDao extraido como fake compartido (regla de tres: lo necesitaban simultaneamente OperationFormViewModelTest -- que tenia una copia local, ahora removida --, CatalogRepositoryTest y EtiquetasViewModelTest). 10 tests unitarios nuevos (5 en CatalogRepositoryTest, 5 en EtiquetasViewModelTest); testDebugUnitTest --rerun fresco en verde sin regresiones; assembleDebug BUILD SUCCESSFUL. Sin instrumentado ni journey_smoke: diferidos a una pasada final unica una vez haya dispositivo, por decision explicita del usuario (ver nota anterior de las 15:45). tasks.md 3.1-3.4 tildadas; 3.5/3.6 explicitamente pendientes de dispositivo. sub_slices[EP-002-c].status=in_progress."
+        },
+        {
+          "at": "2026-08-02T15:45:00.000000+00:00",
+          "by": "usuario (Miguel Torres) via build-orchestrator",
+          "note": "DECISION EXPLICITA DEL EQUIPO (no del modelo, ver CLAUDE.md regla dura #5): diferir los tests instrumentados y journey_smoke de TODOS los sub-slices restantes de EP-002 (b/c/d) a una pasada final unica, una vez haya un dispositivo/emulador conectado, en vez de bloquear cada sub-slice esperando hardware. Se continua con la logica de negocio (TDD JVM) de EP-002-c y EP-002-d en esta sesion. Antes del dod de la epica completa sigue siendo obligatorio: correr connectedDebugAndroidTest real para EP-002-b/c/d, journey_smoke de cada uno, y solo entonces wiring-adversarial-verifier + dor-dod-gatekeeper. Ningun gate de wiring_checklist se marca passing sin esa evidencia real; sub_slices[].status queda en 'in_progress' (no 'done') hasta que cada journey_smoke corra de verdad."
+        },
+        {
+          "at": "2026-08-02T15:30:00.000000+00:00",
+          "by": "build-orchestrator",
+          "note": "EP-002-b (HU-013) en curso, TDD JVM completo y verde, instrumentado escrito pero sin ejecutar (sin dispositivo). Implementado: OperationFormState (addingCatalogField/addCatalogText/addCatalogError), OperationFormViewModel.onStartAddCatalogItem/onAddCatalogTextChange/onCancelAddCatalogItem/onConfirmAddCatalogItem (reutiliza CatalogRepository.addItem, mismo repositorio de HU-010, ahora con default `CatalogRepository(catalogItemDao)` en el constructor -- sin estado propio mas alla del DAO, evita tocar el Factory/MainActivity existente), CatalogDropdown con opcion '+ Agregar nueva' + campo inline con FocusRequester (foco vuelve al campo si hay error de duplicado, Escenario 3) en los 4 selectores (Activo/Emocion antes/Emocion despues/Error). Tests unitarios nuevos: 7 en OperationFormViewModelTest (Escenarios 1-4 de HU-013 + variantes Emocion/Error) -- testDebugUnitTest --rerun completo (fresco) en verde, sin regresiones. assembleDebug BUILD SUCCESSFUL. compileDebugAndroidTestKotlin BUILD SUCCESSFUL (nuevo archivo OperationFormCatalogInlineAddTest.kt, 4 tests, mismo estandar que OperationFormRenderedUiTest de EP-001: ComposeTestRule + Room in-memory real, sin fakes). NO se corrio connectedDebugAndroidTest ni journey_smoke: `adb devices` no muestra ningun dispositivo/emulador conectado en esta sesion -- wiring_checklist de HU-013-AC1..4 e INT-registro-form-inline-add quedan `failing` a proposito (evidencia JVM documentada, instrumentada pendiente de ejecucion real, no de escritura). tasks.md 2.1-2.5 tildadas, 2.6/2.7 explicitamente pendientes de dispositivo. sub_slices[EP-002-b].status=in_progress (no done: journey_smoke requiere ejecucion real)."
+        },
+        {
+          "at": "2026-08-02T14:00:00.000000+00:00",
+          "by": "/build:resume",
+          "note": "Retomado tras reinicio de contexto. Reconciliacion sin cambios (reconcile-build-state.py corrio limpio). Estado en disco confirmado: EP-002-a done con evidencia instrumentada real (tasks.md 1.1-1.9 tildadas), working tree con esos cambios (EtiquetasScreen.kt, EtiquetasViewModel.kt, EtiquetasCatalogManagementTest.kt nuevo, AppNavigationTest.kt corregido, tasks.md) todavia sin commit desde el ultimo commit registrado (a037bc0, previo a 1.8/1.9). session_continuity.resume_hint apunta a abrir EP-002-b (HU-013, agregar etiqueta inline desde OperationFormScreen, tasks.md seccion 2.1-2.7). Siguiente paso: delegar en building-a-slice para (1) commitear el cierre de EP-002-a y (2) arrancar TDD de EP-002-b."
+        },
+        {
+          "at": "2026-08-02T13:45:00.000000+00:00",
+          "by": "build-orchestrator",
+          "note": "tasks.md 1.8 y 1.9 completados con evidencia real en dispositivo (Motorola Edge 50 Fusion, ZY22KXXQHV), retomando la pausa de la sesion anterior. 1.8: nuevo `EtiquetasCatalogManagementTest` (app/src/androidTest/java/com/miguel/mentaltrader/EtiquetasCatalogManagementTest.kt, 4 tests, misma app real/Room de produccion via MainActivity, sin fakes) -- agregarUnActivoLoMuestraDeInmediatoEnElSelectorDelFormularioDeRegistro (HU-010-AC1), editarUnElementoActualizaElNombreMostrado (HU-011-AC1), eliminarUnElementoSinUsoLoEliminaDeInmediatoSinConfirmacion (HU-011-AC2), intentarEliminarLaSemillaNingunoMuestraElMensajeDeBloqueoVisibleEnPantalla (HU-011-AC3). Bug real de entorno encontrado y corregido en el camino: la primera corrida de connectedDebugAndroidTest fallo con 20/38 tests (todos los que usan Compose+MainActivity) con 'No compose hierarchies found in the app' -- causa raiz: screen_off_timeout=60000ms del dispositivo, la pantalla se apagaba a mitad de la suite (3-4 min) y las Activities relanzadas quedaban sin ventana; fix: `adb shell settings put system screen_off_timeout 1800000` + `adb shell svc power stayon usb` antes de correr la suite, sin tocar codigo de produccion. Tras el fix: connectedDebugAndroidTest 38/38 PASSED (0 fallidos), incluidos los 4 tests nuevos. Se encontro ademas un segundo bug real (no de entorno, de test desincronizado): `AppNavigationTest.tocarEtiquetasMuestraLaPantallaDeEtiquetas` seguia asertando el placeholder de EP-005 ('Pantalla de Etiquetas (placeholder)') que EP-002-a ya reemplazo en 1.6 -- nadie lo habia actualizado; corregido para asertar 'Agregar nuevo elemento' (label unico de la pantalla real, no depende de cuantos items tenga ya el catalogo). testDebugUnitTest re-corrido fresco (--rerun): 53/53 PASSED, sin regresiones. 1.9: journey_smoke ejecutado con verificacion visual REAL (no por inspeccion): APK debug instalado/lanzado en el dispositivo real, capturas reales via `adb exec-out screencap` y taps por coordenadas reales obtenidas de `adb shell uiautomator dump` (no adivinadas) recorriendo Etiquetas (tab 'Activos', ya con la semilla XAUUSD) -> escribir 'EURJPY-smoke' en 'Agregar nuevo elemento' -> tocar 'Agregar' -> el item aparece en la lista real -> volver a Inicio -> FAB 'Nueva operacion' -> tocar el selector 'Activo' -> el desplegable real muestra 'EURJPY-smoke' junto a 'XAUUSD'. Confirma INT-etiquetas-screen-catalogitemdao cableado de punta a punta contra Room real. wiring_checklist actualizado a passing con evidencia real: HU-010-AC1, HU-011-AC1, HU-011-AC2, HU-011-AC3, INT-etiquetas-screen-catalogitemdao. Quedan explicitamente en failing (fuera del alcance literal de 1.8 en esta pasada, NO ocultos): HU-010-AC2 (mensaje de duplicado, cubierto solo a nivel JVM), HU-010-AC3 (unicidad no cruza catalogos, JVM), HU-011-AC4 + INT-seed-recreation-on-empty-catalog (recreacion automatica de semilla al vaciar, JVM) -- estos 3 necesitarian un test instrumentado dedicado en una pasada futura antes del dod de la epica completa (wiring-adversarial-verifier los revisara entonces). sub_slices[EP-002-a].status=done y journey_smoke=true (el schema liga 'done' solo a journey_smoke verde, que si se ejecuto y verifico de punta a punta). gates.tdd/gates.journey_smoke del active_slice (EP-002, la epica completa) se MANTIENEN en false a proposito: todavia faltan 3 sub-slices (EP-002-b/c/d); esos gates de nivel-epica solo deberian cerrarse cuando los 4 sub-slices esten done, siguiendo el mismo patron que EP-001 (donde gates.tdd/journey_smoke solo pasaron a true tras completar sus 4 sub-slices)."
+        },
+        {
+          "at": "2026-07-31T05:00:00.000000+00:00",
+          "by": "build-orchestrator",
+          "note": "TDD (JVM) de sub-slice EP-002-a completo, sin evidencia instrumentada todavia (tasks.md 1.1-1.7 tildadas, 1.8 pendiente -- requiere dispositivo, no conectado en esta sesion). Implementado: CatalogItemDao.update/delete/countByTypeAndNameIgnoreCaseExcludingId; CatalogRepository nuevo (core.data) con addItem/updateItem/deleteItem devolviendo resultados sellados (CatalogAddResult/CatalogUpdateResult/CatalogDeleteResult) en vez de Result<T> generico -- mas explicito para la UI, misma decision tecnica de design.md #2/#3; EtiquetasViewModel + EtiquetasScreen reemplazando el placeholder de EP-005 (SecondaryTabRow de Activos/Emociones/Errores, agregar/editar/eliminar con dialogos); wiring en MentaltraderApplication.catalogRepository y MainActivity. Tests unitarios nuevos: CatalogRepositoryTest (12, cubre HU-010 AC1-3 y HU-011 AC1-4 a nivel de logica de negocio) + EtiquetasViewModelTest (9, estado de UI: limpiar campo tras exito, error de duplicado visible, cancelar edicion, mensaje de bloqueo al eliminar semilla). Se extrajo testutil.FakeCatalogItemDao compartido (regla de tres, ya se duplicaba en OperationFormViewModelTest) y se corrigio un bug real en el fake original: getByType() creaba un Flow nuevo (snapshot) en cada llamada en vez de derivar de un unico MutableStateFlow de respaldo, por lo que EtiquetasViewModel.assets/emotions/errors (via stateIn(Eagerly)) nunca reflejaba altas posteriores a la suscripcion -- 2 tests nuevos lo detectaron en rojo antes del fix. testDebugUnitTest: 53/53 PASSED (JVM, fresco). assembleDebug: BUILD SUCCESSFUL. wiring_checklist de HU-010/HU-011 sigue en failing (evidencia unitaria no es suficiente para cerrar hu_ac -- falta 1.8 instrumentado + 1.9 journey_smoke, ambos requieren dispositivo real). No se toco gates.tdd todavia (falta cerrar el sub-slice completo con evidencia instrumentada antes de marcarlo)."
+        },
+        {
+          "at": "2026-07-31T04:00:00.000000+00:00",
+          "by": "change-epic-coherence",
+          "note": "Gate coherence_link verificado y APROBADO para EP-002 (gestion-catalogos-etiquetas). proposal.md con bloque ## Trazabilidad (EP-002, HU-010..014); EP-002 existe en epicas.md; las 5 HU existen con epica: EP-002 en frontmatter y coinciden 1:1 con 'Historias previstas'. Mapeo HU->capability sin hueco ni excedente: catalog-management (nueva) = HU-010+011+012; image-storage-usage (nueva) = HU-014; operation-entry-form (modificada) = HU-013. openspec validate --strict devuelve error esperado ('sin deltas') porque todavia no existen specs/ ni tasks.md en esta fase -- no es un defecto del proposal, se re-verificara cuando existan. Back-reference agregado a epicas.md (Construccion: openspec_change=gestion-catalogos-etiquetas). Nota no bloqueante detectada (preexistente, no de este change): epicas.md:83 referencia un slug de archivo viejo de HU-010 (HU-010-administrar-catalogos.md) que ya no existe -- pendiente de corregir en otra pasada."
+        },
+        {
+          "at": "2026-07-31T15:10:00.000000+00:00",
+          "by": "dor-dod-gatekeeper",
+          "note": "DoR evaluado y APROBADO para EP-002 (Gestion de catalogos - Etiquetas), con troceo obligatorio en sub_slices[]. Checklist DoR: (1) epica existe en epicas.md con trazabilidad a Obj.3 (deteccion de patrones) y Obj.5 (espacio en disco) del PRD -- OK, verificado en el Mapa de trazabilidad. (2) 5 HU enumeradas y listadas en hus[] -- OK (HU-010..HU-014), coinciden 1:1 con la seccion Historias previstas de epicas.md y con la fila Trazabilidad rapida de backlog.md. (3) Frontmatter completo + estado:lista en las 5 -- OK, verificado archivo por archivo (HU-010-agregar-elemento-catalogo.md, HU-011-editar-eliminar-catalogo.md, HU-012-confirmar-eliminacion-en-uso.md, HU-013-agregar-etiqueta-inline.md, HU-014-ver-espacio-disco-imagenes.md). (4) AC en G/W/T proporcional a complejidad -- las 5 son complejidad S: HU-010=3, HU-011=4, HU-012=3, HU-013=4, HU-014=3 escenarios, todos cubriendo happy+error/edge reales sin inflar (mismo patron ya aceptado en EP-001 para HU de complejidad S con 3-5 escenarios: el umbral 1-2 de la regla es un piso, no un techo, cuando existen mas ramas de error/edge reales -- ej. HU-011 cubre ademas del happy path 3 edges reales: eliminar sin uso, bloquear eliminacion de semilla, y recrear semilla al vaciar el catalogo). (5) INVEST 6/6 en las 5 -- OK, checklist propio de cada HU revisado y consistente: HU-010 Independent de EP-001 (semillas por migracion, no por esta historia) y de HU-011; HU-011 Independent de HU-010 (prueba sobre elementos ya sembrados) y de HU-012; HU-012 depende de HU-011 (caso complementario del mismo verbo eliminar) y de datos de EP-001 solo para pruebas E2E, no de alcance; HU-013 reutiliza la logica de HU-010 sin duplicarla y depende de que el formulario de EP-001 exista (dependencia de plataforma ya aceptada en HU-008); HU-014 depende de datos de HU-006/007 (EP-001) solo para tener imagenes reales que agregar, vista de solo lectura sin alcance propio adicional. (6) Dependencias externas: HU-012 y HU-014 dependen de datos de EP-001 (HU-001 y HU-006/007 respectivamente) -- EP-001 ya esta en history[] archivada con gates.dod=true. HU-013 depende de que el formulario de EP-001 (OperationFormScreen/ViewModel) exista -- tambien archivada. Sin dependencias cruzadas pendientes. (7) Cimiento (criterio duro, layer=business): se verifico leyendo el codigo real, no por inspeccion del resumen -- la entidad CatalogItem, CatalogItemDao (insert/insertAll/getByType/countByType/getById), CatalogSeeder.ensureSeeded() y el placeholder EtiquetasScreen.kt YA EXISTEN (construidos por EP-001 y EP-005 respectivamente, ambas archivadas con dod=true). El unico cimiento pendiente es el propio codigo de negocio de esta epica (CRUD completo, conteo de uso, agregacion de espacio en disco), que es alcance normal de EP-002, no cimiento fundacional no construido. No se detecto ningun cimiento bloqueante -- EtiquetasScreen.kt es hoy literalmente Pantalla de Etiquetas (placeholder), con el comentario La logica real llega con EP-002, confirmando que EP-005 dejo el gancho listo a proposito. (8) Tamano: 5 HU > umbral por defecto de 3 -- NO entra como slice unico, se decompone en sub_slices[] (4 grupos, de a uno con journey_smoke verde entre cada uno): EP-002-a=HU-010+HU-011 (agrupadas porque epicas.md documenta que eran originalmente UNA sola historia partida solo por INVEST-S, mismo patron ya aplicado en EP-001-c=HU-006+HU-007; construyen el CRUD completo de la pantalla Etiquetas, PRIMERO porque HU-013/HU-012 reutilizan o extienden su logica); EP-002-b=HU-013 (Should, reutiliza HU-010 desde un punto de entrada distinto -- formulario de registro -- se construye segundo por prioridad MoSCoW y porque ya puede probarse en cuanto existe el add de HU-010); EP-002-c=HU-012 (Could, extiende el flujo de eliminar de HU-011 para el caso en uso, requiere que HU-011 ya exista); EP-002-d=HU-014 (Could, vista de solo lectura totalmente independiente de las otras 4 HU de esta epica -- se deja ultima por prioridad MoSCoW mas baja, sin razon de dependencia real). Capas tocadas: presentacion (EtiquetasScreen nueva UI real + touch puntual en OperationFormScreen para el entry point inline de HU-013) y datos (nuevas queries en CatalogItemDao: update/delete/ conteo de uso por CatalogItem.id contra Operation, mas agregacion de tamanio de archivo sobre OperationImageDao.getAll()) -- 2 capas, no 3, pero el criterio ya disparo por conteo de HU (>3). (9) Fuente de diseno (la epica toca UI: pantalla Etiquetas completa + touch en formulario de registro) -- design_source.confirmed=true a nivel de proyecto (fuente descriptiva PRD/spec, sin mockups formales, decision de producto ya registrada en design_source.notes); la epica apunta a la pestana Etiquetas ya prevista en esa misma fuente descriptiva -- mismo tratamiento ya aplicado a EP-001/EP-005, no requiere reconfirmacion. scaffold.confirmed=true y design_source.confirmed=true ya verificados en build-state.json antes de continuar (no se repregunto, segun instruccion). gates iniciales: dor=true, resto en false, api=null (app nativa sin backend/endpoints), fidelity=false (la epica toca UI), wiring_verified=false. wiring_checklist inicializado con 17 items hu_ac (uno por escenario AC de las 5 HU: 3+4+3+4+3) + 5 integration_point (Etiquetas-screen contra CatalogItemDao real; formulario de registro contra insert reutilizado de HU-013; conteo de uso Operation contra CatalogItem para HU-012; agregacion de tamanio de archivo real en disco para HU-014; recreacion de semilla disparada tambien por un delete real, no solo al arrancar la app), todos failing. Proximo paso: opsx:new para crear el change gestion-catalogos-etiquetas y arrancar TDD (red) sobre HU-010 (sub_slice EP-002-a, primera HU sin ninguna dependencia entrante dentro de la epica)."
+        }
+      ],
+      "session_continuity": {
+        "last_session": "2026-08-02T16:45:00.000000+00:00",
+        "stopped_at": "2026-08-02T16:45:00.000000+00:00",
+        "resume_hint": "Los 4 sub-slices de EP-002 (a/b/c/d) tienen su logica de negocio completa: EP-002-a esta DONE de punta a punta (instrumentado + journey_smoke reales, ver commit f70213e). EP-002-b/c/d tienen TDD JVM verde y UI cableada (commits 2304493/3da227f/siguiente), pero NINGUNO tiene instrumentado ni journey_smoke corridos todavia -- diferido a proposito a una pasada final unica por decision explicita del usuario (2026-08-02, sin dispositivo conectado en toda la sesion, adb devices vacio). NO es un recorte de alcance: la epica sigue sin poder cerrarse (dod) hasta que esa pasada corra. Siguiente paso exacto en cuanto haya un dispositivo/emulador conectado (verificar con `adb devices`): (1) correr `./gradlew.bat connectedDebugAndroidTest --console=plain` -- ya existe OperationFormCatalogInlineAddTest.kt (EP-002-b, 4 tests) escrito y compilando, verificarlo en verde; (2) escribir y correr los instrumentados que TODAVIA NO EXISTEN como archivo para EP-002-c (HU-012: sembrar una Operation real que use un CatalogItem, intentar eliminarlo, verificar el conteo en pantalla, confirmar y verificar que la Operation conserva su id de catalogo -- tasks.md 3.5) y EP-002-d (HU-014: guardar una operacion con imagen real, abrir Etiquetas, verificar el total > 0 y coherente -- tasks.md 4.5); (3) journey_smoke real de EP-002-b/c/d con capturas adb (tasks.md 2.7/3.6/4.7); (4) actualizar a passing con evidencia real todo wiring_checklist de HU-012/HU-013/HU-014 + los 3 integration_point relacionados (hoy failing con evidencia JVM documentada, no instrumentada); (5) marcar sub_slices[EP-002-b/c/d].status=done y journey_smoke=true; (6) recien entonces wiring-adversarial-verifier sobre la epica completa (incluye revisar los items ya conocidos y deliberadamente diferidos de EP-002-a: HU-010-AC2/AC3, HU-011-AC4+INT-seed-recreation-on-empty-catalog) y dor-dod-gatekeeper para cerrar wiring_verified+dod de EP-002.",
+        "critical_recorded": false,
+        "auto_continue": false
+      }
     }
   ],
   "releases": [

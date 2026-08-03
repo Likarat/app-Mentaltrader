@@ -175,6 +175,11 @@ class HistorialDetalleViewModelTest {
         override suspend fun deleteAll() {
             inserted.clear()
         }
+
+        override suspend fun countUsageOfCatalogItem(id: Long): Int =
+            inserted.count {
+                it.assetId == id || it.emotionBeforeId == id || it.emotionAfterId == id || it.errorId == id
+            }
     }
 
     private class FakeOperationImageDao : OperationImageDao {
@@ -231,5 +236,19 @@ class HistorialDetalleViewModelTest {
         override suspend fun countByType(type: CatalogType): Int = items.count { it.type == type }
 
         override suspend fun getById(id: Long): CatalogItem? = items.find { it.id == id }
+
+        override suspend fun update(item: CatalogItem) {
+            val index = items.indexOfFirst { it.id == item.id }
+            if (index >= 0) items[index] = item
+        }
+
+        override suspend fun delete(item: CatalogItem) {
+            items.removeAll { it.id == item.id }
+        }
+
+        override suspend fun countByTypeAndNameIgnoreCaseExcludingId(type: CatalogType, name: String, excludeId: Long): Int =
+            items.count {
+                it.type == type && it.id != excludeId && it.name.trim().equals(name.trim(), ignoreCase = true)
+            }
     }
 }

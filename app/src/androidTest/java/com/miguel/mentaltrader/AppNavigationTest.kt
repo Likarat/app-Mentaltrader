@@ -43,8 +43,13 @@ class AppNavigationTest {
 
     @Test
     fun tocarEtiquetasMuestraLaPantallaDeEtiquetas() {
+        // EP-002-a reemplazó el placeholder de EP-005 ("Pantalla de Etiquetas (placeholder)") por
+        // la administración real de catálogos (SecondaryTabRow Activos/Emociones/Errores + alta) —
+        // ver EtiquetasScreen.kt. "Agregar nuevo elemento" es el label del campo de alta, único de
+        // esta pantalla real, y no depende de cuántos elementos tenga ya el catálogo en este
+        // dispositivo (a diferencia de asertar sobre un nombre de ítem concreto de la lista).
         composeTestRule.onNodeWithText("Etiquetas").performClick()
-        composeTestRule.onNodeWithText("Pantalla de Etiquetas (placeholder)").assertExists()
+        composeTestRule.onNodeWithText("Agregar nuevo elemento").assertExists()
     }
 
     @Test
