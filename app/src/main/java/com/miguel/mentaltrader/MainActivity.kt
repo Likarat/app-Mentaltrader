@@ -55,6 +55,8 @@ import com.miguel.mentaltrader.feature.historial.HistorialDetalleScreen
 import com.miguel.mentaltrader.feature.historial.HistorialDetalleViewModel
 import com.miguel.mentaltrader.feature.historial.HistorialScreen
 import com.miguel.mentaltrader.feature.historial.HistorialViewModel
+import com.miguel.mentaltrader.feature.historial.HistorialVisorImagenScreen
+import com.miguel.mentaltrader.feature.historial.HistorialVisorImagenViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.miguel.mentaltrader.feature.metricas.InicioScreen
@@ -90,6 +92,15 @@ fun rutaDetalleOperacion(operationId: Long) = "$RUTA_DETALLE_OPERACION_BASE/$ope
 private const val RUTA_EDITAR_OPERACION_BASE = "editar_operacion"
 const val RUTA_EDITAR_OPERACION = "$RUTA_EDITAR_OPERACION_BASE/{$ARG_OPERATION_ID}"
 fun rutaEditarOperacion(operationId: Long) = "$RUTA_EDITAR_OPERACION_BASE/$operationId"
+
+// HU-019: ruta parametrizada del visor de imagen a pantalla completa, abierta al tocar la imagen
+// en la vista de detalle (EP-003-b/HU-018). Única ruta de la app donde se permite rotar a
+// horizontal (design.md decisión #7) -- por eso MainActivity oculta topBar/bottomBar para ella
+// (ver `isVisorImagenRoute` más abajo), en vez de reutilizar el Scaffold de las demás pantallas.
+private const val RUTA_VISOR_IMAGEN_BASE = "visor_imagen"
+private const val ARG_IMAGE_INDEX = "imageIndex"
+const val RUTA_VISOR_IMAGEN = "$RUTA_VISOR_IMAGEN_BASE/{$ARG_OPERATION_ID}/{$ARG_IMAGE_INDEX}"
+fun rutaVisorImagen(operationId: Long, imageIndex: Int) = "$RUTA_VISOR_IMAGEN_BASE/$operationId/$imageIndex"
 
 const val RUTA_AJUSTES = "ajustes"
 
@@ -156,6 +167,12 @@ fun MentaltraderApp(navController: NavHostController = rememberNavController()) 
     // aplican a "Nueva operación" deben aplicar también a esta ruta parametrizada.
     val isFormRoute = currentRoute == RUTA_NUEVA_OPERACION || currentRoute?.startsWith(RUTA_EDITAR_OPERACION_BASE) == true
 
+    // HU-019 Escenario 1/4: el visor de imagen es pantalla completa de verdad (fondo negro, sin
+    // barra superior/inferior) -- también es la única ruta donde se permite rotar a horizontal,
+    // y una bottomBar visible en landscape no tendría sentido en ese layout. Su propio botón
+    // "Cerrar" (HistorialVisorImagenScreen) reemplaza a la flecha "atrás" del TopAppBar aquí.
+    val isVisorImagenRoute = currentRoute?.startsWith(RUTA_VISOR_IMAGEN_BASE) == true
+
     // HU-021: HistorialViewModel se hoistea al nivel de la app (no al de la ruta "Historial" del
     // NavHost) porque el estado de "deshacer" (pendingDeleteIds + el snackbar) debe sobrevivir a
     // navegar al detalle de una operación y volver -- es la misma instancia que usan tanto el
@@ -219,46 +236,50 @@ fun MentaltraderApp(navController: NavHostController = rememberNavController()) 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(
-                title = { Text(topBarTitle) },
-                navigationIcon = {
-                    if (showBackAction) {
-                        IconButton(onClick = { requestExit { navController.popBackStack() } }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+            if (!isVisorImagenRoute) {
+                TopAppBar(
+                    title = { Text(topBarTitle) },
+                    navigationIcon = {
+                        if (showBackAction) {
+                            IconButton(onClick = { requestExit { navController.popBackStack() } }) {
+                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                            }
+                        }
+                    },
+                    actions = {
+                        if (showSettingsAction) {
+                            IconButton(onClick = {
+                                navController.navigate(RUTA_AJUSTES) { launchSingleTop = true }
+                            }) {
+                                Icon(Icons.Filled.Settings, contentDescription = "Ajustes")
+                            }
                         }
                     }
-                },
-                actions = {
-                    if (showSettingsAction) {
-                        IconButton(onClick = {
-                            navController.navigate(RUTA_AJUSTES) { launchSingleTop = true }
-                        }) {
-                            Icon(Icons.Filled.Settings, contentDescription = "Ajustes")
-                        }
-                    }
-                }
-            )
+                )
+            }
         },
         bottomBar = {
-            AppBottomNavigationBar(navController) { destino ->
-                requestExit {
-                    // Bug real reportado por el usuario: Nueva operación y Ajustes se pushean
-                    // ENCIMA de la pestaña activa (no son pestañas en sí). Si se navega a otra
-                    // pestaña con popUpTo(start){saveState=true} mientras alguna de las dos está
-                    // arriba de la pila, Navigation-Compose la guarda como si fuera parte del
-                    // estado restaurable de la pestaña de origen, y la vuelve a mostrar más tarde
-                    // al re-visitar esa pestaña ("la operación/el ajuste seguía ahí"). Por eso
-                    // primero se la saca de la pila con un popBackStack limpio (sin saveState),
-                    // y RECIÉN DESPUÉS se hace el cambio de pestaña estándar.
-                    if (isFormRoute || currentRoute == RUTA_AJUSTES) {
-                        navController.popBackStack()
-                    }
-                    navController.navigate(destino.route) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
+            if (!isVisorImagenRoute) {
+                AppBottomNavigationBar(navController) { destino ->
+                    requestExit {
+                        // Bug real reportado por el usuario: Nueva operación y Ajustes se pushean
+                        // ENCIMA de la pestaña activa (no son pestañas en sí). Si se navega a otra
+                        // pestaña con popUpTo(start){saveState=true} mientras alguna de las dos está
+                        // arriba de la pila, Navigation-Compose la guarda como si fuera parte del
+                        // estado restaurable de la pestaña de origen, y la vuelve a mostrar más tarde
+                        // al re-visitar esa pestaña ("la operación/el ajuste seguía ahí"). Por eso
+                        // primero se la saca de la pila con un popBackStack limpio (sin saveState),
+                        // y RECIÉN DESPUÉS se hace el cambio de pestaña estándar.
+                        if (isFormRoute || currentRoute == RUTA_AJUSTES) {
+                            navController.popBackStack()
                         }
-                        launchSingleTop = true
-                        restoreState = true
+                        navController.navigate(destino.route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
                 }
             }
@@ -315,7 +336,34 @@ fun MentaltraderApp(navController: NavHostController = rememberNavController()) 
                     onDelete = {
                         historialViewModel.onRequestDelete(operationId)
                         navController.popBackStack()
+                    },
+                    // HU-019 Escenario 1: abre el visor a pantalla completa con esta operación
+                    // real y el índice de la imagen tocada.
+                    onOpenImage = { imageIndex ->
+                        navController.navigate(rutaVisorImagen(operationId, imageIndex))
                     }
+                )
+            }
+            composable(
+                RUTA_VISOR_IMAGEN,
+                arguments = listOf(
+                    navArgument(ARG_OPERATION_ID) { type = NavType.LongType },
+                    navArgument(ARG_IMAGE_INDEX) { type = NavType.IntType }
+                )
+            ) { backStackEntry ->
+                val operationId = backStackEntry.arguments?.getLong(ARG_OPERATION_ID) ?: 0L
+                val imageIndex = backStackEntry.arguments?.getInt(ARG_IMAGE_INDEX) ?: 0
+                val visorViewModel: HistorialVisorImagenViewModel = viewModel(
+                    key = "visor-$operationId",
+                    factory = HistorialVisorImagenViewModel.Factory(
+                        operationId,
+                        application.database.operationImageDao()
+                    )
+                )
+                HistorialVisorImagenScreen(
+                    viewModel = visorViewModel,
+                    initialImageIndex = imageIndex,
+                    onBack = { navController.popBackStack() }
                 )
             }
             composable(Destino.Etiquetas.route) { EtiquetasScreen() }

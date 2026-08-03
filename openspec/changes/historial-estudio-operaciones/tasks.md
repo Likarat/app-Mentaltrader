@@ -62,15 +62,15 @@
 
 ## 7. Sub-slice EP-003-g: visor de imagen a pantalla completa (HU-019)
 
-- [ ] 7.1 `HistorialVisorImagenScreen` nuevo (ruta con `operationId` + índice de imagen inicial), `HorizontalPager` sobre las imágenes reales de esa operación (`operationImageDao.getByOperationId`)
-- [ ] 7.2 Zoom vía `Modifier.pointerInput { detectTransformGestures { ... } }` (sin dependencia nueva) por imagen
-- [ ] 7.3 Indicador de puntos (página actual) + flecha para avanzar, además del gesto de deslizar
-- [ ] 7.4 Excepción de orientación: `DisposableEffect` que fija `activity.requestedOrientation = SCREEN_ORIENTATION_SENSOR` al entrar y `SCREEN_ORIENTATION_PORTRAIT` al salir (mismo patrón de acceso directo a `ComponentActivity` que `HighPriorityBackHandler`)
-- [ ] 7.5 Navegación real: tocar la imagen en `HistorialDetalleScreen` (EP-003-b) abre este visor con esa operación/imagen
-- [ ] 7.6 Tests unitarios: cálculo de matriz/escala de zoom (función pura, sin Compose real) si se extrae como tal; de lo contrario, cubrir solo con instrumentado (zoom depende de gestos reales)
-- [ ] 7.7 Test instrumentado: abrir el visor real desde el detalle, verificar fondo oscuro + imagen a pantalla completa, navegar entre 2 imágenes reales de la misma operación, y verificar que rotar el `Activity` (vía `requestedOrientation` real) es permitido solo en esta pantalla
-- [ ] 7.8 `journey_smoke` EP-003-g: abrir una imagen real a pantalla completa, hacer zoom, navegar a la segunda imagen si existe
-- [ ] 7.9 Cierre retroactivo de `INT-hu034-retro-cierre` en `history[]` de EP-005 (HU-034-AC2, diferido esperando esta historia) — verificar en el instrumentado de 7.7 que, al salir del visor, la orientación vuelve a vertical
+- [x] 7.1 `HistorialVisorImagenScreen` nuevo (ruta con `operationId` + índice de imagen inicial), `HorizontalPager` sobre las imágenes reales de esa operación (`operationImageDao.getByOperationId`, vía `HistorialVisorImagenViewModel` nuevo)
+- [x] 7.2 Zoom vía `Modifier.pointerInput { detectTransformGestures { ... } }` (sin dependencia nueva) por imagen -- `ZoomableOperationImage`, escala acotada 1x-5x, paneo se resetea al volver a escala 1x
+- [x] 7.3 Indicador de puntos (página actual) + flecha para avanzar, además del gesto de deslizar (`PageIndicatorDots` + `IconButton` con `pagerState.animateScrollToPage`, ambos solo si hay más de 1 imagen)
+- [x] 7.4 Excepción de orientación: `DisposableEffect` que fija `activity.requestedOrientation = SCREEN_ORIENTATION_SENSOR` al entrar y `SCREEN_ORIENTATION_PORTRAIT` al salir (mismo patrón de acceso directo a `ComponentActivity` que `HighPriorityBackHandler`); `MainActivity` además oculta topBar/bottomBar para esta ruta (pantalla completa real, con su propio botón "Cerrar")
+- [x] 7.5 Navegación real: tocar la imagen en `HistorialDetalleScreen` (EP-003-b) abre este visor con esa operación/imagen (`onOpenImage`, siempre índice 0 -- la única imagen que el detalle muestra hoy)
+- [x] 7.6 Tests unitarios: `HistorialVisorImagenNavigationTest` (9 tests, TDD real red→green) sobre `HistorialVisorImagenNavigation.resolveInitialPage`/`hasNextPage`/`hasPreviousPage` -- lógica pura de índice/límites de página, sin Compose ni `HorizontalPager` real. El zoom (Escenario 2) depende de gestos reales de `detectTransformGestures`, no se fuerza un test JVM artificial para él (queda cubierto solo por el instrumentado de 7.7)
+- [ ] 7.7 Test instrumentado: abrir el visor real desde el detalle, verificar fondo oscuro + imagen a pantalla completa, navegar entre 2 imágenes reales de la misma operación, y verificar que rotar el `Activity` (vía `requestedOrientation` real) es permitido solo en esta pantalla -- diferido a la pasada final de instrumentados (sin dispositivo conectado en esta sesión, mismo criterio que EP-003-a/b/c/d/e/f)
+- [ ] 7.8 `journey_smoke` EP-003-g: abrir una imagen real a pantalla completa, hacer zoom, navegar a la segunda imagen si existe -- diferido, misma razón que 7.7
+- [ ] 7.9 Cierre retroactivo de `INT-hu034-retro-cierre` en `history[]` de EP-005 (HU-034-AC2, diferido esperando esta historia) — verificar en el instrumentado de 7.7 que, al salir del visor, la orientación vuelve a vertical; queda pendiente de esa misma pasada final única (no se cierra con solo la evidencia de código/TDD JVM de este sub-slice)
 
 ## 8. Sub-slice EP-003-h: persistir el último filtro entre sesiones (HU-024)
 

@@ -1,5 +1,6 @@
 package com.miguel.mentaltrader.feature.historial
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -42,13 +43,17 @@ import java.time.format.DateTimeFormatter
  * que el formulario de registro, spec §4): imagen primero (si existe, omitida sin dejar espacio
  * vacío si no hay ninguna), "Datos generales", "Emociones y errores", "Resultado", y "Descripción
  * entrada" al final. HU-020 (Editar) y HU-021 (Eliminar con deshacer) agregan los botones de
- * acción reales debajo del encabezado (EP-003-c).
+ * acción reales debajo del encabezado (EP-003-c). HU-019 (EP-003-g): tocar la imagen abre el
+ * visor a pantalla completa ([onOpenImage], siempre con índice 0 -- la única imagen que esta
+ * pantalla muestra hoy, aunque la operación tenga más de una; el visor mismo navega entre todas
+ * las imágenes reales de la operación).
  */
 @Composable
 fun HistorialDetalleScreen(
     viewModel: HistorialDetalleViewModel,
     onEdit: () -> Unit = {},
     onDelete: () -> Unit = {},
+    onOpenImage: (Int) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.state.collectAsState()
@@ -102,6 +107,8 @@ fun HistorialDetalleScreen(
         }
 
         // HU-018 Escenario 3: sin imágenes, se omite la sección entera (sin espacio vacío).
+        // HU-019 Escenario 1: tocarla abre el visor a pantalla completa (siempre índice 0, la
+        // única imagen que se muestra aquí).
         if (state.images.isNotEmpty()) {
             AsyncImage(
                 model = File(context.filesDir, ImageProcessor.thumbnailPathFor(state.images.first().filePath)),
@@ -109,6 +116,7 @@ fun HistorialDetalleScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .size(220.dp)
+                    .clickable { onOpenImage(0) }
             )
         }
 
