@@ -140,6 +140,9 @@ class HistorialDetalleViewModelTest {
         override fun getAllOrderedByDateDesc(): Flow<List<Operation>> =
             MutableStateFlow(inserted.sortedByDescending { it.dateTime })
 
+        override fun countAll(): Flow<Int> =
+            throw UnsupportedOperationException("No usado por HistorialDetalleViewModelTest (feature de estado vacío del listado, EP-003-f)")
+
         override fun pagingSourceOrderedByDateDesc(): androidx.paging.PagingSource<Int, Operation> =
             throw UnsupportedOperationException("No usado por HistorialDetalleViewModelTest")
 

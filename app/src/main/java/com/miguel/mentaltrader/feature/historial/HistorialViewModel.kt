@@ -53,6 +53,9 @@ import java.time.YearMonth
  * combinados con AND) -- cada cambio reconstruye el `Pager` con
  * [OperationDao.pagingSourceFiltered] vía `flatMapLatest` (design.md decisión #5: el filtrado
  * corre en SQL, no en memoria, para que la paginación siga sin cargar el histórico completo).
+ *
+ * HU-025: también expone [totalOperationCount], para que `HistorialScreen` distinga "primera vez"
+ * de "sin resultados de filtro" cuando el listado paginado queda vacío (ver [HistorialEmptyState]).
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class HistorialViewModel(
@@ -90,6 +93,11 @@ class HistorialViewModel(
     val monthSummaries: Flow<List<MonthSummary>> = flow {
         emitAll(operationDao.monthlySummaries())
     }
+
+    /** HU-025: total real de operaciones, sin importar el filtro activo -- HistorialScreen lo
+     * combina con `items.itemCount` y `filterState.isEmpty` (vía [HistorialEmptyState.resolve])
+     * para distinguir "primera vez" (Escenario 1) de "sin resultados de filtro" (Escenario 2). */
+    val totalOperationCount: Flow<Int> = operationDao.countAll()
 
     private val _collapsedMonths = MutableStateFlow<Set<YearMonth>>(emptySet())
     /** HU-017 Escenario 2: meses actualmente colapsados -- estado de UI puro (no afecta ninguna

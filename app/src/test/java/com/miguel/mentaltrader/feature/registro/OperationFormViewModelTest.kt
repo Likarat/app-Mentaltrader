@@ -612,6 +612,9 @@ class OperationFormViewModelTest {
         override fun getAllOrderedByDateDesc(): Flow<List<Operation>> =
             MutableStateFlow(inserted.sortedByDescending { it.dateTime })
 
+        override fun countAll(): Flow<Int> =
+            throw UnsupportedOperationException("No usado por OperationFormViewModelTest (feature de Historial, EP-003-f)")
+
         override fun pagingSourceOrderedByDateDesc(): androidx.paging.PagingSource<Int, Operation> =
             throw UnsupportedOperationException("No usado por OperationFormViewModelTest (feature de Historial, EP-003)")
 

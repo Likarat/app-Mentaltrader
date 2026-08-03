@@ -15,6 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.resetMain
@@ -286,6 +287,26 @@ class HistorialViewModelTest {
         assertTrue(viewModel.filterState.value.isEmpty)
     }
 
+    // HU-025 (sub-slice EP-003-f): totalOperationCount refleja el conteo real de operaciones de
+    // OperationDao.countAll -- HistorialScreen lo combina con items.itemCount y filterState.isEmpty
+    // (vía HistorialEmptyState.resolve, testeado aparte en HistorialEmptyStateTest) para distinguir
+    // "primera vez" de "sin resultados de filtro".
+    @Test
+    fun `totalOperationCount es 0 cuando no hay ninguna operacion registrada`() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+
+        assertEquals(0, viewModel.totalOperationCount.first())
+    }
+
+    @Test
+    fun `totalOperationCount refleja el conteo real tras insertar operaciones`() = runTest(dispatcher) {
+        operationDao.insert(operacion())
+        operationDao.insert(operacion())
+        val viewModel = createViewModel()
+
+        assertEquals(2, viewModel.totalOperationCount.first())
+    }
+
     private class FakeOperationDao : OperationDao {
         val inserted = mutableListOf<Operation>()
         var deleteByIdCallCount = 0
@@ -299,6 +320,12 @@ class HistorialViewModelTest {
 
         override fun getAllOrderedByDateDesc(): Flow<List<Operation>> =
             MutableStateFlow(inserted.sortedByDescending { it.dateTime })
+
+        // HU-025: conteo real, reflejando el estado de `inserted` en el momento en que se colecta
+        // (misma limitación que el resto de los fakes de este archivo -- no es un `Flow` reactivo a
+        // futuros inserts, ver `getAllOrderedByDateDesc`; suficiente para los tests de wiring de
+        // `HistorialViewModel.totalOperationCount`, que colectan tras insertar).
+        override fun countAll(): Flow<Int> = MutableStateFlow(inserted.size)
 
         override fun pagingSourceOrderedByDateDesc(): androidx.paging.PagingSource<Int, Operation> =
             throw UnsupportedOperationException("No usado por HistorialViewModelTest (requiere Room real, ver tasks.md 1.8)")

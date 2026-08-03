@@ -22,6 +22,15 @@ interface OperationDao {
     @Query("SELECT * FROM operation ORDER BY dateTime DESC")
     fun pagingSourceOrderedByDateDesc(): PagingSource<Int, Operation>
 
+    /** HU-025: total real de operaciones en toda la base, SIN aplicar ningún filtro -- distingue
+     * "nunca hubo ninguna operación" (Escenario 1) de "hay operaciones, pero el filtro/búsqueda
+     * activo (HU-022/HU-023) no arroja resultados" (Escenario 2), ambos casos con
+     * `pagingSourceFiltered`/`pagingSourceOrderedByDateDesc` devolviendo un listado vacío por igual.
+     * Query aparte y reactiva (Room invalida el `Flow` en cada insert/delete de la tabla), igual
+     * que [monthlySummaries]. */
+    @Query("SELECT COUNT(*) FROM operation")
+    fun countAll(): Flow<Int>
+
     @Query("SELECT * FROM operation WHERE id = :id")
     suspend fun getById(id: Long): Operation?
 

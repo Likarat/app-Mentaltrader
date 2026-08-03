@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -69,14 +70,19 @@ import java.util.Locale
 /**
  * HU-015/HU-016: listado real de Historial agrupado por mes/día y paginado (Paging 3). Reemplaza
  * el listado mínimo de verificación de EP-001. Detalle completo (HU-018), editar/eliminar
- * (HU-020/021), resumen mensual (HU-017) y filtros + búsqueda (HU-022/023, ver
- * [HistorialFilterPanel]) ya están cableados aquí; el visor de imagen (HU-019) y la persistencia
- * del filtro entre sesiones (HU-024) llegan en los sub-slices siguientes de EP-003.
+ * (HU-020/021), resumen mensual (HU-017), filtros + búsqueda (HU-022/023, ver
+ * [HistorialFilterPanel]) y los dos estados vacíos diferenciados (HU-025, ver
+ * [HistorialEmptyStateContent]) ya están cableados aquí; el visor de imagen (HU-019) y la
+ * persistencia del filtro entre sesiones (HU-024) llegan en los sub-slices siguientes de EP-003.
  */
 @Composable
 fun HistorialScreen(
     viewModel: HistorialViewModel? = null,
     onOperationClick: (Long) -> Unit = {},
+    // HU-025 Escenario 1/3: acceso directo desde el estado vacío de "primera vez" al mismo destino
+    // que el FAB de "Nueva operación" (HU-008, EP-001 ya archivada) -- MainActivity lo cablea a la
+    // misma navegación real que usa el FAB, sin duplicar esa lógica aquí.
+    onNewOperationClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     if (viewModel == null) {
@@ -106,14 +112,17 @@ fun HistorialScreen(
         HistorialFilterPanel(viewModel = viewModel, filterState = filterState)
 
         if (items.itemCount == 0) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                // HU-025 (sub-slice EP-003-f, siguiente): este mensaje todavía no distingue "sin
-                // ninguna operación registrada nunca" de "hay operaciones pero el filtro activo no
-                // arroja resultados" -- distinción deliberadamente diferida (ver design.md/tasks.md
-                // 6.1, secuenciado después de EP-003-e para tener al menos un filtro real que
-                // probar en ese escenario).
-                Text("Todavía no registraste ninguna operación")
-            }
+            // HU-025: distingue "primera vez sin operaciones" (Escenario 1) de "sin resultados
+            // para el filtro activo" (Escenario 2) -- ver HistorialEmptyState.resolve para la
+            // lógica pura (testeada aparte, sin Room/Paging) y el edge de pendingDeleteIds que
+            // deliberadamente no muestra ningún mensaje en ese caso transitorio.
+            val totalOperationCount by viewModel.totalOperationCount.collectAsState(initial = 0)
+            val emptyState = HistorialEmptyState.resolve(
+                totalOperationCount = totalOperationCount,
+                itemCount = items.itemCount,
+                filterActive = !filterState.isEmpty
+            )
+            HistorialEmptyStateContent(emptyState, onNewOperationClick)
             return
         }
 
@@ -151,6 +160,57 @@ fun HistorialScreen(
                     null -> Unit
                 }
             }
+        }
+    }
+}
+
+/**
+ * HU-025: contenido del estado vacío de Historial -- DOS mensajes distintos, nunca el mismo
+ * (Escenario 1 vs Escenario 2 de HU-025):
+ * - [HistorialEmptyState.PRIMERA_VEZ]: invita a crear la primera operación, con acceso directo
+ *   ([onNewOperationClick], mismo destino que el FAB de HU-008, HU-025 Escenario 3).
+ * - [HistorialEmptyState.SIN_RESULTADOS_FILTRO]: indica que no hay resultados para el filtro
+ *   activo, SIN ese acceso directo (las operaciones sí existen, solo están filtradas) -- para
+ *   limpiar el filtro, el usuario usa "Limpiar filtros" en [HistorialFilterPanel] (siempre visible
+ *   arriba de este bloque, ver HU-022 Escenario 4), no se duplica ese botón aquí.
+ * `null` no renderiza nada (edge de `pendingDeleteIds`, ver KDoc de [HistorialEmptyState]).
+ */
+@Composable
+private fun HistorialEmptyStateContent(emptyState: HistorialEmptyState?, onNewOperationClick: () -> Unit) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        when (emptyState) {
+            HistorialEmptyState.PRIMERA_VEZ -> {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        "Todavía no registraste ninguna operación",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        "Registrá tu primera operación para empezar a ver tu historial",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
+                    )
+                    Button(onClick = onNewOperationClick) {
+                        Text("Nueva operación")
+                    }
+                }
+            }
+            HistorialEmptyState.SIN_RESULTADOS_FILTRO -> {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        "No hay operaciones que coincidan con el filtro actual",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        "Probá con otro filtro o tocá \"Limpiar filtros\" arriba",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+            }
+            null -> Unit
         }
     }
 }

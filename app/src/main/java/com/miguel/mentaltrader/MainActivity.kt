@@ -286,7 +286,10 @@ fun MentaltraderApp(navController: NavHostController = rememberNavController()) 
                     viewModel = historialViewModel,
                     onOperationClick = { operationId ->
                         navController.navigate(rutaDetalleOperacion(operationId))
-                    }
+                    },
+                    // HU-025 Escenario 3: mismo destino real que el FAB "Nueva operación" (HU-008,
+                    // EP-001 ya archivada), sin duplicar esa navegación (INT-estado-vacio-fab).
+                    onNewOperationClick = { navController.navigate(RUTA_NUEVA_OPERACION) }
                 )
             }
             composable(

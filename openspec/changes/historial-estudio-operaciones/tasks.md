@@ -53,12 +53,12 @@
 
 ## 6. Sub-slice EP-003-f: estados vacíos diferenciados (HU-025)
 
-- [ ] 6.1 `HistorialViewModel`/`HistorialScreen`: distinguir "sin ninguna operación registrada nunca" (query de conteo total = 0) de "hay operaciones pero el filtro activo no arroja resultados" (conteo total > 0, `PagingData` vacío)
-- [ ] 6.2 Mensaje de "primera vez" con acceso directo al mismo destino de HU-008 (FAB "Nueva operación")
-- [ ] 6.3 Mensaje de "sin resultados para el filtro" sin ese acceso directo
-- [ ] 6.4 Tests unitarios: los dos estados se distinguen correctamente según el escenario (0 operaciones totales vs. filtro sin coincidencias)
-- [ ] 6.5 Test instrumentado: verificar en pantalla real ambos mensajes (BD vacía real vs. filtro real sin coincidencias) y que el acceso directo del primero navega al formulario real
-- [ ] 6.6 `journey_smoke` EP-003-f: ver el estado vacío inicial real (BD limpia) y navegar desde su acceso directo
+- [x] 6.1 `HistorialViewModel`/`HistorialScreen`: distinguir "sin ninguna operación registrada nunca" (`OperationDao.countAll()`, conteo total = 0) de "hay operaciones pero el filtro activo no arroja resultados" (conteo total > 0, `PagingData` vacío, filtro activo) -- lógica pura en `HistorialEmptyState.resolve` (testeada sin Room/Paging), incluye el edge de `pendingDeleteIds` (sin filtro activo, listado vacío transitorio por HU-021 no muestra ningún mensaje)
+- [x] 6.2 Mensaje de "primera vez" con acceso directo al mismo destino de HU-008 (FAB "Nueva operación") -- `HistorialEmptyStateContent`, botón "Nueva operación" cableado a `onNewOperationClick` (MainActivity navega a `RUTA_NUEVA_OPERACION`, mismo destino real que el FAB, sin duplicar esa navegación)
+- [x] 6.3 Mensaje de "sin resultados para el filtro" sin ese acceso directo -- reutiliza el botón "Limpiar filtros" ya existente en `HistorialFilterPanel` (siempre visible arriba, HU-022 Escenario 4), no se duplica aquí
+- [x] 6.4 Tests unitarios: `HistorialEmptyStateTest` (5 tests: primera vez, sin resultados de filtro, con items no resuelve ningún estado, edge de `pendingDeleteIds` sin filtro no resuelve ningún estado, precedencia de "primera vez" sobre un filtro activo) + `HistorialViewModelTest` (2 tests nuevos: `totalOperationCount` en 0 sin operaciones, `totalOperationCount` refleja el conteo real tras insertar) -- testDebugUnitTest en verde
+- [ ] 6.5 Test instrumentado: verificar en pantalla real ambos mensajes (BD vacía real vs. filtro real sin coincidencias) y que el acceso directo del primero navega al formulario real -- diferido a la pasada final de instrumentados (sin dispositivo conectado en esta sesión, mismo criterio que EP-003-a/b/c/d/e)
+- [ ] 6.6 `journey_smoke` EP-003-f: ver el estado vacío inicial real (BD limpia) y navegar desde su acceso directo -- diferido, misma razón que 6.5
 
 ## 7. Sub-slice EP-003-g: visor de imagen a pantalla completa (HU-019)
 
