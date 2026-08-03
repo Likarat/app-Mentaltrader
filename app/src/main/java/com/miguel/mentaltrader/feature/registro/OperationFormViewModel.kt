@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -47,16 +48,25 @@ class OperationFormViewModel(
      * que no es viable de forma confiable en este entorno. En producción siempre es
      * `LocalDateTime.now()` (valor real del dispositivo, sin corregir ni validar aquí — esa
      * responsabilidad es de HU-004 al guardar). */
-    private val nowProvider: () -> LocalDateTime = LocalDateTime::now
+    private val nowProvider: () -> LocalDateTime = LocalDateTime::now,
+    /** HU-020: si no es null, el formulario opera en modo edición sobre la operación existente
+     * con este id -- el `init` la carga vía [OperationDao.getById] real y prellena el estado con
+     * sus valores actuales (en vez del prellenado de fecha/hora/activo de HU-005), y `save()`
+     * llama [OperationDao.update] en vez de [OperationDao.insert] (design.md decisión #3). */
+    private val editingOperationId: Long? = null
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(OperationFormState.INITIAL)
     val state: StateFlow<OperationFormState> = _state.asStateFlow()
 
     /** Snapshot contra el que se compara el estado actual para el dirty-check de HU-009. Se
-     * actualiza una vez con los valores prellenados (HU-005) para que abrir el formulario y no
-     * tocar nada no cuente como "sucio". */
+     * actualiza una vez con los valores prellenados (HU-005, o los reales de HU-020 en modo
+     * edición) para que abrir el formulario y no tocar nada no cuente como "sucio". */
     private var initialSnapshot: OperationFormState = OperationFormState.INITIAL
+
+    /** HU-020: `createdAt` original de la operación editada -- se preserva al actualizar (solo
+     * `updatedAt` cambia). Sigue null en modo creación. */
+    private var editingCreatedAt: Long? = null
 
     /** true si el estado actual difiere del snapshot inicial del formulario (HU-009). */
     val isDirty: StateFlow<Boolean> = _state
@@ -77,6 +87,18 @@ class OperationFormViewModel(
 
     init {
         viewModelScope.launch {
+            val editingId = editingOperationId
+            if (editingId != null) {
+                val existing = operationDao.getById(editingId)
+                if (existing != null) {
+                    editingCreatedAt = existing.createdAt
+                    val prefilled = stateFrom(existing)
+                    initialSnapshot = prefilled
+                    _state.value = prefilled
+                }
+                return@launch
+            }
+
             val now = nowProvider()
             val assetCatalog = catalogItemDao.getByType(CatalogType.ASSET).first()
             // HU-005 Esc.2/3: solo se prellena el Activo si el catálogo no tiene más que la
@@ -109,6 +131,37 @@ class OperationFormViewModel(
                 _state.value = prefilled
             }
         }
+    }
+
+    /** HU-020: mapea una [Operation] ya persistida a un [OperationFormState] real (en vez de los
+     * defaults de HU-005) para prellenar el formulario en modo edición. Inverso de las
+     * conversiones que hace `save()` al guardar (parseDecimal/parseDateTime). */
+    private fun stateFrom(operation: Operation): OperationFormState {
+        val zoned = Instant.ofEpochMilli(operation.dateTime).atZone(ZoneId.systemDefault())
+        val resultInRSign = if ((operation.resultInR ?: 0f) < 0f) {
+            OperationFormState.SIGN_NEGATIVE
+        } else {
+            OperationFormState.SIGN_POSITIVE
+        }
+        return OperationFormState.INITIAL.copy(
+            dateText = zoned.format(DATE_FORMATTER),
+            timeText = zoned.format(TIME_FORMATTER),
+            assetId = operation.assetId,
+            direction = operation.direction,
+            qualityText = operation.quality.toString(),
+            emotionBeforeId = operation.emotionBeforeId,
+            emotionBeforeReason = operation.emotionBeforeReason ?: "",
+            emotionAfterId = operation.emotionAfterId,
+            emotionAfterReason = operation.emotionAfterReason ?: "",
+            errorId = operation.errorId,
+            errorReason = operation.errorReason ?: "",
+            result = operation.result,
+            riskPercentageText = operation.riskPercentage?.toString() ?: "",
+            resultInRSign = resultInRSign,
+            resultInRText = operation.resultInR?.let { kotlin.math.abs(it) }?.toString() ?: "",
+            plannedRatio = operation.plannedRatio ?: "",
+            entryDescription = operation.entryDescription
+        )
     }
 
     fun onDateChange(value: String) = update { it.copy(dateText = value) }
@@ -255,28 +308,35 @@ class OperationFormViewModel(
         }
         viewModelScope.launch {
             val now = System.currentTimeMillis()
-            val operationId = operationDao.insert(
-                Operation(
-                    dateTime = dateTimeMillis,
-                    assetId = current.assetId!!,
-                    direction = current.direction!!,
-                    quality = parseDecimal(current.qualityText) ?: 0f,
-                    emotionBeforeId = current.emotionBeforeId!!,
-                    emotionBeforeReason = current.emotionBeforeReason.ifBlank { null },
-                    emotionAfterId = current.emotionAfterId!!,
-                    emotionAfterReason = current.emotionAfterReason.ifBlank { null },
-                    errorId = current.errorId!!,
-                    errorReason = current.errorReason.ifBlank { null },
-                    result = current.result!!,
-                    riskPercentage = riskPercentage,
-                    resultInR = resultInR,
-                    plannedRatio = current.plannedRatio.ifBlank { null },
-                    entryDescription = current.entryDescription,
-                    createdAt = now,
-                    updatedAt = now
-                )
+            fun buildOperation(id: Long, createdAt: Long) = Operation(
+                id = id,
+                dateTime = dateTimeMillis,
+                assetId = current.assetId!!,
+                direction = current.direction!!,
+                quality = parseDecimal(current.qualityText) ?: 0f,
+                emotionBeforeId = current.emotionBeforeId!!,
+                emotionBeforeReason = current.emotionBeforeReason.ifBlank { null },
+                emotionAfterId = current.emotionAfterId!!,
+                emotionAfterReason = current.emotionAfterReason.ifBlank { null },
+                errorId = current.errorId!!,
+                errorReason = current.errorReason.ifBlank { null },
+                result = current.result!!,
+                riskPercentage = riskPercentage,
+                resultInR = resultInR,
+                plannedRatio = current.plannedRatio.ifBlank { null },
+                entryDescription = current.entryDescription,
+                createdAt = createdAt,
+                updatedAt = now
             )
-            persistImages(operationId, current.pendingImages, now)
+
+            val editingId = editingOperationId
+            if (editingId != null) {
+                // HU-020: actualiza en vez de insertar, preservando la fecha de creación original.
+                operationDao.update(buildOperation(id = editingId, createdAt = editingCreatedAt ?: now))
+            } else {
+                val operationId = operationDao.insert(buildOperation(id = 0L, createdAt = now))
+                persistImages(operationId, current.pendingImages, now)
+            }
             _state.value = current.copy(isSaved = true)
         }
     }
@@ -366,11 +426,19 @@ class OperationFormViewModel(
         private val operationDao: OperationDao,
         private val catalogItemDao: CatalogItemDao,
         private val operationImageDao: OperationImageDao,
-        private val imageProcessor: ImageProcessor
+        private val imageProcessor: ImageProcessor,
+        /** HU-020: id de la operación a editar, o null para el modo creación normal de HU-005. */
+        private val editingOperationId: Long? = null
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return OperationFormViewModel(operationDao, catalogItemDao, operationImageDao, imageProcessor) as T
+            return OperationFormViewModel(
+                operationDao,
+                catalogItemDao,
+                operationImageDao,
+                imageProcessor,
+                editingOperationId = editingOperationId
+            ) as T
         }
     }
 }

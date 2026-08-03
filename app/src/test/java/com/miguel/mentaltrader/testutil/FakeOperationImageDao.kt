@@ -26,6 +26,10 @@ class FakeOperationImageDao : OperationImageDao {
 
     override suspend fun getAll(): List<OperationImage> = allImages.value
 
+    override suspend fun deleteByOperationId(operationId: Long) {
+        allImages.value = allImages.value.filterNot { it.operationId == operationId }
+    }
+
     override suspend fun deleteAll() {
         allImages.value = emptyList()
     }

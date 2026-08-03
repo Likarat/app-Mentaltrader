@@ -96,7 +96,10 @@ class MainActivityFabTest {
         composeTestRule.onNodeWithText("Historial").performClick()
         composeTestRule.waitForIdle()
 
-        composeTestRule.onNodeWithText("$runMarker operación #0", substring = true).assertExists()
+        // Desde EP-003, la tarjeta ya no muestra la descripción de entrada (ver HistorialScreen.kt,
+        // HU-015 Escenario 3): se identifica el contenido real por el Resultado, mismo criterio ya
+        // aplicado en AppNavigationTest.
+        composeTestRule.onAllNodesWithText("WIN", substring = true)[0].assertExists()
         composeTestRule.onNodeWithContentDescription("Nueva operación").assertIsDisplayed().assertHasClickAction()
 
         // Desplaza el listado hasta el último ítem real (sea cual sea el total, incluyendo
@@ -111,7 +114,7 @@ class MainActivityFabTest {
 
         // El contenido subyacente (la fila renderizada al final del listado) también sigue
         // presente/accesible: la interacción no queda bloqueada por el FAB.
-        composeTestRule.onAllNodesWithText("Operación #", substring = true)[0].assertExists()
+        composeTestRule.onAllNodesWithText("WIN", substring = true)[0].assertExists()
 
         // Y el FAB sigue abriendo el formulario con normalidad tras el scroll.
         composeTestRule.onNodeWithContentDescription("Nueva operación").performClick()

@@ -66,9 +66,11 @@ class OperationFormJourneyTest {
         // 10. Guardar -> onSaved navega de vuelta (popBackStack).
         composeTestRule.onNodeWithText("Guardar").performScrollTo().performClick()
 
-        // 11. La operación recién creada aparece en el listado mínimo de Historial
-        //     (INT-form-listado-minimo).
+        // 11. La operación recién creada aparece en el listado real de Historial
+        //     (INT-form-listado-minimo). Desde EP-003 la tarjeta ya no muestra la descripción de
+        //     entrada (ver HistorialScreen.kt, HU-015 Escenario 3): se identifica por el
+        //     Resultado, mismo criterio ya aplicado en AppNavigationTest.
         composeTestRule.onNodeWithText("Historial").performClick()
-        composeTestRule.onAllNodesWithText(descripcion)[0].assertExists()
+        composeTestRule.onAllNodesWithText("WIN", substring = true)[0].assertExists()
     }
 }
