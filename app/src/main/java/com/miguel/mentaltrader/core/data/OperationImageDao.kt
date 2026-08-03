@@ -21,6 +21,12 @@ interface OperationImageDao {
     @Query("SELECT * FROM operation_image")
     suspend fun getAll(): List<OperationImage>
 
+    /** HU-021: borra las filas de imágenes de una operación al confirmarse su eliminación
+     * definitiva (los archivos físicos en `filesDir` los borra el caller ANTES de llamar a esto,
+     * mismo orden que [DataResetService.deleteAllOperationsAndImages]). */
+    @Query("DELETE FROM operation_image WHERE operationId = :operationId")
+    suspend fun deleteByOperationId(operationId: Long)
+
     @Query("DELETE FROM operation_image")
     suspend fun deleteAll()
 }

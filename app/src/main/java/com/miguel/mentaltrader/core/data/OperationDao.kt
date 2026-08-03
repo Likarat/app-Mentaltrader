@@ -4,6 +4,7 @@ import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -22,6 +23,17 @@ interface OperationDao {
 
     @Query("SELECT * FROM operation WHERE id = :id")
     suspend fun getById(id: Long): Operation?
+
+    /** HU-020: actualiza una operación existente (modo edición de OperationFormViewModel,
+     * design.md decisión #3). No cambia el contrato de [insert] existente. */
+    @Update
+    suspend fun update(operation: Operation)
+
+    /** HU-021: borrado físico definitivo de una operación, disparado por HistorialViewModel solo
+     * tras expirar la ventana de "Deshacer" (soft-delete solo en memoria, design.md decisión #4 --
+     * este método nunca se llama mientras esa ventana sigue activa). */
+    @Query("DELETE FROM operation WHERE id = :id")
+    suspend fun deleteById(id: Long)
 
     /** "Borrar todo" (Ajustes): elimina todas las operaciones, conserva los catálogos. */
     @Query("DELETE FROM operation")

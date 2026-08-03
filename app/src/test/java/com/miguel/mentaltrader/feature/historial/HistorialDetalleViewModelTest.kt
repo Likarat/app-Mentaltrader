@@ -145,6 +145,15 @@ class HistorialDetalleViewModelTest {
 
         override suspend fun getById(id: Long): Operation? = inserted.find { it.id == id }
 
+        override suspend fun update(operation: Operation) {
+            val index = inserted.indexOfFirst { it.id == operation.id }
+            if (index >= 0) inserted[index] = operation
+        }
+
+        override suspend fun deleteById(id: Long) {
+            inserted.removeAll { it.id == id }
+        }
+
         override suspend fun deleteAll() {
             inserted.clear()
         }
@@ -168,6 +177,10 @@ class HistorialDetalleViewModelTest {
             MutableStateFlow(images.filter { it.operationId == operationId }.sortedBy { it.position })
 
         override suspend fun getAll(): List<OperationImage> = images
+
+        override suspend fun deleteByOperationId(operationId: Long) {
+            images.removeAll { it.operationId == operationId }
+        }
 
         override suspend fun deleteAll() {
             images.clear()

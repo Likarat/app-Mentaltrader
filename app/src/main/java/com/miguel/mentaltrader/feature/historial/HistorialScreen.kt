@@ -63,6 +63,11 @@ fun HistorialScreen(
     }
 
     val items = viewModel.historial.collectAsLazyPagingItems()
+    // HU-021: red de seguridad de UI para la reactividad optimista del "deshacer" -- la
+    // instancia de PagingData ya se filtra en HistorialViewModel, pero esta comprobación evita
+    // depender de que un refresh de Paging ya haya ocurrido para ocultar la fila de inmediato
+    // (ver el riesgo documentado en design.md sobre el orden filter/insertSeparators).
+    val pendingDeleteIds by viewModel.pendingDeleteIds.collectAsState()
 
     if (items.itemCount == 0) {
         Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -87,7 +92,11 @@ fun HistorialScreen(
         ) { index ->
             when (val item = items[index]) {
                 is HistorialListItem.GroupHeader -> GroupHeaderRow(item)
-                is HistorialListItem.OperationRow -> OperationCard(item.operation, viewModel, onOperationClick)
+                is HistorialListItem.OperationRow -> {
+                    if (item.operation.id !in pendingDeleteIds) {
+                        OperationCard(item.operation, viewModel, onOperationClick)
+                    }
+                }
                 null -> Unit
             }
         }

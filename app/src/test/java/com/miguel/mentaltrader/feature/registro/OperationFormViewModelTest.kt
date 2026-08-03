@@ -52,6 +52,12 @@ class OperationFormViewModelTest {
     private fun createViewModel(now: () -> java.time.LocalDateTime = java.time.LocalDateTime::now): OperationFormViewModel =
         OperationFormViewModel(operationDao, catalogItemDao, nowProvider = now)
 
+    private fun createEditViewModel(
+        editingOperationId: Long,
+        now: () -> java.time.LocalDateTime = java.time.LocalDateTime::now
+    ): OperationFormViewModel =
+        OperationFormViewModel(operationDao, catalogItemDao, nowProvider = now, editingOperationId = editingOperationId)
+
     private fun OperationFormViewModel.fillMinimalRequiredFields(
         assetId: Long,
         emotionBeforeId: Long,
@@ -484,8 +490,117 @@ class OperationFormViewModelTest {
         assertTrue(viewModel.state.value.fieldErrors.isEmpty())
     }
 
+    // ---- HU-020: editar una operación existente (sub-slice EP-003-c) ----
+
+    private fun operacionExistente(
+        assetId: Long,
+        emotionBeforeId: Long,
+        emotionAfterId: Long,
+        errorId: Long,
+        id: Long = 0L
+    ) = Operation(
+        id = id,
+        dateTime = java.time.LocalDateTime.of(2026, 6, 15, 9, 30)
+            .atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli(),
+        assetId = assetId,
+        direction = Direction.SELL,
+        quality = 6.5f,
+        emotionBeforeId = emotionBeforeId,
+        emotionBeforeReason = "Ansiedad por la noticia",
+        emotionAfterId = emotionAfterId,
+        emotionAfterReason = "Alivio",
+        errorId = errorId,
+        errorReason = "Entré antes de tiempo",
+        result = ResultType.LOSS,
+        riskPercentage = 1.5f,
+        resultInR = -2.0f,
+        plannedRatio = "1:3",
+        entryDescription = "Descripción original de la operación",
+        createdAt = 111L,
+        updatedAt = 111L
+    )
+
+    // HU-020 Escenario 1: abrir en modo edición prellena el formulario con los datos reales
+    // actuales de la operación (no con los defaults de HU-005).
+    @Test
+    fun `editar una operacion existente prellena el formulario con sus datos reales`() = runTest {
+        val assetId = catalogItemDao.seed(CatalogType.ASSET, "XAUUSD")
+        val emotionBeforeId = catalogItemDao.seed(CatalogType.EMOTION, "Ansiedad")
+        val emotionAfterId = catalogItemDao.seed(CatalogType.EMOTION, "Alivio")
+        val errorId = catalogItemDao.seed(CatalogType.ERROR, "Entrada temprana")
+        val operationId = operationDao.insert(operacionExistente(assetId, emotionBeforeId, emotionAfterId, errorId))
+
+        val viewModel = createEditViewModel(operationId)
+
+        val state = viewModel.state.value
+        assertEquals("15/06/2026", state.dateText)
+        assertEquals("09:30", state.timeText)
+        assertEquals(assetId, state.assetId)
+        assertEquals(Direction.SELL, state.direction)
+        assertEquals("6.5", state.qualityText)
+        assertEquals(emotionBeforeId, state.emotionBeforeId)
+        assertEquals("Ansiedad por la noticia", state.emotionBeforeReason)
+        assertEquals(emotionAfterId, state.emotionAfterId)
+        assertEquals("Alivio", state.emotionAfterReason)
+        assertEquals(errorId, state.errorId)
+        assertEquals("Entré antes de tiempo", state.errorReason)
+        assertEquals(ResultType.LOSS, state.result)
+        assertEquals("1.5", state.riskPercentageText)
+        assertEquals(OperationFormState.SIGN_NEGATIVE, state.resultInRSign)
+        assertEquals("2.0", state.resultInRText)
+        assertEquals("1:3", state.plannedRatio)
+        assertEquals("Descripción original de la operación", state.entryDescription)
+        // Abrir en modo edición sin tocar nada no debe contarse como "sucio" (mismo criterio de
+        // HU-009 que ya aplica al prellenado de HU-005).
+        assertFalse(viewModel.isDirty.value)
+    }
+
+    // HU-020 Escenario 2: guardar en modo edición actualiza la operación existente (no inserta
+    // una nueva) y preserva su fecha de creación original.
+    @Test
+    fun `guardar en modo edicion actualiza la operacion existente en vez de insertar una nueva`() = runTest {
+        val assetId = catalogItemDao.seed(CatalogType.ASSET, "XAUUSD")
+        val emotionBeforeId = catalogItemDao.seed(CatalogType.EMOTION, "Ansiedad")
+        val emotionAfterId = catalogItemDao.seed(CatalogType.EMOTION, "Alivio")
+        val errorId = catalogItemDao.seed(CatalogType.ERROR, "Entrada temprana")
+        val operationId = operationDao.insert(operacionExistente(assetId, emotionBeforeId, emotionAfterId, errorId))
+        val viewModel = createEditViewModel(operationId)
+
+        viewModel.onQualityChange("9.0")
+        viewModel.onDescriptionChange("Descripción corregida")
+        viewModel.save()
+
+        assertEquals(0, operationDao.inserted.count { it.id != operationId })
+        assertEquals(1, operationDao.updated.size)
+        val saved = operationDao.updated.single()
+        assertEquals(operationId, saved.id)
+        assertEquals(9.0f, saved.quality)
+        assertEquals("Descripción corregida", saved.entryDescription)
+        assertEquals(111L, saved.createdAt) // se preserva la fecha de creación original
+        assertTrue(viewModel.state.value.isSaved)
+    }
+
+    // HU-020 Escenario 3: las reglas de validación existentes (HU-004) aplican también al editar.
+    @Test
+    fun `editar con un valor fuera de rango bloquea el guardado con la misma validacion que crear`() = runTest {
+        val assetId = catalogItemDao.seed(CatalogType.ASSET, "XAUUSD")
+        val emotionBeforeId = catalogItemDao.seed(CatalogType.EMOTION, "Ansiedad")
+        val emotionAfterId = catalogItemDao.seed(CatalogType.EMOTION, "Alivio")
+        val errorId = catalogItemDao.seed(CatalogType.ERROR, "Entrada temprana")
+        val operationId = operationDao.insert(operacionExistente(assetId, emotionBeforeId, emotionAfterId, errorId))
+        val viewModel = createEditViewModel(operationId)
+
+        viewModel.onQualityChange("11")
+        viewModel.save()
+
+        assertTrue(operationDao.updated.isEmpty())
+        assertTrue(viewModel.state.value.fieldErrors.containsKey(OperationFormState.FIELD_QUALITY))
+        assertFalse(viewModel.state.value.isSaved)
+    }
+
     private class FakeOperationDao : OperationDao {
         val inserted = mutableListOf<Operation>()
+        val updated = mutableListOf<Operation>()
         private var nextId = 1L
 
         override suspend fun insert(operation: Operation): Long {
@@ -501,6 +616,16 @@ class OperationFormViewModelTest {
             throw UnsupportedOperationException("No usado por OperationFormViewModelTest (feature de Historial, EP-003)")
 
         override suspend fun getById(id: Long): Operation? = inserted.find { it.id == id }
+
+        override suspend fun update(operation: Operation) {
+            updated += operation
+            val index = inserted.indexOfFirst { it.id == operation.id }
+            if (index >= 0) inserted[index] = operation
+        }
+
+        override suspend fun deleteById(id: Long) {
+            inserted.removeAll { it.id == id }
+        }
 
         override suspend fun deleteAll() {
             inserted.clear()

@@ -81,7 +81,7 @@
           "HU-020",
           "HU-021"
         ],
-        "status": "pending",
+        "status": "done",
         "journey_smoke": false
       },
       {
@@ -256,42 +256,42 @@
         "kind": "hu_ac",
         "ref": "HU-020#Escenario1",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Cubierto a nivel JVM (TDD real, red->green): OperationFormViewModelTest.'editar una operacion existente prellena el formulario con sus datos reales' (testDebugUnitTest en verde). Implementado: OperationFormViewModel gana editingOperationId: Long?, su init carga la Operation real via operationDao.getById(id) y prellena el estado con stateFrom(existing) (fecha/hora/activo/direccion/calidad/emociones+motivos/error+motivo/resultado/riesgo/R con signo/ratio/descripcion reales, no los defaults de HU-005); isDirty queda en false al abrir (mismo criterio que el prellenado de HU-005). Boton 'Editar' real en HistorialDetalleScreen navega a la ruta parametrizada RUTA_EDITAR_OPERACION (MainActivity.kt) que monta el formulario en modo edicion con el id real. assembleDebug+compileDebugAndroidTestKotlin BUILD SUCCESSFUL. Sin instrumentado/journey_smoke todavia (diferido a la pasada final, sin dispositivo conectado en esta sesion, mismo criterio que EP-003-a/b)."
       },
       {
         "id": "HU-020-AC2",
         "kind": "hu_ac",
         "ref": "HU-020#Escenario2",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Cubierto a nivel JVM: OperationFormViewModelTest.'guardar en modo edicion actualiza la operacion existente en vez de insertar una nueva' (testDebugUnitTest en verde) -- verifica que save() llama OperationDao.update (nuevo metodo Room @Update) en vez de insert, que el id/fecha de creacion original (createdAt) se preservan, y que los campos editados (ej. calidad, descripcion) quedan reflejados en la fila actualizada. El listado (HistorialScreen, Paging real sobre Room) y el detalle (HistorialDetalleViewModel, getById real) leen de la misma tabla `operation`, por lo que un update real se refleja automaticamente en ambos sin cableado adicional. Sin verificacion instrumentada/visual todavia, diferido a la pasada final."
       },
       {
         "id": "HU-020-AC3",
         "kind": "hu_ac",
         "ref": "HU-020#Escenario3",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Cubierto a nivel JVM: OperationFormViewModelTest.'editar con un valor fuera de rango bloquea el guardado con la misma validacion que crear' (testDebugUnitTest en verde) -- reutiliza la misma funcion validate()/save() de HU-004 sin duplicarla; un valor de Calidad fuera de 0.0-10.0 en modo edicion bloquea el guardado (operationDao.updated queda vacio) y resalta FIELD_QUALITY, igual que en modo creacion. Sin instrumentado todavia, misma razon que AC1."
       },
       {
         "id": "HU-021-AC1",
         "kind": "hu_ac",
         "ref": "HU-021#Escenario1",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Cubierto a nivel JVM: HistorialViewModelTest.'eliminar una operacion la agrega de inmediato a pendingDeleteIds sin tocar Room todavia' (testDebugUnitTest en verde, StandardTestDispatcher pasado explicitamente a runTest para el control de tiempo virtual). Implementado: HistorialViewModel.onRequestDelete(id) agrega el id a pendingDeleteIds (StateFlow) de inmediato y emite deleteRequested (SharedFlow con buffer, para no perder el evento si el listado no estaba compuesto en ese instante). Boton 'Eliminar' real en HistorialDetalleScreen pide confirmacion (AlertDialog) antes de disparar onRequestDelete + volver al listado; MainActivity (HistorialViewModel hoisteado a nivel de MentaltraderApp, sobrevive navegar al detalle y volver) muestra el Snackbar real con accion 'Deshacer' al recibir el evento. HistorialScreen oculta la fila de inmediato a nivel de UI (ademas del filtro de PagingData en el ViewModel) como red de seguridad optimista. assembleDebug+compileDebugAndroidTestKotlin BUILD SUCCESSFUL. Sin instrumentado/journey_smoke todavia (diferido a la pasada final, sin dispositivo conectado en esta sesion)."
       },
       {
         "id": "HU-021-AC2",
         "kind": "hu_ac",
         "ref": "HU-021#Escenario2",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Cubierto a nivel JVM: HistorialViewModelTest.'deshacer dentro del tiempo disponible cancela el borrado y la operacion sigue intacta' (testDebugUnitTest en verde) -- onUndoDelete(id) cancela el Job programado y quita el id de pendingDeleteIds antes de que expire UNDO_WINDOW_MS (5000ms); la operacion nunca se toco en Room (design.md decision #4), por lo que 'restaurar exactamente como estaba' es trivial (no hay reinsercion). Snackbar real con accion 'Deshacer' cableada en MainActivity (SnackbarDuration.Short, por debajo de UNDO_WINDOW_MS a proposito para que la accion siempre sea valida mientras el snackbar este visible). Sin instrumentado todavia, misma razon que AC1."
       },
       {
         "id": "HU-021-AC3",
         "kind": "hu_ac",
         "ref": "HU-021#Escenario3",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Cubierto a nivel JVM: HistorialViewModelTest.'expirar la ventana de deshacer elimina definitivamente la operacion y sus imagenes' (testDebugUnitTest en verde) -- al expirar UNDO_WINDOW_MS sin deshacer, el Job ejecuta operationImageDao.getByOperationId(id).first(), borra cada archivo real (imagen completa + miniatura cacheada via ImageProcessor.thumbnailPathFor, mismo patron que DataResetService) mediante la lambda deleteImageFiles inyectada por HistorialViewModel.Factory, despues operationImageDao.deleteByOperationId(id) (query Room nueva) y operationDao.deleteById(id) (query Room nueva). Test adicional 'pedir eliminar el mismo id dos veces no duplica el borrado' cubre el edge de doble-tap. Sin instrumentado/verificacion real de archivos en filesDir todavia, diferido a la pasada final."
       },
       {
         "id": "HU-022-AC1",
@@ -410,14 +410,14 @@
         "kind": "integration_point",
         "ref": "presentacion(boton Editar en detalle HU-018) -> feature registro (formulario reutilizado de EP-001) -> datos(actualiza Operation existente, HU-020)",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Cableado real implementado de punta a punta: HistorialDetalleScreen boton 'Editar' -> MainActivity navController.navigate(rutaEditarOperacion(id)) -> RUTA_EDITAR_OPERACION real (NavType.LongType) -> OperationFormViewModel.Factory(..., editingOperationId = id real) -> OperationFormViewModel en modo edicion (mismo OperationFormScreen de EP-001, sin duplicar) -> save() llama operationDao.update (Room @Update real) -> Operation existente actualizada en la misma tabla que lee HistorialViewModel/HistorialDetalleViewModel. Guard de 'salir sin guardar' (HU-009) y flecha 'atras' del TopAppBar extendidos a esta ruta (isFormRoute). assembleDebug+compileDebugAndroidTestKotlin BUILD SUCCESSFUL. Falta la corrida real (connectedDebugAndroidTest: editar una operacion real y verificar el cambio reflejado en listado+detalle) -- sin dispositivo conectado en esta sesion, diferido a la pasada final de instrumentados."
       },
       {
         "id": "INT-eliminar-softdelete-imagenes",
         "kind": "integration_point",
         "ref": "datos(Operation + OperationImage) -> archivo(filesDir) borrado real tras expirar la ventana de deshacer (HU-021)",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Cableado real implementado de punta a punta: HistorialDetalleScreen boton 'Eliminar' (con confirmacion) -> MainActivity.onDelete llama historialViewModel.onRequestDelete(id real) (HistorialViewModel hoisteado a nivel de MentaltraderApp) -> Job real con delay(UNDO_WINDOW_MS=5000ms) -> al expirar sin cancelar: operationImageDao.getByOperationId(id).first() real -> deleteImageFiles real (File(appContext.filesDir, filePath).delete() + thumbnailPathFor real, cableado en HistorialViewModel.Factory, mismo patron que DataResetService) -> operationImageDao.deleteByOperationId(id) (query Room nueva) -> operationDao.deleteById(id) (query Room nueva). Logica de Job/delay/cancelacion cubierta con StandardTestDispatcher (testDebugUnitTest en verde, ver HU-021-AC1/AC2/AC3). assembleDebug+compileDebugAndroidTestKotlin BUILD SUCCESSFUL. Falta la corrida real (connectedDebugAndroidTest: verificar que los archivos fisicos en filesDir realmente desaparecen del dispositivo) -- sin dispositivo conectado en esta sesion, diferido a la pasada final de instrumentados."
       },
       {
         "id": "INT-filtros-query-room",
@@ -457,6 +457,16 @@
     ],
     "progress_log": [
       {
+        "at": "2026-08-03T02:45:00.000000+00:00",
+        "by": "build-orchestrator",
+        "note": "EP-003-c (HU-020 editar + HU-021 eliminar con deshacer) COMPLETO a nivel de codigo/TDD JVM, siguiendo design.md decisiones #3 y #4 sin desviarse. TDD real red->green en ambas HU (tests escritos primero, fallaron por compilacion hasta implementar). HU-020: OperationDao gana update() (@Update Room) y deleteById() (@Query); OperationFormViewModel gana editingOperationId: Long? -- su init carga la Operation real via getById y la mapea a OperationFormState con stateFrom(existing) (inverso de las conversiones de save(), incluye signo+magnitud de Resultado en R); save() bifurca a operationDao.update(...) preservando el createdAt original cuando esta en modo edicion. Boton 'Editar' real en HistorialDetalleScreen navega a la ruta parametrizada nueva RUTA_EDITAR_OPERACION (MainActivity.kt), que monta el mismo OperationFormScreen/OperationFormViewModel de EP-001 (sin duplicar formulario), con el mismo guard de 'salir sin guardar' de HU-009 extendido (isFormRoute cubre ahora tanto RUTA_NUEVA_OPERACION como esta ruta). 3 tests nuevos en OperationFormViewModelTest (prellenado real, update en vez de insert preservando createdAt, validacion HU-004 aplica igual). HU-021: OperationImageDao gana deleteByOperationId() (@Query); HistorialViewModel gana pendingDeleteIds (StateFlow<Set<Long>>) + onRequestDelete/onUndoDelete + deleteRequested (SharedFlow con buffer) -- soft-delete SOLO en memoria via Job cancelable con delay(UNDO_WINDOW_MS=5000ms), sin tocar el schema de Room (nunca se agrego columna deletedAt/isDeleted), exactamente como exige design.md decision #4. El borrado fisico real (al expirar sin cancelar) borra archivos reales (imagen+miniatura via ImageProcessor.thumbnailPathFor, misma lambda inyectada por el Factory que reproduce el patron de DataResetService) antes de borrar las filas de Room. HistorialViewModel se hoisteo de MentaltraderApp (antes vivia solo en la ruta 'Historial' del NavHost) para que pendingDeleteIds sobreviva navegar al detalle y volver -- el boton 'Eliminar' de HistorialDetalleScreen (con AlertDialog de confirmacion real) y el Snackbar real con accion 'Deshacer' (SnackbarDuration.Short, deliberadamente por debajo de UNDO_WINDOW_MS) comparten la misma instancia. HistorialScreen ademas oculta la fila pendiente de inmediato a nivel de UI como red de seguridad optimista (el filtro de PagingData en el ViewModel, tal como pide design.md, puede no re-evaluarse hasta el proximo refresh de Paging -- riesgo ya documentado en el propio design.md, pendiente de verificacion instrumentada real). 4 tests nuevos en HistorialViewModelTest nuevo (agregar a pendingDeleteIds sin tocar Room, deshacer restaura intacta, expirar borra fila+imagenes+archivos reales, doble-tap no duplica el borrado) usando StandardTestDispatcher pasado explicitamente a runTest (necesario para controlar el tiempo virtual de delay(), a diferencia del UnconfinedTestDispatcher que usa el resto de tests de esta rama). testDebugUnitTest (48 tests en toda la suite, 0 fallas) + assembleDebug + compileDebugAndroidTestKotlin: BUILD SUCCESSFUL, sin regresiones. Sin instrumentado/journey_smoke todavia (tasks.md 3.8/3.9 diferidos a la pasada final unica, sin dispositivo conectado en esta sesion, mismo criterio ya aplicado a EP-003-a/b). sub_slices[EP-003-c].status=done. Proximo paso: EP-003-d (HU-017, resumen mensual + colapsar/expandir)."
+      },
+      {
+        "at": "2026-08-02T23:30:00.000000+00:00",
+        "by": "/build:resume",
+        "note": "Intento de correr los instrumentados pendientes (HistorialSeparators/HistorialDetalle wiring, mas HU-009 legacy de EP-001) sin dispositivo fisico, usando emuladores, con tope de 3 intentos acordado con el usuario. Intento 1 (Pixel_6_API_30, ya corriendo al empezar la sesion): 30/34 tests verdes. 4 fallas, triage: (a) MainActivityFabTest.elFabPermaneceVisibleEInteractuableAlHacerScrollEnHistorial y OperationFormJourneyTest.crearUnaOperacionDePuntaAPuntaYVerlaEnElListadoMinimo -- REGRESION REAL de EP-003: ambos tests (de EP-001, no tocados desde entonces) asertaban sobre el texto de 'Descripcion entrada' visible en el listado, que el rewrite de HistorialScreen.kt (HU-015) ya no muestra (la tarjeta real solo muestra Activo+Hora y Resultado+R, correcto contra el AC de HU-015 Escenario 3). FIX aplicado: ambos tests actualizados para identificar contenido por el nombre del ResultType ('WIN', substring), mismo criterio que ya establecio AppNavigationTest.tocarHistorialMuestraLaPantallaDeHistorialInmediatamente tras el mismo rewrite (ver su comentario in-line). Sin tocar produccion. (b) FormExitGuardTest.confirmarSalidaPorAtrasDescartaLosCambiosYNavega + presionarAtrasConCambiosPendientesMuestraElMismoDialogoYRespetaCancelar -- fallan consistentemente en API 30 por diseno documentado: HighPriorityBackHandler (MainActivity.kt:102-131) solo aplica el fix de prioridad OnBackInvokedDispatcher en API>=33 (TIRAMISU); en API<33 cae al BackHandler estandar de Compose, que el propio KDoc ya documenta como perdedor sistematico contra el callback interno de NavHost. NO es una regresion de EP-003 (HU-009 es de EP-001, archivada, ningun archivo de produccion de ese flujo fue tocado en esta rama) -- es una limitacion conocida de este AVD especifico. Intento 2: cambio a Pixel_3a_API_34 (API>=33, deberia ejercer la ruta correcta del fix). El emulador crasheo a mitad de la corrida (android.os.DeadSystemException, system_server caido, solo 3/34 tests corridos). Intento 3: cold boot con -wipe-data del mismo AVD; boot tardo mas de 9 minutos (mucho mas lento que lo esperado, maquina con rendering por software). Reintentos aislados de FormExitGuardTest en este AVD dieron resultados INCONSISTENTES entre corridas (2 fallas una vez, 3 fallas distintas -incluyendo una que SI pasaba antes- otra vez, con un error nuevo de bloqueo de archivo de Windows entre medio) -- indicio de que UiDevice.pressBack() contra predictive-back en este emulador especifico (posiblemente por lentitud de rendering por software, no representativo de un dispositivo real) no es fiable para verificar HU-009 aqui, mas alla de lo que ya se sabia de API 30. Tope de 3 intentos acordado con el usuario alcanzado. DECISION PENDIENTE DEL USUARIO (no tomada por el modelo, regla dura #5 del arnes): pausar la verificacion instrumentada de HU-009 (fuera del alcance de EP-003, ya cerrada en EP-001) y de los items propios de EP-003-a/b para una pasada final unica con dispositivo real conectado, tal como ya se veniai diferiendo; o seguir intentando en emulador. wiring_checklist SIN cambios de estado (sigue failing, sin evidencia de instrumentado real todavia, solo esta nota de investigacion)."
+      },
+      {
         "at": "2026-08-02T21:15:00.000000+00:00",
         "by": "build-orchestrator",
         "note": "EP-003-b (HU-018) COMPLETO a nivel de codigo/TDD JVM. Escrito HistorialDetalleScreen.kt: imagen primero (si existe, con `if (state.images.isNotEmpty())` para no dejar espacio vacio), secciones 'Datos generales'/'Emociones y errores'/'Resultado'/'Descripcion entrada' en ese orden (mismo orden de lectura que OperationFormScreen). Navegacion real cableada: HistorialScreen gana `onOperationClick`, OperationCard es clickable, MainActivity.kt agrega la ruta parametrizada RUTA_DETALLE_OPERACION (`detalle_operacion/{operationId}`, NavType.LongType, helper rutaDetalleOperacion(id)) y monta HistorialDetalleViewModel/Screen reales con el id real de la operacion tocada. testDebugUnitTest + assembleDebug + compileDebugAndroidTestKotlin: BUILD SUCCESSFUL, sin regresiones. tasks.md 2.1-2.5 tildadas; 2.6/2.7 (instrumentado+journey_smoke) diferidas a la pasada final unica, sin dispositivo conectado en esta sesion (decision ya vigente desde EP-002). Proximo paso: EP-003-c (HU-020+HU-021, editar + eliminar con deshacer)."
@@ -483,9 +493,9 @@
       }
     ],
     "session_continuity": {
-      "last_session": "2026-08-02T21:15:00.000000+00:00",
-      "stopped_at": "2026-08-02T21:15:00.000000+00:00",
-      "resume_hint": "EP-003-a (HU-015+HU-016) y EP-003-b (HU-018) cerrados a nivel de codigo/TDD JVM (commits 515bc4d, d5cacb3, y el commit de cierre de EP-003-b). Ambos solo les falta instrumentado+journey_smoke (sin dispositivo conectado en toda la sesion, diferido a una pasada final unica, mismo criterio que EP-002-b/c/d). Siguiente paso EXACTO: abrir EP-003-c (HU-020 editar + HU-021 eliminar con deshacer). Empezar por HU-020 (editar): OperationDao.update(operation) (Room @Update), OperationFormViewModel gana editingOperationId: Long? = null (si no es null, init carga la operacion existente via getById y prellena el estado en vez del prellenado de HU-005; save() llama update() en vez de insert() en modo edicion), boton 'Editar' en HistorialDetalleScreen navega a OperationFormScreen con ese id. Despues HU-021 (eliminar con deshacer): ver design.md decision #4 -- soft-delete SOLO en memoria del HistorialViewModel (pendingDeleteIds + Job con delay cancelable), sin tocar el schema de Room. TDD JVM primero para ambas, UI despues, igual que en EP-003-a/b.",
+      "last_session": "2026-08-03T02:45:00.000000+00:00",
+      "stopped_at": "2026-08-03T02:45:00.000000+00:00",
+      "resume_hint": "EP-003-a (HU-015+HU-016), EP-003-b (HU-018) y EP-003-c (HU-020+HU-021) cerrados a nivel de codigo/TDD JVM (commits 515bc4d, d5cacb3, el commit de cierre de EP-003-b, y el commit de cierre de EP-003-c todavia por crear en esta sesion -- ver git log/status antes de asumir que ya existe). Los tres solo les falta instrumentado+journey_smoke (sin dispositivo conectado en toda la sesion, diferido a una pasada final unica, mismo criterio que EP-002-b/c/d). Siguiente paso EXACTO: abrir EP-003-d (HU-017, resumen mensual + colapsar/expandir), la unica HU restante de este sub-slice segun tasks.md seccion 4: (1) OperationDao: query de agregacion por mes (GROUP BY strftime('%Y-%m', ...): conteo, % ganadas, R acumulado) -> Flow<List<MonthSummary>> nuevo, sin paginar (design.md decision #2 -- query APARTE de la paginada de HU-015/016, no derivada de ella). (2) HistorialViewModel expone ese resumen + collapsedMonths: Set<YearMonth> (estado de UI puro, con onToggleMonth) -- el colapsar/expandir NO toca la query. (3) HistorialScreen: el encabezado de mes (GroupHeaderRow ya existente) muestra el resumen real y colapsa/expande sus operaciones al tocarlo sin afectar otros meses. TDD JVM primero (calculo de agregacion contra datos de prueba con fakes locales, mismo estilo que el resto de esta rama; colapsar un mes no afecta el estado de otro), UI despues, igual que en EP-003-a/b/c.",
       "critical_recorded": false,
       "auto_continue": false
     }

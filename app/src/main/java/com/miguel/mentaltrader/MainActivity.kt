@@ -23,6 +23,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -79,6 +83,14 @@ private const val RUTA_DETALLE_OPERACION_BASE = "detalle_operacion"
 private const val ARG_OPERATION_ID = "operationId"
 const val RUTA_DETALLE_OPERACION = "$RUTA_DETALLE_OPERACION_BASE/{$ARG_OPERATION_ID}"
 fun rutaDetalleOperacion(operationId: Long) = "$RUTA_DETALLE_OPERACION_BASE/$operationId"
+
+// HU-020: ruta parametrizada del formulario en modo edición, abierta desde el botón "Editar" de
+// la vista de detalle (EP-003-c). Reutiliza OperationFormScreen/OperationFormViewModel (design.md
+// decisión #3), no un formulario nuevo.
+private const val RUTA_EDITAR_OPERACION_BASE = "editar_operacion"
+const val RUTA_EDITAR_OPERACION = "$RUTA_EDITAR_OPERACION_BASE/{$ARG_OPERATION_ID}"
+fun rutaEditarOperacion(operationId: Long) = "$RUTA_EDITAR_OPERACION_BASE/$operationId"
+
 const val RUTA_AJUSTES = "ajustes"
 
 /**
@@ -139,13 +151,47 @@ fun MentaltraderApp(navController: NavHostController = rememberNavController()) 
     val showSettingsAction = Destino.items.any { it.route == currentRoute }
     val application = LocalContext.current.applicationContext as MentaltraderApplication
 
+    // HU-020: la edición reutiliza OperationFormScreen/OperationFormViewModel -- el mismo
+    // guard de "salir sin guardar" (HU-009) y la misma barra superior con flecha "atrás" que ya
+    // aplican a "Nueva operación" deben aplicar también a esta ruta parametrizada.
+    val isFormRoute = currentRoute == RUTA_NUEVA_OPERACION || currentRoute?.startsWith(RUTA_EDITAR_OPERACION_BASE) == true
+
+    // HU-021: HistorialViewModel se hoistea al nivel de la app (no al de la ruta "Historial" del
+    // NavHost) porque el estado de "deshacer" (pendingDeleteIds + el snackbar) debe sobrevivir a
+    // navegar al detalle de una operación y volver -- es la misma instancia que usan tanto el
+    // listado como el botón "Eliminar" del detalle.
+    val historialViewModel: HistorialViewModel = viewModel(
+        factory = HistorialViewModel.Factory(
+            application.database.operationDao(),
+            application.database.operationImageDao(),
+            application.database.catalogItemDao(),
+            application
+        )
+    )
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(historialViewModel) {
+        historialViewModel.deleteRequested.collect { operationId ->
+            // HU-021 Escenario 1/2: duration Short (~4s) queda deliberadamente por debajo de
+            // UNDO_WINDOW_MS (5s) para que "Deshacer" siempre sea válido mientras el snackbar
+            // esté visible (ver HistorialViewModel.onUndoDelete).
+            val result = snackbarHostState.showSnackbar(
+                message = "Operación eliminada",
+                actionLabel = "Deshacer",
+                duration = SnackbarDuration.Short
+            )
+            if (result == SnackbarResult.ActionPerformed) {
+                historialViewModel.onUndoDelete(operationId)
+            }
+        }
+    }
+
     // HU-009: el formulario "sucio" (isDirty) intercepta tanto la navegación por pestañas como
     // el botón/gesto "atrás" del sistema con un diálogo de confirmación.
     var formDirty by remember { mutableStateOf(false) }
     var pendingExitAction by remember { mutableStateOf<(() -> Unit)?>(null) }
 
     fun requestExit(action: () -> Unit) {
-        if (currentRoute == RUTA_NUEVA_OPERACION && formDirty) {
+        if (isFormRoute && formDirty) {
             pendingExitAction = action
         } else {
             action()
@@ -156,9 +202,10 @@ fun MentaltraderApp(navController: NavHostController = rememberNavController()) 
     // inferior) — bug real encontrado en device: onNodeWithText("Inicio") pasó a matchear 2
     // nodos (título + tab) y rompió AppNavigationTest. Solo las pantallas fuera de las 3
     // pestañas fijas (Ajustes, Nueva operación) necesitan su propio título.
-    val topBarTitle = when (currentRoute) {
-        RUTA_NUEVA_OPERACION -> "Nueva operación"
-        RUTA_AJUSTES -> "Ajustes"
+    val topBarTitle = when {
+        currentRoute == RUTA_NUEVA_OPERACION -> "Nueva operación"
+        currentRoute?.startsWith(RUTA_EDITAR_OPERACION_BASE) == true -> "Editar operación"
+        currentRoute == RUTA_AJUSTES -> "Ajustes"
         else -> "Mentaltrader"
     }
 
@@ -167,9 +214,10 @@ fun MentaltraderApp(navController: NavHostController = rememberNavController()) 
     // descubrible) — se sentía "trabado". Se agrega una flecha "atrás" explícita en el
     // TopAppBar para ambas pantallas, usando el mismo requestExit (respeta el diálogo de
     // confirmación de HU-009 cuando corresponde).
-    val showBackAction = currentRoute == RUTA_NUEVA_OPERACION || currentRoute == RUTA_AJUSTES
+    val showBackAction = isFormRoute || currentRoute == RUTA_AJUSTES
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(topBarTitle) },
@@ -202,7 +250,7 @@ fun MentaltraderApp(navController: NavHostController = rememberNavController()) 
                     // al re-visitar esa pestaña ("la operación/el ajuste seguía ahí"). Por eso
                     // primero se la saca de la pila con un popBackStack limpio (sin saveState),
                     // y RECIÉN DESPUÉS se hace el cambio de pestaña estándar.
-                    if (currentRoute == RUTA_NUEVA_OPERACION || currentRoute == RUTA_AJUSTES) {
+                    if (isFormRoute || currentRoute == RUTA_AJUSTES) {
                         navController.popBackStack()
                     }
                     navController.navigate(destino.route) {
@@ -234,13 +282,6 @@ fun MentaltraderApp(navController: NavHostController = rememberNavController()) 
         ) {
             composable(Destino.Inicio.route) { InicioScreen() }
             composable(Destino.Historial.route) {
-                val historialViewModel: HistorialViewModel = viewModel(
-                    factory = HistorialViewModel.Factory(
-                        application.database.operationDao(),
-                        application.database.operationImageDao(),
-                        application.database.catalogItemDao()
-                    )
-                )
                 HistorialScreen(
                     viewModel = historialViewModel,
                     onOperationClick = { operationId ->
@@ -262,7 +303,17 @@ fun MentaltraderApp(navController: NavHostController = rememberNavController()) 
                         application.database.catalogItemDao()
                     )
                 )
-                HistorialDetalleScreen(viewModel = detalleViewModel)
+                HistorialDetalleScreen(
+                    viewModel = detalleViewModel,
+                    // HU-020: navega al mismo formulario de registro, en modo edición.
+                    onEdit = { navController.navigate(rutaEditarOperacion(operationId)) },
+                    // HU-021 Escenario 1: soft-delete en memoria (HistorialViewModel, hoisteado a
+                    // nivel de app) + vuelve al listado, donde se muestra el snackbar real.
+                    onDelete = {
+                        historialViewModel.onRequestDelete(operationId)
+                        navController.popBackStack()
+                    }
+                )
             }
             composable(Destino.Etiquetas.route) { EtiquetasScreen() }
             composable(RUTA_NUEVA_OPERACION) {
@@ -281,6 +332,34 @@ fun MentaltraderApp(navController: NavHostController = rememberNavController()) 
                 // HU-009-AC2: ver KDoc de HighPriorityBackHandler (arriba) para el detalle del
                 // bug real de precedencia de callbacks frente al predictive-back interno de
                 // NavHost que esto soluciona.
+                HighPriorityBackHandler(enabled = true) {
+                    requestExit { navController.popBackStack() }
+                }
+
+                OperationFormScreen(
+                    viewModel = formViewModel,
+                    onSaved = { navController.popBackStack() }
+                )
+            }
+            composable(
+                RUTA_EDITAR_OPERACION,
+                arguments = listOf(navArgument("operationId") { type = NavType.LongType })
+            ) { backStackEntry ->
+                val operationId = backStackEntry.arguments?.getLong("operationId") ?: 0L
+                val formViewModel: OperationFormViewModel = viewModel(
+                    key = "editar-$operationId",
+                    factory = OperationFormViewModel.Factory(
+                        application.database.operationDao(),
+                        application.database.catalogItemDao(),
+                        application.database.operationImageDao(),
+                        application.imageProcessor,
+                        editingOperationId = operationId
+                    )
+                )
+                val dirty by formViewModel.isDirty.collectAsState()
+                LaunchedEffect(dirty) { formDirty = dirty }
+                DisposableEffect(Unit) { onDispose { formDirty = false } }
+
                 HighPriorityBackHandler(enabled = true) {
                     requestExit { navController.popBackStack() }
                 }

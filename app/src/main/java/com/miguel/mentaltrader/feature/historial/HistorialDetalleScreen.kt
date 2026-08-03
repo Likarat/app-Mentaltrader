@@ -10,14 +10,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -35,15 +41,20 @@ import java.time.format.DateTimeFormatter
  * HU-018: vista de detalle completo de una operación. Orden de secciones (mismo orden de lectura
  * que el formulario de registro, spec §4): imagen primero (si existe, omitida sin dejar espacio
  * vacío si no hay ninguna), "Datos generales", "Emociones y errores", "Resultado", y "Descripción
- * entrada" al final. Editar (HU-020) y eliminar (HU-021) llegan en el sub-slice EP-003-c.
+ * entrada" al final. HU-020 (Editar) y HU-021 (Eliminar con deshacer) agregan los botones de
+ * acción reales debajo del encabezado (EP-003-c).
  */
 @Composable
 fun HistorialDetalleScreen(
     viewModel: HistorialDetalleViewModel,
+    onEdit: () -> Unit = {},
+    onDelete: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
+    // HU-021 Escenario 1: "Eliminar" pide confirmación antes de disparar el soft-delete real.
+    var showDeleteConfirm by remember { mutableStateOf(false) }
 
     if (state.isLoading) {
         Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -60,6 +71,23 @@ fun HistorialDetalleScreen(
         return
     }
 
+    if (showDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text("¿Eliminar esta operación?") },
+            text = { Text("Vas a poder deshacerlo durante unos segundos después de confirmar.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDeleteConfirm = false
+                    onDelete()
+                }) { Text("Eliminar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) { Text("Cancelar") }
+            }
+        )
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -67,6 +95,12 @@ fun HistorialDetalleScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        // HU-020/HU-021: acciones reales sobre la operación mostrada.
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(onClick = onEdit) { Text("Editar") }
+            OutlinedButton(onClick = { showDeleteConfirm = true }) { Text("Eliminar") }
+        }
+
         // HU-018 Escenario 3: sin imágenes, se omite la sección entera (sin espacio vacío).
         if (state.images.isNotEmpty()) {
             AsyncImage(
