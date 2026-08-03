@@ -44,8 +44,8 @@
       "wiring_verified": false,
       "dod": false
     },
-    "updated_at": "2026-08-02T18:30:00.000000+00:00",
-    "updated_by": "dor-dod-gatekeeper",
+    "updated_at": "2026-08-03T06:10:00.000000+00:00",
+    "updated_by": "build-orchestrator",
     "layer": "business",
     "files_scope": [
       "app/src/main/java/**/feature/historial/**",
@@ -100,7 +100,7 @@
           "HU-022",
           "HU-023"
         ],
-        "status": "pending",
+        "status": "done",
         "journey_smoke": false
       },
       {
@@ -298,49 +298,49 @@
         "kind": "hu_ac",
         "ref": "HU-022#Escenario1",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Cubierto a nivel JVM (TDD real, red->green): HistorialFilterMatcherTest ('filtro de Activo/Resultado/Error deja pasar solo...', 'Emocion antes y despues son independientes entre si') sobre HistorialFilterMatcher.matches, logica pura que espeja exactamente la query real. Implementado en produccion: OperationDao.pagingSourceFiltered (query Room real con patron '(:param IS NULL OR columna = :param)' por cada filtro de etiqueta, design.md decision #5) <- HistorialViewModel.historial reconstruye el Pager via filterState.flatMapLatest cada vez que cambia el filtro <- HistorialFilterPanel (HistorialScreen.kt) con selectores reales (FilterCatalogDropdown para Activo/Error/Emocion antes/despues, FilterResultDropdown para Resultado) que llaman a viewModel.onFilterAsset/onFilterResult/onFilterError/onFilterEmotionBefore/onFilterEmotionAfter reales. El agrupamiento por mes se preserva (el filtro solo reduce las filas que entran al Pager, insertSeparators sigue aplicando igual). assembleDebug+compileDebugAndroidTestKotlin BUILD SUCCESSFUL. Sin instrumentado/journey_smoke todavia (tasks.md 5.6/5.7 diferidos a la pasada final unica, sin dispositivo conectado en esta sesion, mismo criterio que EP-003-a/b/c/d)."
       },
       {
         "id": "HU-022-AC2",
         "kind": "hu_ac",
         "ref": "HU-022#Escenario2",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Cubierto a nivel JVM: PeriodoFiltroRangeTest (5 tests: los 4 periodos predefinidos -- Ultima semana/Ultimo mes/Este mes/Ultimos 3 meses -- resuelven el rango [desde,hasta] real dado un 'hoy' fijo explicito, sin LocalDate.now() no determinista; Personalizado no tiene rango propio) + HistorialViewModelTest ('onSelectPeriodo resuelve dateFrom y dateTo reales para un periodo predefinido', 'Personalizado no fija dateFrom ni dateTo hasta que se elige el rango' via onCustomDateRange) -- testDebugUnitTest en verde. Implementado: PeriodoFiltro (enum) + PeriodoFiltroRange.rangeFor(periodo, today, zone) (funcion pura) <- HistorialViewModel.onSelectPeriodo/onCustomDateRange actualizan filterState.dateFrom/dateTo reales <- HistorialFilterPanel: chips reales de periodo (LazyRow de FilterChip) + CustomDateRangeFields (dos OutlinedTextField 'Desde'/'Hasta' en formato dd/MM/yyyy, mismo formato ya usado en OperationFormViewModel.DATE_FORMATTER -- este proyecto no usa DatePicker nativo en ningun flujo existente) visibles solo cuando el chip Personalizado esta seleccionado. Sin instrumentado/verificacion visual real todavia, diferido a la pasada final."
       },
       {
         "id": "HU-022-AC3",
         "kind": "hu_ac",
         "ref": "HU-022#Escenario3",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Cubierto a nivel JVM: HistorialFilterMatcherTest.'combinar Activo y Resultado exige que ambos coincidan a la vez (AND)' (verifica explicitamente que una operacion que cumple solo uno de los dos filtros NO pasa) + HistorialViewModelTest.'combinar Activo y Resultado deja ambos activos a la vez en el mismo filterState' (verifica el wiring: dos setters consecutivos dejan ambos campos activos en una unica instancia de HistorialFilterState, sin pisarse entre si) -- testDebugUnitTest en verde. La combinacion AND real de produccion vive en un unico WHERE de OperationDao.pagingSourceFiltered (todas las clausulas unidas con AND SQL real, no en memoria) -- misma semantica exacta que HistorialFilterMatcher.matches (funcion pura, esta si testeada exhaustivamente). Sin instrumentado real de la query SQL combinada contra Room, diferido a la pasada final (tasks.md 5.6)."
       },
       {
         "id": "HU-022-AC4",
         "kind": "hu_ac",
         "ref": "HU-022#Escenario4",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Cubierto a nivel JVM: HistorialFilterMatcherTest.'el estado de filtro vacio (limpiar filtros) deja pasar cualquier operacion' + 'un filtro con al menos un campo activo no esta vacio' (HistorialFilterState.isEmpty) + HistorialViewModelTest.'el filterState inicial esta vacio' + 'onClearFilters restaura el filterState por defecto' (verifica que tras activar 3 criterios distintos -- Activo, Resultado, busqueda de texto, periodo -- onClearFilters() los remueve TODOS de una sola vez) -- testDebugUnitTest en verde. Implementado: HistorialViewModel.onClearFilters() reasigna filterState = HistorialFilterState() (todos los campos null); con todos los parametros null, OperationDao.pagingSourceFiltered se comporta identico a pagingSourceOrderedByDateDesc (mismo orden, mismas filas, ver comentario en el DAO). Boton real 'Limpiar filtros' en HistorialFilterPanel (TextButton, visible solo si filterState no esta vacio). Decision de UI explicita durante esta sesion: el panel de filtros se movio FUERA del bloque 'if (items.itemCount == 0)' de HistorialScreen (antes de esta sesion ese bloque hacia un `return` temprano) -- si se hubiera dejado adentro, un filtro que deja el listado sin resultados habria escondido tambien el boton 'Limpiar filtros', dejando al usuario sin forma de salir de ese estado; ahora el panel siempre se renderiza primero, y el bloque de listado vacio (con el mensaje generico que HU-025/EP-003-f todavia no diferencia) va despues. Sin instrumentado/verificacion visual real todavia, diferido a la pasada final."
       },
       {
         "id": "HU-023-AC1",
         "kind": "hu_ac",
         "ref": "HU-023#Escenario1",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Cubierto a nivel JVM: HistorialFilterMatcherTest.'busqueda de texto coincide con los 4 campos de texto libre de la operacion' (entryDescription/emotionBeforeReason/emotionAfterReason/errorReason, uno por uno) + 'busqueda de texto tambien coincide con el nombre de catalogo seleccionado en la operacion' + 'busqueda de texto es parcial e insensible a mayusculas' -- testDebugUnitTest en verde. Hallazgo real durante la lectura de AC (no asumido): HU-023 Escenario 1 dice literalmente 'campos de texto (...) o nombres de catalogo seleccionados', un alcance mas amplio que la redaccion original de design.md decision #5 ('LIKE sobre los 4 campos de texto') -- se extendio la query real (OperationDao.pagingSourceFiltered) con 4 LEFT JOIN contra catalog_item (Activo/Emocion antes/Emocion despues/Error) para que buscar 'XAUUSD' encuentre operaciones de ese activo aunque la palabra no aparezca en ningun campo de texto libre, cumpliendo el AC tal como esta escrito (no un MVP recortado de el). Documentado explicitamente en el KDoc de la query y en tasks.md 5.1. Sin instrumentado real contra Room, diferido a la pasada final (tasks.md 5.6, que ahora incluye explicitamente verificar esta equivalencia)."
       },
       {
         "id": "HU-023-AC2",
         "kind": "hu_ac",
         "ref": "HU-023#Escenario2",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Cubierto a nivel JVM: HistorialFilterMatcherTest.'busqueda combinada con filtro de Activo exige ambos a la vez (AND)' (replica exactamente el ejemplo del AC: Activo=XAUUSD + texto='ruptura', verifica que una operacion de otro activo con 'ruptura' en su descripcion NO pasa, y que XAUUSD sin 'ruptura' tampoco) + HistorialViewModelTest.'onSearchTextChanged actualiza el texto de busqueda sin tocar los demas filtros' -- testDebugUnitTest en verde. El campo de busqueda (OutlinedTextField en HistorialFilterPanel) y los selectores de etiqueta comparten el mismo HistorialFilterState/query real, por lo que la combinacion AND no requiere cableado adicional (ya es el mismo mecanismo de HU-022 Escenario 3). Sin instrumentado real, diferido a la pasada final."
       },
       {
         "id": "HU-023-AC3",
         "kind": "hu_ac",
         "ref": "HU-023#Escenario3",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Cubierto a nivel JVM: HistorialFilterMatcherTest.'busqueda sin coincidencias en ningun campo ni catalogo no lanza error y no coincide' (con nombres de catalogo reales presentes -- assetName='XAUUSD', errorName='Ninguno' -- para confirmar que ninguno de los 8 posibles campos de coincidencia produce un falso positivo ni una excepcion) + 'texto de busqueda en blanco equivale a no buscar nada' (edge no explicito en el AC pero real: un OutlinedTextField vacio no debe filtrar nada) -- testDebugUnitTest en verde. La query real (OperationDao.pagingSourceFiltered) usa un WHERE que simplemente no devuelve filas cuando ningun LIKE coincide (comportamiento nativo de SQL, sin logica adicional que pueda lanzar); HistorialViewModel.historial ya trata un PagingData vacio sin excepcion (mismo mecanismo que un Historial recien creado sin operaciones). Sin instrumentado real, diferido a la pasada final."
       },
       {
         "id": "HU-024-AC1",
@@ -424,7 +424,7 @@
         "kind": "integration_point",
         "ref": "presentacion(controles de filtro/busqueda HU-022/HU-023) -> datos(consulta Room combinada con logica AND)",
         "status": "failing",
-        "evidence": ""
+        "evidence": "Cableado real implementado de punta a punta: HistorialFilterPanel (HistorialScreen.kt -- selectores de Activo/Resultado/Error/Emocion antes/Emocion despues, chips de periodo + rango personalizado, campo de busqueda de texto, boton Limpiar filtros) -> HistorialViewModel.onFilterAsset/onFilterResult/onFilterError/onFilterEmotionBefore/onFilterEmotionAfter/onSelectPeriodo/onCustomDateRange/onSearchTextChanged/onClearFilters (todos actualizan un unico MutableStateFlow<HistorialFilterState>) -> historial: Flow<PagingData<HistorialListItem>> reconstruye el Pager real con filterState.flatMapLatest{...} cada vez que el filtro cambia -> OperationDao.pagingSourceFiltered (query Room real con 4 LEFT JOIN a catalog_item + patron '(:param IS NULL OR columna = :param)' AND para cada criterio, design.md decision #5). Logica de combinacion AND + busqueda espejada exactamente en HistorialFilterMatcher.matches (funcion pura, testeada exhaustivamente en JVM: HistorialFilterMatcherTest 14 tests + PeriodoFiltroRangeTest 5 tests + HistorialViewModelTest 8 tests nuevos de wiring de filterState) porque el filtrado real de produccion corre en SQL (no en memoria, para que la paginacion de HU-016 siga sin cargar el historico completo). assembleDebug+compileDebugAndroidTestKotlin BUILD SUCCESSFUL (3 FakeOperationDao de tests actualizados con el nuevo metodo de interfaz, mismo patron ya usado para monthlySummaries en EP-003-d). Falta la corrida real (connectedDebugAndroidTest: aplicar un filtro real contra Room real y confirmar que el listado renderizado coincide con lo que predice HistorialFilterMatcher) -- sin dispositivo conectado en esta sesion, diferido a la pasada final de instrumentados (tasks.md 5.6)."
       },
       {
         "id": "INT-filtros-datastore-persistencia",
@@ -456,6 +456,11 @@
       }
     ],
     "progress_log": [
+      {
+        "at": "2026-08-03T06:10:00.000000+00:00",
+        "by": "build-orchestrator",
+        "note": "EP-003-e (HU-022 filtrar por etiqueta/fecha-periodo + HU-023 buscar por palabra clave, combinados con AND) COMPLETO a nivel de codigo/TDD JVM, siguiendo design.md decision #5 sin desviarse en el mecanismo (query Room parametrizada con patron '(:param IS NULL OR columna = :param)', sin RawQuery) pero EXTENDIENDO su alcance de busqueda: HU-023 Escenario 1 dice literalmente 'campos de texto (...) o nombres de catalogo seleccionados [de la operacion]', mas amplio que la redaccion original de design.md ('LIKE sobre los 4 campos de texto') -- se leyo el AC exacto (no se asumio) y se implemento completo (Producto completo, no MVP): OperationDao.pagingSourceFiltered agrega 4 LEFT JOIN contra catalog_item (Activo/Emocion antes/Emocion despues/Error) para que buscar 'XAUUSD' encuentre operaciones de ese activo aunque la palabra no aparezca en ningun campo de texto libre. Implementado: OperationDao.pagingSourceFiltered (query Room real, todos los filtros + busqueda combinados con AND SQL real: assetId/result/errorId/emotionBeforeId/emotionAfterId/dateFrom/dateTo/searchText, todos opcionales-null); HistorialFilterState.kt nuevo (PeriodoFiltro enum + PeriodoFiltroRange.rangeFor -- funcion pura que resuelve Ultima semana/Ultimo mes/Este mes/Ultimos 3 meses como ventanas rodantes de dias, Este mes como mes de calendario, Personalizado sin rango propio -- + HistorialFilterState data class + OperationCatalogNames + HistorialFilterMatcher.matches, logica pura que espeja EXACTAMENTE la semantica de la query SQL real para poder testearla en JVM sin Room ni la dependencia paging-testing, mismo patron ya usado para HistorialSeparators/HistorialGroupCollapse); HistorialViewModel gana filterState (StateFlow<HistorialFilterState>) + 9 setters (onFilterAsset/onFilterResult/onFilterError/onFilterEmotionBefore/onFilterEmotionAfter/onSelectPeriodo/onCustomDateRange/onSearchTextChanged/onClearFilters) + assets/emotions/errorsCatalog (Flow<List<CatalogItem>> para poblar los selectores, reutilizando CatalogItemDao.getByType de EP-002 sin modificarlo) + historial ahora reconstruye el Pager real via filterState.flatMapLatest{...operationDao.pagingSourceFiltered(...)} cada vez que el filtro cambia (@OptIn(ExperimentalCoroutinesApi::class) nuevo en la clase); HistorialScreen gana HistorialFilterPanel (panel colapsable: campo de busqueda, chips de periodo predefinido + campos de texto dd/MM/yyyy para el rango personalizado -- mismo formato que OperationFormViewModel.DATE_FORMATTER, este proyecto no usa DatePicker nativo en ningun flujo existente --, FilterCatalogDropdown/FilterResultDropdown reutilizando el mismo patron de ExposedDropdownMenuBox que CatalogDropdown de OperationFormScreen, boton 'Limpiar filtros' visible solo si el filtro no esta vacio). Decision de UI tomada durante esta sesion (no en design.md, hallazgo real): el panel de filtros se movio FUERA del bloque `if (items.itemCount == 0) return` -- si se hubiera dejado adentro (como estaba la estructura original de HU-015), un filtro que deja el listado sin resultados habria escondido tambien el boton 'Limpiar filtros' (HU-022 Escenario 4 dice que debe ser alcanzable siempre que haya 'uno o mas filtros activos', sin condicionarlo a que haya resultados) -- se dejo explicitamente documentado en tasks.md 5.4 y en el mensaje generico de listado vacio que la distincion 'sin datos nunca' vs 'sin resultados de filtro' sigue pendiente de HU-025/EP-003-f (secuenciado asi desde el DoR, no un recorte de esta sesion). TDD JVM real red->green: escribi primero HistorialFilterMatcherTest (14 tests) + PeriodoFiltroRangeTest (5 tests) referenciando HistorialFilterState/HistorialFilterMatcher/PeriodoFiltro/PeriodoFiltroRange inexistentes, corri testDebugUnitTest y confirme el fallo de compilacion real (Unresolved reference) antes de escribir HistorialFilterState.kt; mismo patron para los 8 tests nuevos de HistorialViewModelTest (filterState/setters/onClearFilters) referenciando metodos inexistentes del ViewModel, confirmado el fallo antes de implementarlos. Se actualizaron los 3 FakeOperationDao existentes (HistorialViewModelTest/HistorialDetalleViewModelTest/OperationFormViewModelTest) agregando el override de pagingSourceFiltered (throw UnsupportedOperationException, mismo patron ya usado para pagingSourceOrderedByDateDesc/monthlySummaries -- la logica de filtro se testea aparte, sin Room, en HistorialFilterMatcherTest). testDebugUnitTest: 90 tests en toda la suite (subio de 63 a 90: +14 HistorialFilterMatcherTest, +5 PeriodoFiltroRangeTest, +8 HistorialViewModelTest), 0 fallas + assembleDebug + compileDebugAndroidTestKotlin: BUILD SUCCESSFUL, sin regresiones. tasks.md 5.1-5.5 tildadas; 5.6 (instrumentado: filtro real contra Room real + verificar que coincide con HistorialFilterMatcher) y 5.7 (journey_smoke) diferidas a la pasada final unica, sin dispositivo conectado en esta sesion, mismo criterio ya aplicado a EP-003-a/b/c/d. sub_slices[EP-003-e].status=done. Commit 7355f05. Proximo paso: EP-003-f (HU-025, estado vacio en Historial -- primera vez y sin resultados de filtro; ahora ya hay filtros reales, HU-022/023, contra los cuales probar el Escenario 2 de HU-025, tal como preveia el DoR de EP-003 al secuenciar este sub-slice despues)."
+      },
       {
         "at": "2026-08-03T04:20:00.000000+00:00",
         "by": "build-orchestrator",
@@ -498,9 +503,9 @@
       }
     ],
     "session_continuity": {
-      "last_session": "2026-08-03T04:20:00.000000+00:00",
-      "stopped_at": "2026-08-03T04:20:00.000000+00:00",
-      "resume_hint": "EP-003-a (HU-015+HU-016, commit 515bc4d/d5cacb3/1a46e75), EP-003-b (HU-018, commit 1a46e75), EP-003-c (HU-020+HU-021, commit ef73cdd) y EP-003-d (HU-017, commit 746f52e) cerrados a nivel de codigo/TDD JVM. Los cuatro solo les falta instrumentado+journey_smoke (sin dispositivo conectado en toda la sesion, diferido a una pasada final unica, mismo criterio que EP-002-b/c/d). Siguiente paso EXACTO: abrir EP-003-e (HU-022 filtrar + HU-023 buscar por palabra clave, combinacion AND), segun tasks.md seccion 5: (1) OperationDao: extender la query paginada de HU-015/016 (pagingSourceOrderedByDateDesc) con parametros opcionales nulos -- patron '(:param IS NULL OR columna = :param)' -- para Activo/Resultado/Error/EmocionAntes/EmocionDespues/rango de fecha, mas LIKE sobre los 4 campos de texto libre (entryDescription/emotionBeforeReason/emotionAfterReason/errorReason) para la busqueda de HU-023 (design.md decision #5, sin RawQuery). (2) HistorialFilterState nuevo (ids nulos por catalogo, periodo predefinido o rango personalizado, texto de busqueda) + HistorialViewModel reconstruye el Pager cuando cambia el filtro. (3) UI de filtros nueva (selectores por etiqueta reutilizando CatalogItemDao.getByType de EP-002, selector de fecha/periodo, campo de busqueda, boton Limpiar filtros). (4) Combinacion AND real entre todos los filtros + busqueda (HU-023 Escenario 2: Activo=XAUUSD + texto=ruptura). TDD JVM primero: cada filtro individual, combinacion AND de 2+, busqueda sola y combinada, limpiar filtros, busqueda sin coincidencias no rompe -- con fakes locales del OperationDao extendido (recordar agregar el override de monthlySummaries a los 3 FakeOperationDao existentes SI se rompe la interfaz de nuevo al agregar el nuevo metodo de query con filtros, igual que se hizo en esta sesion para monthlySummaries). UI despues, igual que EP-003-a/b/c/d.",
+      "last_session": "2026-08-03T06:10:00.000000+00:00",
+      "stopped_at": "2026-08-03T06:10:00.000000+00:00",
+      "resume_hint": "EP-003-a (HU-015+HU-016), EP-003-b (HU-018), EP-003-c (HU-020+HU-021), EP-003-d (HU-017) y EP-003-e (HU-022 filtrar + HU-023 buscar, commit 7355f05) cerrados a nivel de codigo/TDD JVM (testDebugUnitTest: 90 tests, 0 fallas) + assembleDebug + compileDebugAndroidTestKotlin BUILD SUCCESSFUL. Los cinco solo les falta instrumentado+journey_smoke (sin dispositivo conectado en toda la sesion, diferido a una pasada final unica, mismo criterio que EP-002-b/c/d). Siguiente paso EXACTO: abrir EP-003-f (HU-025, estado vacio en Historial), segun tasks.md seccion 6: (1) HistorialViewModel/HistorialScreen: distinguir 'sin ninguna operacion registrada nunca' (query de conteo total = 0, agregar OperationDao.countAll() o similar) de 'hay operaciones pero el filtro activo no arroja resultados' (conteo total > 0, PagingData vacio con filterState.isEmpty == false) -- HistorialScreen.kt YA tiene el bloque `if (items.itemCount == 0)` con un comentario explicito marcando este pendiente exacto, y el HistorialFilterPanel ya vive FUERA de ese bloque (no hay que volver a moverlo). (2) Mensaje de 'primera vez' con acceso directo al mismo destino de HU-008 (FAB 'Nueva operacion', INT-estado-vacio-fab en wiring_checklist). (3) Mensaje de 'sin resultados para el filtro' sin ese acceso directo -- ahora ya hay filtros reales (HU-022/HU-023) contra los cuales probar este escenario sin inventar datos, tal como preveia el DoR de EP-003 al secuenciar HU-025 despues de HU-022/023. TDD JVM primero (logica de que estado mostrar, pura, sin Room/Compose) + UI despues, igual que EP-003-a/b/c/d/e. Tras EP-003-f solo quedaran EP-003-g (HU-019, visor de imagen) y EP-003-h (HU-024, persistir filtro) para cerrar la epica completa.",
       "critical_recorded": false,
       "auto_continue": false
     }
