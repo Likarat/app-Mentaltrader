@@ -1764,15 +1764,15 @@
         "EP-004",
         "EP-005"
       ],
-      "status": "pending",
+      "status": "failed",
       "created_at": "2026-07-31T02:00:00.000000+00:00",
-      "updated_by": "releasing-a-version (re-corrida 2026-08-04: alcance ampliado de EP-001+EP-005 a EP-001..EP-005 completo -- primera vez con EP-002/003/004 incluidas; el intento previo de 2026-07-31 fallo en coherence, con fix de seguridad ya aplicado (allowBackup=false); todos los gates se re-evaluan desde cero sobre el diff acumulado actual, no se asume que sigan en true)",
+      "updated_by": "releasing-a-version (corrida 2026-08-04 sobre EP-001..EP-005 completo): security=true, smell=true, ux=false (ResultType sin traducir en Historial/Detalle/Filtro), coherence=false (8 bloqueantes reales, ver docs/.reviews/2026-08-04-release-R1-mvp.md -- EP-003/EP-004 sin ningun androidTest real, 22/123 AC sin test ejecutado, garantia estructural usada como evidencia), stack_arch=true. integration diferido (status ya failed por ux+coherence). Detalle completo por gate en docs/.reviews/2026-08-04-release-R1-mvp.md.",
       "gates": {
-        "security": null,
-        "smell": null,
-        "ux": null,
-        "coherence": null,
-        "stack_arch": null,
+        "security": true,
+        "smell": true,
+        "ux": false,
+        "coherence": false,
+        "stack_arch": true,
         "integration": null
       }
     }
