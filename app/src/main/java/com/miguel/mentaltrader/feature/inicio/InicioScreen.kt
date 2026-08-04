@@ -15,10 +15,14 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -27,14 +31,21 @@ import com.miguel.mentaltrader.core.data.CatalogRankingItem
 import com.miguel.mentaltrader.core.data.OperationMetricsSummary
 import com.miguel.mentaltrader.feature.historial.HistorialEmptyState
 import com.miguel.mentaltrader.feature.historial.HistorialEmptyStateContent
+import com.miguel.mentaltrader.feature.registro.OperationFormViewModel
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 import java.util.Locale
 
 /**
- * HU-026/HU-027 (sub-slice EP-004-a) + HU-028 (sub-slice EP-004-b) + HU-031 (sub-slice EP-004-c):
- * pantalla de Inicio real -- selector de periodo fijo, tarjetas de resumen numérico, gráfica de
- * línea de R acumulado, gráfica de barras de distribución de resultados, ranking de
- * emociones/errores más frecuentes y los dos estados vacíos de HU-031 (ver
- * [InicioEmptyStateContent]). Reemplaza el placeholder de EP-005.
+ * HU-026/HU-027 (sub-slice EP-004-a) + HU-028/HU-029/HU-030 (sub-slices EP-004-b/EP-004-d) +
+ * HU-031 (sub-slice EP-004-c): pantalla de Inicio real -- selector de periodo fijo (predefinido +
+ * personalizado, persistido entre sesiones), tarjetas de resumen numérico, gráfica de línea de R
+ * acumulado, gráfica de barras de distribución de resultados, ranking de emociones/errores más
+ * frecuentes y los dos estados vacíos de HU-031 (ver [InicioEmptyStateContent]). Reemplaza el
+ * placeholder de EP-005.
  *
  * HU-028 Escenario 3: [PeriodoSelectorRow] vive FUERA del `LazyColumn` de contenido (como hermano
  * en el `Column` raíz) -- así permanece fijo y visible al hacer scroll, en vez de desplazarse junto
@@ -56,6 +67,9 @@ fun InicioScreen(
     val emotionRanking by viewModel.emotionRanking.collectAsState(initial = emptyList())
     val errorRanking by viewModel.errorRanking.collectAsState(initial = emptyList())
     val filterState by viewModel.filterState.collectAsState()
+    // HU-029: error de UI cuando el rango personalizado confirmado tiene fin anterior a inicio
+    // (Escenario 3) -- el ViewModel ya rechazó el cambio, esto solo refleja el mensaje.
+    val customRangeError by viewModel.customRangeError.collectAsState()
     // HU-031: totalOperationCount (GLOBAL, sin filtrar por periodo) + summary.operationCount
     // (calculado dentro del periodo seleccionado, ya en SQL vía metricsSummary) son las dos únicas
     // señales que necesita InicioEmptyState.resolve -- lógica PURA, testeada aparte en
@@ -64,6 +78,18 @@ fun InicioScreen(
 
     Column(modifier = modifier.fillMaxWidth()) {
         PeriodoSelectorRow(selected = filterState.selectedPeriodo, onSelect = viewModel::onSelectPeriodo)
+
+        // HU-029 Escenario 1: al elegir "Personalizado" el sistema muestra los campos de fecha de
+        // inicio/fin -- garantía ESTRUCTURAL (solo se compone cuando ese periodo está seleccionado).
+        // Vive FUERA del LazyColumn (como PeriodoSelectorRow), así sigue alcanzable incluso con un
+        // estado vacío de HU-031 debajo (mismo criterio que el selector de periodo).
+        if (filterState.selectedPeriodo == PeriodoInicioFiltro.PERSONALIZADO) {
+            InicioCustomDateRangeFields(
+                filterState = filterState,
+                error = customRangeError,
+                onRangeChanged = viewModel::onCustomDateRange
+            )
+        }
 
         val emptyState = InicioEmptyState.resolve(
             totalOperationCount = totalOperationCount,
@@ -171,8 +197,86 @@ private val PERIODO_INICIO_CHIPS = listOf(
     PeriodoInicioFiltro.DIA to "Día",
     PeriodoInicioFiltro.SEMANA to "Semana",
     PeriodoInicioFiltro.MES to "Mes",
-    PeriodoInicioFiltro.ULTIMOS_3_MESES to "Últimos 3 meses"
+    PeriodoInicioFiltro.ULTIMOS_3_MESES to "Últimos 3 meses",
+    PeriodoInicioFiltro.PERSONALIZADO to "Personalizado"
 )
+
+/**
+ * HU-029: rango de fecha personalizado, mismo formato de texto (`dd/MM/yyyy`) que ya usa el
+ * formulario de registro ([OperationFormViewModel.DATE_FORMATTER]) y el filtro de fecha de
+ * Historial (`HistorialScreen.CustomDateRangeFields`, HU-022) -- este proyecto no usa un
+ * `DatePicker` nativo en ningún flujo existente, se mantiene la misma convención aquí (INVEST de
+ * HU-029: "el componente exacto de calendario es negociable"). Escenario 3: mientras
+ * `onRangeChanged` no confirma un rango con fin anterior a inicio, [error] (ya calculado por
+ * `InicioViewModel.onCustomDateRange`) muestra el mensaje de rango inválido.
+ */
+@Composable
+private fun InicioCustomDateRangeFields(
+    filterState: InicioFilterState,
+    error: Boolean,
+    onRangeChanged: (Long?, Long?) -> Unit
+) {
+    var desdeText by remember(filterState.dateFrom) {
+        mutableStateOf(filterState.dateFrom?.let { millisToDateText(it) } ?: "")
+    }
+    var hastaText by remember(filterState.dateTo) {
+        mutableStateOf(filterState.dateTo?.let { millisToDateText(it) } ?: "")
+    }
+
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedTextField(
+                value = desdeText,
+                onValueChange = {
+                    desdeText = it
+                    onRangeChanged(parseInicioDateStartMillis(it), filterState.dateTo)
+                },
+                label = { Text("Desde (dd/mm/aaaa)") },
+                singleLine = true,
+                modifier = Modifier.weight(1f)
+            )
+            OutlinedTextField(
+                value = hastaText,
+                onValueChange = {
+                    hastaText = it
+                    onRangeChanged(filterState.dateFrom, parseInicioDateEndMillis(it))
+                },
+                label = { Text("Hasta (dd/mm/aaaa)") },
+                singleLine = true,
+                modifier = Modifier.weight(1f)
+            )
+        }
+        if (error) {
+            // HU-029 Escenario 3: rango inválido (fin anterior a inicio) -- no se confirma el
+            // cambio, mensaje visible hasta que el usuario corrija las fechas.
+            Text(
+                "Rango inválido: la fecha de fin no puede ser anterior a la fecha de inicio",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error
+            )
+        }
+    }
+}
+
+private val INICIO_DATE_FORMATTER: DateTimeFormatter = OperationFormViewModel.DATE_FORMATTER
+
+private fun millisToDateText(millis: Long): String =
+    Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate().format(INICIO_DATE_FORMATTER)
+
+private fun parseInicioDateStartMillis(text: String): Long? = try {
+    LocalDate.parse(text, INICIO_DATE_FORMATTER).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+} catch (e: DateTimeParseException) {
+    null
+}
+
+private fun parseInicioDateEndMillis(text: String): Long? = try {
+    LocalDate.parse(text, INICIO_DATE_FORMATTER).plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli() - 1
+} catch (e: DateTimeParseException) {
+    null
+}
 
 private val PaddingValuesVertical16 = androidx.compose.foundation.layout.PaddingValues(vertical = 16.dp, horizontal = 16.dp)
 

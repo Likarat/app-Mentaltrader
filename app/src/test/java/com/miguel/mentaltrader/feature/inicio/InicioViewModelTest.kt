@@ -1,8 +1,11 @@
 package com.miguel.mentaltrader.feature.inicio
 
+import com.miguel.mentaltrader.core.data.InicioFilterRepository
+import com.miguel.mentaltrader.core.data.InicioFilterSnapshot
 import com.miguel.mentaltrader.core.data.Operation
 import com.miguel.mentaltrader.core.model.Direction
 import com.miguel.mentaltrader.core.model.ResultType
+import com.miguel.mentaltrader.testutil.FakeInMemoryPreferencesDataStore
 import com.miguel.mentaltrader.testutil.FakeOperationDao
 import java.time.LocalDate
 import java.time.ZoneId
@@ -15,6 +18,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -56,7 +60,13 @@ class InicioViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun createViewModel() = InicioViewModel(operationDao)
+    // HU-030 (sub-slice EP-004-d): InicioViewModel ahora requiere un InicioFilterRepository real --
+    // se le da uno de verdad respaldado por un DataStore EN MEMORIA (no un archivo real en disco,
+    // ver InicioFilterRepositoryTest aparte para la persistencia real). Mismo patrón que
+    // HistorialViewModelTest.createViewModel (HU-024/EP-003).
+    private fun createViewModel(
+        filterRepository: InicioFilterRepository = InicioFilterRepository(FakeInMemoryPreferencesDataStore())
+    ) = InicioViewModel(operationDao, filterRepository)
 
     @Test
     fun `sin operaciones la serie acumulada queda vacia`() = runTest {
@@ -117,8 +127,8 @@ class InicioViewModelTest {
 
         val esperado = PeriodoInicioFiltroRange.rangeFor(PeriodoInicioFiltro.MES, hoy)
         assertEquals(PeriodoInicioFiltro.MES, viewModel.filterState.value.selectedPeriodo)
-        assertEquals(esperado.first, viewModel.filterState.value.dateFrom)
-        assertEquals(esperado.second, viewModel.filterState.value.dateTo)
+        assertEquals(esperado?.first, viewModel.filterState.value.dateFrom)
+        assertEquals(esperado?.second, viewModel.filterState.value.dateTo)
     }
 
     @Test
@@ -197,6 +207,145 @@ class InicioViewModelTest {
         // metricsSummary.operationCount) -- es el conteo GLOBAL, mismo criterio que
         // `HistorialViewModel.totalOperationCount`.
         assertEquals(2, viewModel.totalOperationCount.first())
+    }
+
+    // ---- HU-029 (sub-slice EP-004-d): rango de fechas personalizado ----
+    // Escenario 1 (mostrar el calendario al elegir "Personalizado") es una garantía ESTRUCTURAL de
+    // InicioScreen (mismo criterio que HU-028 Escenario 3, tasks.md 2.4): el bloque de campos de
+    // fecha solo se compone cuando `filterState.selectedPeriodo == PeriodoInicioFiltro.PERSONALIZADO`
+    // -- verificado por lectura de código, confirmación visual real diferida al instrumentado.
+
+    // HU-029 Escenario 2: confirmar un rango personalizado recalcula las métricas (aquí,
+    // cumulativeSeries -- misma única transformación real del ViewModel que ya verifican los tests
+    // de onSelectPeriodo de HU-028) limitadas a ese rango.
+    @Test
+    fun `onCustomDateRange recalcula la serie usando solo las operaciones dentro del rango confirmado (HU-029 Escenario 2)`() = runTest {
+        val dentroDelRango = hoy.atStartOfDay(zone).toInstant().toEpochMilli() + 1_000
+        val fueraDelRango = hoy.minusDays(200).atStartOfDay(zone).toInstant().toEpochMilli()
+        operationDao.insert(operacion(dateTime = dentroDelRango, resultInR = 4f))
+        operationDao.insert(operacion(dateTime = fueraDelRango, resultInR = 100f))
+
+        val viewModel = createViewModel()
+        viewModel.onSelectPeriodo(PeriodoInicioFiltro.PERSONALIZADO, hoy)
+        viewModel.onCustomDateRange(
+            from = hoy.minusDays(1).atStartOfDay(zone).toInstant().toEpochMilli(),
+            to = hoy.plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli()
+        )
+
+        val series = viewModel.cumulativeSeries.first()
+
+        assertEquals(listOf(4f), series.map { it.cumulativeResultInR })
+        assertEquals(PeriodoInicioFiltro.PERSONALIZADO, viewModel.filterState.value.selectedPeriodo)
+        assertFalse(viewModel.customRangeError.value)
+    }
+
+    // HU-029 Escenario 3 (edge): fin anterior a inicio -- el sistema impide confirmar (no aplica el
+    // rango) y marca el error para que la UI lo muestre.
+    @Test
+    fun `onCustomDateRange con fin anterior a inicio no aplica el rango y marca customRangeError (HU-029 Escenario 3)`() = runTest {
+        val viewModel = createViewModel()
+        viewModel.onSelectPeriodo(PeriodoInicioFiltro.SEMANA, hoy)
+        val filterAntesDelIntento = viewModel.filterState.value
+
+        viewModel.onCustomDateRange(from = 2_000L, to = 1_000L)
+
+        assertTrue(viewModel.customRangeError.value)
+        assertEquals(filterAntesDelIntento, viewModel.filterState.value)
+    }
+
+    @Test
+    fun `onCustomDateRange con un rango valido tras un intento invalido limpia customRangeError`() = runTest {
+        val viewModel = createViewModel()
+        viewModel.onCustomDateRange(from = 2_000L, to = 1_000L)
+        assertTrue(viewModel.customRangeError.value)
+
+        viewModel.onCustomDateRange(from = 1_000L, to = 2_000L)
+
+        assertFalse(viewModel.customRangeError.value)
+        assertEquals(1_000L, viewModel.filterState.value.dateFrom)
+        assertEquals(2_000L, viewModel.filterState.value.dateTo)
+        assertEquals(PeriodoInicioFiltro.PERSONALIZADO, viewModel.filterState.value.selectedPeriodo)
+    }
+
+    // ---- HU-030 (sub-slice EP-004-d): persistencia del filtro de periodo entre sesiones ----
+
+    @Test
+    fun `onSelectPeriodo persiste el nuevo filterState en el repository`() = runTest {
+        val repository = InicioFilterRepository(FakeInMemoryPreferencesDataStore())
+        val viewModel = createViewModel(filterRepository = repository)
+
+        viewModel.onSelectPeriodo(PeriodoInicioFiltro.SEMANA, hoy)
+
+        assertEquals("SEMANA", repository.load().periodName)
+    }
+
+    @Test
+    fun `onCustomDateRange valido persiste periodName y el rango en el repository`() = runTest {
+        val repository = InicioFilterRepository(FakeInMemoryPreferencesDataStore())
+        val viewModel = createViewModel(filterRepository = repository)
+
+        viewModel.onSelectPeriodo(PeriodoInicioFiltro.PERSONALIZADO, hoy)
+        viewModel.onCustomDateRange(from = 1_000L, to = 2_000L)
+
+        val snapshot = repository.load()
+        assertEquals("PERSONALIZADO", snapshot.periodName)
+        assertEquals(1_000L, snapshot.customRangeStart)
+        assertEquals(2_000L, snapshot.customRangeEnd)
+    }
+
+    @Test
+    fun `onCustomDateRange invalido no persiste ningun cambio en el repository`() = runTest {
+        val repository = InicioFilterRepository(FakeInMemoryPreferencesDataStore())
+        repository.save(InicioFilterSnapshot(periodName = "SEMANA"))
+        val viewModel = createViewModel(filterRepository = repository)
+
+        viewModel.onCustomDateRange(from = 2_000L, to = 1_000L)
+
+        assertEquals("SEMANA", repository.load().periodName)
+    }
+
+    // HU-030 Escenario 1: al construirse, el ViewModel restaura el último periodo predefinido
+    // persistido -- wiring real entre InicioViewModel.init e InicioFilterRepository (no un fake del
+    // repositorio: se usa la clase real con un DataStore en memoria pre-poblado).
+    @Test
+    fun `al construirse restaura un periodo predefinido persistido (HU-030 Escenario 1)`() = runTest {
+        val repository = InicioFilterRepository(FakeInMemoryPreferencesDataStore())
+        repository.save(InicioFilterSnapshot(periodName = "SEMANA"))
+
+        val viewModel = createViewModel(filterRepository = repository)
+
+        val esperado = PeriodoInicioFiltroRange.rangeFor(PeriodoInicioFiltro.SEMANA, LocalDate.now())
+        assertEquals(PeriodoInicioFiltro.SEMANA, viewModel.filterState.value.selectedPeriodo)
+        assertEquals(esperado?.first, viewModel.filterState.value.dateFrom)
+        assertEquals(esperado?.second, viewModel.filterState.value.dateTo)
+    }
+
+    // HU-030 Escenario 2 (edge): un rango personalizado persistido se restaura con sus fechas
+    // EXACTAS (no recalculado relativo a "hoy", a diferencia de un periodo predefinido).
+    @Test
+    fun `al construirse restaura un rango personalizado persistido con sus fechas exactas (HU-030 Escenario 2)`() = runTest {
+        val repository = InicioFilterRepository(FakeInMemoryPreferencesDataStore())
+        repository.save(InicioFilterSnapshot(periodName = "PERSONALIZADO", customRangeStart = 1_000L, customRangeEnd = 2_000L))
+
+        val viewModel = createViewModel(filterRepository = repository)
+
+        assertEquals(PeriodoInicioFiltro.PERSONALIZADO, viewModel.filterState.value.selectedPeriodo)
+        assertEquals(1_000L, viewModel.filterState.value.dateFrom)
+        assertEquals(2_000L, viewModel.filterState.value.dateTo)
+    }
+
+    // HU-030 Escenario 3 (edge): sin ningún filtro guardado previamente, el sistema aplica el
+    // periodo por defecto razonable de Inicio -- "todas las operaciones" (ver KDoc de
+    // InicioFilterState.fromSnapshot, design.md decisión #8), sin error ni excepción.
+    @Test
+    fun `al construirse sin ningun filtro guardado previamente aplica el periodo por defecto sin error (HU-030 Escenario 3)`() = runTest {
+        val repository = InicioFilterRepository(FakeInMemoryPreferencesDataStore())
+
+        val viewModel = createViewModel(filterRepository = repository)
+
+        assertNull(viewModel.filterState.value.selectedPeriodo)
+        assertNull(viewModel.filterState.value.dateFrom)
+        assertNull(viewModel.filterState.value.dateTo)
     }
 
     private fun operacion(dateTime: Long, resultInR: Float?) = Operation(

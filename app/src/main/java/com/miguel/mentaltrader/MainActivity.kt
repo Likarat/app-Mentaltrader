@@ -306,7 +306,7 @@ fun MentaltraderApp(navController: NavHostController = rememberNavController()) 
         ) {
             composable(Destino.Inicio.route) {
                 val inicioViewModel: InicioViewModel = viewModel(
-                    factory = InicioViewModel.Factory(application.database.operationDao())
+                    factory = InicioViewModel.Factory(application.database.operationDao(), application.inicioFilterRepository)
                 )
                 InicioScreen(
                     viewModel = inicioViewModel,

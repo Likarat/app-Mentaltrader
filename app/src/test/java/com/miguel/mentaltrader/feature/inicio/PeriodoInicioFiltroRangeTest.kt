@@ -35,8 +35,9 @@ class PeriodoInicioFiltroRangeTest {
 
         assertEquals(startOfDay(hoy.with(DayOfWeek.MONDAY)) to endOfDay(hoy), rango)
         // Verificación independiente (no solo recalculando la misma fórmula): el "desde" resuelto
-        // cae realmente en lunes.
-        val desde = Instant.ofEpochMilli(rango.first).atZone(zone).toLocalDate()
+        // cae realmente en lunes. SEMANA siempre resuelve un rango real (no-nulo, solo
+        // PERSONALIZADO no tiene rango propio -- ver test aparte).
+        val desde = Instant.ofEpochMilli(checkNotNull(rango).first).atZone(zone).toLocalDate()
         assertEquals(DayOfWeek.MONDAY, desde.dayOfWeek)
     }
 
@@ -55,10 +56,23 @@ class PeriodoInicioFiltroRangeTest {
     }
 
     @Test
-    fun `todos los periodos terminan al final del dia de hoy`() {
-        PeriodoInicioFiltro.entries.forEach { periodo ->
+    fun `todos los periodos predefinidos terminan al final del dia de hoy`() {
+        // HU-029/EP-004-d: PERSONALIZADO no tiene rango propio (ver test siguiente) -- se excluye
+        // de esta invariante, que solo aplica a los 4 periodos predefinidos de HU-028.
+        PeriodoInicioFiltro.entries.filter { it != PeriodoInicioFiltro.PERSONALIZADO }.forEach { periodo ->
             val rango = PeriodoInicioFiltroRange.rangeFor(periodo, hoy, zone)
-            assertEquals("periodo=$periodo", endOfDay(hoy), rango.second)
+            assertEquals("periodo=$periodo", endOfDay(hoy), rango?.second)
         }
+    }
+
+    // HU-029 (sub-slice EP-004-d): PERSONALIZADO no tiene rango propio -- lo aporta el usuario
+    // directamente en InicioFilterState.dateFrom/dateTo (calendario/campos de fecha reales de
+    // InicioScreen), mismo criterio ya usado por PeriodoFiltroRange.rangeFor de Historial para su
+    // propio PERSONALIZADO.
+    @Test
+    fun `personalizado no tiene rango propio`() {
+        val rango = PeriodoInicioFiltroRange.rangeFor(PeriodoInicioFiltro.PERSONALIZADO, hoy, zone)
+
+        assertEquals(null, rango)
     }
 }
