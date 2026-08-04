@@ -79,6 +79,14 @@ class InicioViewModel(private val operationDao: OperationDao) : ViewModel() {
         operationDao.errorRanking(filter.dateFrom, filter.dateTo)
     }
 
+    /** HU-031 (sub-slice EP-004-c): conteo GLOBAL de operaciones registradas, SIN filtrar por
+     * periodo (a diferencia de `metricsSummary.operationCount`) -- mismo pass-through directo de
+     * `OperationDao.countAll` que `HistorialViewModel.totalOperationCount` (HU-025/EP-003). Junto
+     * con `metricsSummary.operationCount` (conteo dentro del periodo), es lo que
+     * `InicioEmptyState.resolve` usa para distinguir "primera vez" de "sin datos para el periodo
+     * seleccionado". */
+    val totalOperationCount: Flow<Int> = operationDao.countAll()
+
     class Factory(private val operationDao: OperationDao) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {

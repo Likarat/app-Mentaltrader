@@ -308,7 +308,13 @@ fun MentaltraderApp(navController: NavHostController = rememberNavController()) 
                 val inicioViewModel: InicioViewModel = viewModel(
                     factory = InicioViewModel.Factory(application.database.operationDao())
                 )
-                InicioScreen(viewModel = inicioViewModel)
+                InicioScreen(
+                    viewModel = inicioViewModel,
+                    // HU-031 Escenario 1: mismo destino real que el FAB "Nueva operación" (HU-008,
+                    // EP-001 ya archivada) y que HistorialScreen (HU-025), sin duplicar esa
+                    // navegación.
+                    onNewOperationClick = { navController.navigate(RUTA_NUEVA_OPERACION) }
+                )
             }
             composable(Destino.Historial.route) {
                 HistorialScreen(

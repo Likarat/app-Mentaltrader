@@ -172,6 +172,33 @@ class InicioViewModelTest {
         assertNull(viewModel.filterState.value.selectedPeriodo)
     }
 
+    // ---- HU-031 (sub-slice EP-004-c): estado vacío -- totalOperationCount ----
+
+    // HU-031 Escenario 1: `totalOperationCount` (pass-through de `OperationDao.countAll`, mismo
+    // criterio que `HistorialViewModel.totalOperationCount`, HU-025/EP-003) es lo que distingue
+    // "primera vez" (0) de "hay operaciones pero el periodo no arroja ninguna" -- ver
+    // `InicioEmptyState.resolve`, testeado aparte en `InicioEmptyStateTest`.
+    @Test
+    fun `totalOperationCount es 0 cuando no hay ninguna operacion registrada`() = runTest {
+        val viewModel = createViewModel()
+
+        assertEquals(0, viewModel.totalOperationCount.first())
+    }
+
+    @Test
+    fun `totalOperationCount refleja el conteo real tras insertar operaciones, sin importar el periodo seleccionado`() = runTest {
+        operationDao.insert(operacion(dateTime = 1_000L, resultInR = 1f))
+        operationDao.insert(operacion(dateTime = 2_000L, resultInR = -1f))
+
+        val viewModel = createViewModel()
+        viewModel.onSelectPeriodo(PeriodoInicioFiltro.DIA, hoy)
+
+        // totalOperationCount NO se filtra por el periodo seleccionado (a diferencia de
+        // metricsSummary.operationCount) -- es el conteo GLOBAL, mismo criterio que
+        // `HistorialViewModel.totalOperationCount`.
+        assertEquals(2, viewModel.totalOperationCount.first())
+    }
+
     private fun operacion(dateTime: Long, resultInR: Float?) = Operation(
         dateTime = dateTime,
         assetId = 1L,

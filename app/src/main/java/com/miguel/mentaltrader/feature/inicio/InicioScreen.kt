@@ -1,9 +1,11 @@
 package com.miguel.mentaltrader.feature.inicio
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,36 +19,65 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.miguel.mentaltrader.core.data.CatalogRankingItem
 import com.miguel.mentaltrader.core.data.OperationMetricsSummary
+import com.miguel.mentaltrader.feature.historial.HistorialEmptyState
+import com.miguel.mentaltrader.feature.historial.HistorialEmptyStateContent
 import java.util.Locale
 
 /**
- * HU-026/HU-027 (sub-slice EP-004-a) + HU-028 (sub-slice EP-004-b): pantalla de Inicio real --
- * selector de periodo fijo, tarjetas de resumen numérico, gráfica de línea de R acumulado, gráfica
- * de barras de distribución de resultados y ranking de emociones/errores más frecuentes. Reemplaza
- * el placeholder de EP-005.
+ * HU-026/HU-027 (sub-slice EP-004-a) + HU-028 (sub-slice EP-004-b) + HU-031 (sub-slice EP-004-c):
+ * pantalla de Inicio real -- selector de periodo fijo, tarjetas de resumen numérico, gráfica de
+ * línea de R acumulado, gráfica de barras de distribución de resultados, ranking de
+ * emociones/errores más frecuentes y los dos estados vacíos de HU-031 (ver
+ * [InicioEmptyStateContent]). Reemplaza el placeholder de EP-005.
  *
  * HU-028 Escenario 3: [PeriodoSelectorRow] vive FUERA del `LazyColumn` de contenido (como hermano
  * en el `Column` raíz) -- así permanece fijo y visible al hacer scroll, en vez de desplazarse junto
- * con las tarjetas/gráficas/ranking. El estado vacío amigable de "sin ninguna operación registrada"
- * (HU-031) llega en el sub-slice siguiente (EP-004-c); por ahora, sin operaciones en el rango
- * seleccionado, las tarjetas/gráficas/ranking muestran sus valores neutros (HU-026 Escenario 4 /
- * HU-027 Escenario 4).
+ * con las tarjetas/gráficas/ranking, y sigue alcanzable incluso cuando se muestra un estado vacío
+ * (HU-031 Escenario 3: el usuario debe poder cambiar de periodo sin que el selector desaparezca).
+ *
+ * [onNewOperationClick] (HU-031 Escenario 1, reutilizado de HU-025/HU-008): acceso directo al
+ * formulario de nueva operación, mismo destino real que el FAB y que `HistorialScreen`
+ * (`MainActivity` lo cablea a la misma navegación, sin duplicarla).
  */
 @Composable
-fun InicioScreen(viewModel: InicioViewModel, modifier: Modifier = Modifier) {
+fun InicioScreen(
+    viewModel: InicioViewModel,
+    modifier: Modifier = Modifier,
+    onNewOperationClick: () -> Unit = {}
+) {
     val summary by viewModel.metricsSummary.collectAsState(initial = OperationMetricsSummary.EMPTY)
     val cumulativeSeries by viewModel.cumulativeSeries.collectAsState(initial = emptyList())
     val emotionRanking by viewModel.emotionRanking.collectAsState(initial = emptyList())
     val errorRanking by viewModel.errorRanking.collectAsState(initial = emptyList())
     val filterState by viewModel.filterState.collectAsState()
+    // HU-031: totalOperationCount (GLOBAL, sin filtrar por periodo) + summary.operationCount
+    // (calculado dentro del periodo seleccionado, ya en SQL vía metricsSummary) son las dos únicas
+    // señales que necesita InicioEmptyState.resolve -- lógica PURA, testeada aparte en
+    // InicioEmptyStateTest, sin duplicar ningún cálculo nuevo aquí.
+    val totalOperationCount by viewModel.totalOperationCount.collectAsState(initial = 0)
 
     Column(modifier = modifier.fillMaxWidth()) {
         PeriodoSelectorRow(selected = filterState.selectedPeriodo, onSelect = viewModel::onSelectPeriodo)
+
+        val emptyState = InicioEmptyState.resolve(
+            totalOperationCount = totalOperationCount,
+            operationCountInPeriod = summary.operationCount
+        )
+        if (emptyState != null) {
+            // HU-031 Escenario 2/3: mientras hay estado vacío, no se renderiza el LazyColumn de
+            // tarjetas/gráficas/ranking -- reaparece automáticamente en el siguiente render en
+            // cuanto `emptyState` resuelve `null` (HU-031 Escenario 3: recuperación fluida al
+            // cambiar a un periodo con datos, sin rastros del estado vacío anterior, sin ningún
+            // estado de UI adicional que "limpiar" -- se deriva 100% de los Flow reales).
+            InicioEmptyStateContent(emptyState, onNewOperationClick)
+            return
+        }
 
         LazyColumn(
             modifier = Modifier.fillMaxWidth(),
@@ -76,6 +107,42 @@ fun InicioScreen(viewModel: InicioViewModel, modifier: Modifier = Modifier) {
             }
             item {
                 RankingSection(title = "Errores más frecuentes", items = errorRanking)
+            }
+        }
+    }
+}
+
+/**
+ * HU-031: contenido del estado vacío de Inicio -- DOS mensajes distintos (Escenario 1 vs Escenario
+ * 2 de HU-031), nunca simultáneos:
+ * - [InicioEmptyState.PRIMERA_VEZ]: REUTILIZA tal cual el mensaje+CTA ya definidos en HU-025
+ *   (`HistorialEmptyStateContent(HistorialEmptyState.PRIMERA_VEZ, ...)`), sin redefinirlos --
+ *   design.md decisión #6 del change `metricas-deteccion-patrones-inicio`, HU-031 nota técnica:
+ *   "ambas pantallas deben invocar el mismo componente/mensaje compartido".
+ * - [InicioEmptyState.SIN_DATOS_PERIODO]: mensaje PROPIO de esta historia (no existe en Historial),
+ *   SIN acceso directo de creación -- las operaciones sí existen, solo no en este rango; para ver
+ *   datos, el usuario cambia de periodo con [PeriodoSelectorRow] (siempre visible arriba de este
+ *   bloque, HU-031 Escenario 3).
+ */
+@Composable
+private fun InicioEmptyStateContent(emptyState: InicioEmptyState, onNewOperationClick: () -> Unit) {
+    when (emptyState) {
+        InicioEmptyState.PRIMERA_VEZ ->
+            HistorialEmptyStateContent(HistorialEmptyState.PRIMERA_VEZ, onNewOperationClick)
+        InicioEmptyState.SIN_DATOS_PERIODO -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        "No hay operaciones en este periodo",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        "Probá con otro periodo para ver tus métricas",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
             }
         }
     }
