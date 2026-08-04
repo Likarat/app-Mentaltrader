@@ -65,7 +65,11 @@ class FormExitGuardTest {
         composeTestRule.onNodeWithText("¿Salir sin guardar?").assertDoesNotExist()
 
         // Navegó de verdad: ya no estamos en el formulario (el título del TopAppBar cambia).
-        composeTestRule.onNodeWithText("Nueva operación").assertDoesNotExist()
+        // "Nueva operación" también es el texto del CTA del estado vacío de Historial/Inicio
+        // (HU-025/HU-031) -- en un dispositivo sin operaciones guardadas ese botón SIEMPRE existe
+        // ahí, así que no sirve para confirmar que salimos del formulario. "Descripción entrada"
+        // es un campo exclusivo de OperationFormScreen, inequívoco.
+        composeTestRule.onNodeWithText("Descripción entrada").assertDoesNotExist()
     }
 
     // HU-009 Escenario 2: el mismo diálogo se dispara también por el gesto/botón "atrás" del
@@ -98,7 +102,11 @@ class FormExitGuardTest {
 
         composeTestRule.onNodeWithText("Salir sin guardar").performClick()
         composeTestRule.onNodeWithText("¿Salir sin guardar?").assertDoesNotExist()
-        composeTestRule.onNodeWithText("Nueva operación").assertDoesNotExist()
+        // "Nueva operación" también es el texto del CTA del estado vacío de Historial/Inicio
+        // (HU-025/HU-031) -- en un dispositivo sin operaciones guardadas ese botón SIEMPRE existe
+        // ahí, así que no sirve para confirmar que salimos del formulario. "Descripción entrada"
+        // es un campo exclusivo de OperationFormScreen, inequívoco.
+        composeTestRule.onNodeWithText("Descripción entrada").assertDoesNotExist()
     }
 
     // HU-009 Escenario 5: sin cambios pendientes, salir por pestaña es inmediato y sin diálogo.
@@ -112,7 +120,11 @@ class FormExitGuardTest {
         composeTestRule.onNodeWithText("Historial").performClick()
 
         composeTestRule.onNodeWithText("¿Salir sin guardar?").assertDoesNotExist()
-        composeTestRule.onNodeWithText("Nueva operación").assertDoesNotExist()
+        // "Nueva operación" también es el texto del CTA del estado vacío de Historial/Inicio
+        // (HU-025/HU-031) -- en un dispositivo sin operaciones guardadas ese botón SIEMPRE existe
+        // ahí, así que no sirve para confirmar que salimos del formulario. "Descripción entrada"
+        // es un campo exclusivo de OperationFormScreen, inequívoco.
+        composeTestRule.onNodeWithText("Descripción entrada").assertDoesNotExist()
     }
 
     // HU-009 Escenario 5: sin cambios pendientes, salir por "atrás" también es inmediato y sin
@@ -125,6 +137,10 @@ class FormExitGuardTest {
         pressSystemBack()
 
         composeTestRule.onNodeWithText("¿Salir sin guardar?").assertDoesNotExist()
-        composeTestRule.onNodeWithText("Nueva operación").assertDoesNotExist()
+        // "Nueva operación" también es el texto del CTA del estado vacío de Historial/Inicio
+        // (HU-025/HU-031) -- en un dispositivo sin operaciones guardadas ese botón SIEMPRE existe
+        // ahí, así que no sirve para confirmar que salimos del formulario. "Descripción entrada"
+        // es un campo exclusivo de OperationFormScreen, inequívoco.
+        composeTestRule.onNodeWithText("Descripción entrada").assertDoesNotExist()
     }
 }
