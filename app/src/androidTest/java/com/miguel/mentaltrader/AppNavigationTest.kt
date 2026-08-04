@@ -19,7 +19,13 @@ class AppNavigationTest {
 
     @Test
     fun laAppAbreEnInicio() {
-        composeTestRule.onNodeWithText("Pantalla de Inicio (placeholder)").assertExists()
+        // Desde EP-004 (metricas-deteccion-patrones-inicio), Inicio ya muestra el selector de
+        // periodo real (HU-028) en vez del placeholder de EP-005 -- ver InicioScreen.kt. El
+        // selector es el único elemento SIEMPRE visible en Inicio sin importar si hay datos
+        // (a diferencia de las tarjetas/gráficas, que no se renderizan en el estado vacío de
+        // HU-031), y su texto no colisiona con el FAB/CTA "Nueva operación" compartido con
+        // Historial.
+        composeTestRule.onNodeWithText("Últimos 3 meses").assertExists()
     }
 
     @Test

@@ -4,6 +4,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.room.Room
 import androidx.test.platform.app.InstrumentationRegistry
@@ -72,7 +73,13 @@ class OperationFormCatalogInlineAddTest {
     }
 
     private fun abrirAltaInline(label: String) {
-        composeTestRule.onNodeWithText(label).performClick()
+        // El formulario es un Column con verticalScroll (no LazyColumn, mismo criterio ya
+        // documentado en OperationFormJourneyTest): un click por coordenadas puede fallar en
+        // dispositivo real si el nodo quedó fuera del viewport visible -- por ejemplo, tras escribir
+        // en "Descripción entrada" (más abajo en el formulario), la vista se desplaza y "Activo"
+        // (más arriba) puede quedar fuera de pantalla. Se hace scrollTo() antes del click, igual que
+        // en el resto del formulario.
+        composeTestRule.onNodeWithText(label).performScrollTo().performClick()
         composeTestRule.onNodeWithText("+ Agregar nueva").performClick()
     }
 
@@ -109,7 +116,10 @@ class OperationFormCatalogInlineAddTest {
         waitUntil { viewModel.state.value.assetId != null }
 
         composeTestRule.onNodeWithText("EURJPY-inline").assertIsDisplayed()
-        composeTestRule.onNodeWithText(descripcion).assertIsDisplayed()
+        // "Descripción entrada" quedó fuera del viewport tras el scrollTo("Activo") de
+        // abrirAltaInline -- mismo criterio que el resto del formulario: scrollTo() antes de
+        // verificar visibilidad real en pantalla, no solo existencia en el árbol.
+        composeTestRule.onNodeWithText(descripcion).performScrollTo().assertIsDisplayed()
         composeTestRule.onNodeWithText("Nuevo valor para Activo").assertDoesNotExist()
     }
 
@@ -129,7 +139,9 @@ class OperationFormCatalogInlineAddTest {
 
         composeTestRule.onNodeWithText("Este valor ya existe en el catálogo").assertIsDisplayed()
         composeTestRule.onNodeWithText("Nuevo valor para Activo").assertIsDisplayed()
-        composeTestRule.onNodeWithText(descripcion).assertIsDisplayed()
+        // Mismo criterio que en confirmarElAltaInlineDeUnActivoLoSeleccionaYConservaElRestoDelFormulario:
+        // scrollTo() antes de verificar, la posición de scroll cambió al abrir el dropdown de "Activo".
+        composeTestRule.onNodeWithText(descripcion).performScrollTo().assertIsDisplayed()
     }
 
     // HU-013 Escenario 4: cancelar el campo inline sin escribir nada no crea ningún elemento y el

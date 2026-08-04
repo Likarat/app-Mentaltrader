@@ -30,10 +30,18 @@ class OperationFormJourneyTest {
         // es solo-ícono: se identifica por contentDescription, no por texto visible.
         composeTestRule.onNodeWithContentDescription("Nueva operación").performClick()
 
-        // 2. Fecha/Hora y Activo ya vienen prellenados por HU-005 (fecha/hora actual, y XAUUSD
-        // porque es la única semilla del catálogo) — no hace falta completarlos a mano.
+        // 2. Fecha/Hora ya vienen prellenados por HU-005 (fecha/hora actual) — no hace falta
+        // completarlos a mano.
 
-        // 3. (Activo ya seleccionado por el prellenado de HU-005, ver punto 2.)
+        // 3. Activo: HU-005 Esc.2/3 solo prellena automáticamente si el catálogo NO tiene más que
+        // la semilla protegida (XAUUSD) -- en este dispositivo real, compartido entre todos los
+        // tests instrumentados de la suite (Room de producción, sin fake ni reset entre clases),
+        // otras clases (ej. EtiquetasCatalogManagementTest) pueden haber agregado más activos
+        // antes de que esta corra, lo que desactiva el prellenado automático. Se selecciona
+        // explícitamente XAUUSD (semilla protegida, siempre presente) en vez de depender de que
+        // el catálogo tenga exactamente un elemento.
+        composeTestRule.onNodeWithText("Activo").performScrollTo().performClick()
+        composeTestRule.onNodeWithText("XAUUSD").performClick()
 
         // El formulario es un Column con verticalScroll (no LazyColumn): todo está siempre
         // presente en el árbol de semántica, pero un click por coordenadas puede fallar si el
@@ -71,6 +79,22 @@ class OperationFormJourneyTest {
         //     entrada (ver HistorialScreen.kt, HU-015 Escenario 3): se identifica por el
         //     Resultado, mismo criterio ya aplicado en AppNavigationTest.
         composeTestRule.onNodeWithText("Historial").performClick()
+        // El listado real usa Paging 3 (HistorialViewModel.pagingSourceFiltered) -- en dispositivo
+        // real, bajo la carga de correr la suite completa, la primera página puede tardar más de
+        // un frame en llegar tras el insert real en Room. waitForIdle() no cubre ese delay porque
+        // es I/O asíncrono fuera de la sincronización de Compose, no una recomposición pendiente.
+        waitUntil(timeoutMs = 15_000) {
+            composeTestRule.onAllNodesWithText("WIN", substring = true).fetchSemanticsNodes().isNotEmpty()
+        }
         composeTestRule.onAllNodesWithText("WIN", substring = true)[0].assertExists()
+    }
+
+    private fun waitUntil(timeoutMs: Long = 5_000, condition: () -> Boolean) {
+        val start = System.currentTimeMillis()
+        while (!condition()) {
+            check(System.currentTimeMillis() - start <= timeoutMs) { "Timeout esperando la condición" }
+            Thread.sleep(20)
+            composeTestRule.waitForIdle()
+        }
     }
 }
