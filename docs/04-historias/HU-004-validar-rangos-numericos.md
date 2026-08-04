@@ -26,7 +26,9 @@ Se apoya en los campos ya definidos por HU-001 (Fecha, Hora, Resultado, Riesgo %
 | Fecha y Hora | No se permiten fechas ni horas futuras. Mensaje: "No se permiten fechas/horas futuras" |
 | Calidad | Solo entre 0.0 y 10.0, máximo 1 decimal |
 | Riesgo (%) | Solo entre 0 y 100 |
-| Resultado en R | Cualquier valor decimal con signo, sin límite superior o inferior; se muestra siempre con sufijo "R" |
+| Resultado en R | Decimal con signo, sin límite superior o inferior en magnitud; se muestra siempre con sufijo "R". El **signo** sí está acotado por el campo Resultado (ver Escenario 5, enmienda 2026-08-04): Ganada exige R ≥ 0, Perdida exige R ≤ 0, Break Even acepta cualquier signo (incluido 0) |
+
+**Enmienda 2026-08-04** (feedback real de uso, post-archivo de EP-001): la regla de signo de "Resultado en R" arriba y el Escenario 5 se agregaron después de que el usuario detectara, probando la app ya construida, que podía guardar una operación "Ganada" con R negativo (o "Perdida" con R positivo) sin ningún aviso — una incoherencia real de datos que distorsiona exactamente las métricas que esta historia existe para proteger (ver Historia arriba). Se decidió, explícitamente y por acuerdo con el usuario, tratar esto como una enmienda de esta historia ya archivada (agregar el escenario + implementar la validación) en vez de reabrir formalmente la épica EP-001, dado que es una única regla de validación acotada sobre un campo ya existente, sin UI ni modelo de datos nuevo. Queda registrado aquí para que la próxima auditoría de coherencia (`coherence-three-way`) encuentre el AC y el escenario ya alineados con el código.
 
 ## Criterios de aceptación
 
@@ -46,9 +48,14 @@ Se apoya en los campos ya definidos por HU-001 (Fecha, Hora, Resultado, Riesgo %
 - **Entonces** el sistema impide el guardado y resalta el campo fuera de rango con un mensaje de error específico, sin bloquear los demás campos ya válidos
 
 ### Escenario 4 — Edge: Resultado en R con magnitud grande y signo negativo
-- **Dado que** el usuario ingresó un Resultado en R negativo de magnitud considerable (ej. -15.5), sin que exista límite inferior definido para este campo
+- **Dado que** el usuario seleccionó Resultado = Perdida e ingresó un Resultado en R negativo de magnitud considerable (ej. -15.5), sin que exista límite inferior definido para la magnitud de este campo
 - **Cuando** guarda la operación
 - **Entonces** el sistema acepta el valor sin bloquear el guardado y lo muestra en toda la UI con el sufijo "R" fijo (ej. "-15.5R")
+
+### Escenario 5 — Error: signo de Resultado en R incoherente con el Resultado (enmienda 2026-08-04)
+- **Dado que** el usuario seleccionó Resultado = Ganada y un Resultado en R negativo (ej. -1.5), o Resultado = Perdida y un Resultado en R positivo (ej. +1.5)
+- **Cuando** intenta guardar
+- **Entonces** el sistema impide el guardado y muestra un mensaje de error específico en el campo Resultado en R indicando que el signo no es coherente con el Resultado seleccionado; con Resultado = Break Even, cualquier signo (incluido 0) se acepta sin error
 
 ## Notas técnicas (opcional)
 

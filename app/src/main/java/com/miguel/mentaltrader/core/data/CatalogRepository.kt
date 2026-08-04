@@ -5,6 +5,7 @@ import com.miguel.mentaltrader.core.model.CatalogType
 sealed interface CatalogAddResult {
     data class Added(val item: CatalogItem) : CatalogAddResult
     data object Duplicate : CatalogAddResult
+    data object Blank : CatalogAddResult
 }
 
 sealed interface CatalogUpdateResult {
@@ -34,6 +35,11 @@ class CatalogRepository(
 
     suspend fun addItem(type: CatalogType, name: String): CatalogAddResult {
         val trimmed = name.trim()
+        // Bug real reportado por el usuario (2026-08-04): con el campo vacío (o solo espacios) se
+        // creaba igual un elemento de catálogo vacío -- antes de esto solo se validaban duplicados.
+        if (trimmed.isEmpty()) {
+            return CatalogAddResult.Blank
+        }
         if (catalogItemDao.countByTypeAndNameIgnoreCaseExcludingId(type, trimmed, excludeId = NO_EXCLUSION) > 0) {
             return CatalogAddResult.Duplicate
         }
@@ -74,6 +80,7 @@ class CatalogRepository(
 
     companion object {
         const val DUPLICATE_MESSAGE = "Este valor ya existe en el catálogo"
+        const val BLANK_MESSAGE = "No se ha registrado ningún valor"
         private const val NO_EXCLUSION = 0L
         private const val SEED_ERROR_BLOCKED_MESSAGE = "\"Ninguno\" no puede eliminarse."
         private const val SEED_ASSET_BLOCKED_MESSAGE = "\"XAUUSD\" no puede eliminarse mientras sea el único activo."

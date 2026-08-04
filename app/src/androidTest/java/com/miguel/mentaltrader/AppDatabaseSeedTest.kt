@@ -49,17 +49,23 @@ class AppDatabaseSeedTest {
         val emotions = runBlocking { catalogItemDao.getByType(CatalogType.EMOTION).first() }
         val errors = runBlocking { catalogItemDao.getByType(CatalogType.ERROR).first() }
 
-        assertEquals(1, assets.size)
-        assertEquals(CatalogItem.SEED_ASSET_XAUUSD, assets.first().name)
-        assertTrue(assets.first().isDefault)
+        // Bug real reportado por el usuario (2026-08-04): este test asumía un catálogo con
+        // EXACTAMENTE los elementos semilla (arranque limpio), pero -- tal como esta misma clase
+        // ya anticipaba en su KDoc ("siempre que ningún otro flujo de la app inserte manualmente
+        // elementos de catálogo... se sembrará en EP-002") -- EP-002 ya existe y el usuario ya
+        // agregó elementos reales de catálogo probando la app en este mismo dispositivo. Se
+        // relaja la aserción a "la semilla existe y está marcada isDefault", sin asumir que sea
+        // el ÚNICO elemento -- eso es lo que realmente verifica que la siembra ocurrió.
+        val seedAsset = assets.singleOrNull { it.name == CatalogItem.SEED_ASSET_XAUUSD }
+        assertTrue("Falta la semilla de Activo (${CatalogItem.SEED_ASSET_XAUUSD})", seedAsset != null)
+        assertTrue(seedAsset!!.isDefault)
 
-        assertEquals(CatalogItem.SEED_EMOTIONS.size, emotions.size)
-        assertEquals(CatalogItem.SEED_EMOTIONS.toSet(), emotions.map { it.name }.toSet())
-        assertTrue(emotions.all { it.isDefault })
+        val seedEmotionNames = emotions.filter { it.isDefault }.map { it.name }.toSet()
+        assertEquals(CatalogItem.SEED_EMOTIONS.toSet(), seedEmotionNames)
 
-        assertEquals(1, errors.size)
-        assertEquals(CatalogItem.SEED_ERROR_NINGUNO, errors.first().name)
-        assertTrue(errors.first().isDefault)
+        val seedError = errors.singleOrNull { it.name == CatalogItem.SEED_ERROR_NINGUNO }
+        assertTrue("Falta la semilla de Error (${CatalogItem.SEED_ERROR_NINGUNO})", seedError != null)
+        assertTrue(seedError!!.isDefault)
     }
 
     private fun waitUntil(timeoutMs: Long = 5_000, condition: () -> Boolean) {

@@ -3,7 +3,10 @@ package com.miguel.mentaltrader.feature.historial
 import android.content.pm.ActivityInfo
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculatePan
+import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,6 +36,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -133,10 +137,19 @@ fun HistorialVisorImagenScreen(
 
 /**
  * HU-019 Escenario 2: aplica zoom real sobre la imagen con el gesto de pellizcar/ampliar
- * (`detectTransformGestures`, Compose Foundation puro -- sin dependencia nueva, design.md decisión
- * #7). El paneo (`pan`) solo se acumula mientras hay zoom aplicado (`scale > 1f`); al volver a
- * `scale == 1f` el desplazamiento se resetea, para no dejar la imagen descentrada la próxima vez
- * que se vuelve a hacer zoom.
+ * (Compose Foundation puro -- sin dependencia nueva, design.md decisión #7). El paneo (`pan`)
+ * solo se acumula mientras hay zoom aplicado (`scale > 1f`); al volver a `scale == 1f` el
+ * desplazamiento se resetea, para no dejar la imagen descentrada la próxima vez que se vuelve a
+ * hacer zoom.
+ *
+ * Bug real reportado por el usuario (2026-08-04): con `detectTransformGestures` (que consume
+ * TODO arrastre, incluso de un solo dedo, para calcular `pan`) dentro de un `HorizontalPager`,
+ * el gesto de deslizar para cambiar de imagen (HU-019 Escenario 3, "permite avanzar deslizando o
+ * tocando una flecha") nunca le llegaba al pager -- el botón funcionaba, deslizar no. Se
+ * reimplementa el detector a mano: con un solo dedo y `scale == 1f` (sin zoom aplicado) NO se
+ * consume el gesto, para que el `HorizontalPager` padre lo reciba y cambie de página; con 2+
+ * dedos (pellizco) o con un dedo mientras ya hay zoom aplicado (panear la imagen ampliada), sí se
+ * consume acá, igual que antes.
  */
 @Composable
 private fun ZoomableOperationImage(imageFile: File, contentDescription: String) {
@@ -149,10 +162,25 @@ private fun ZoomableOperationImage(imageFile: File, contentDescription: String) 
         modifier = Modifier
             .fillMaxSize()
             .pointerInput(imageFile) {
-                detectTransformGestures { _, pan, zoom, _ ->
-                    val newScale = (scale * zoom).coerceIn(MIN_ZOOM, MAX_ZOOM)
-                    scale = newScale
-                    offset = if (newScale <= MIN_ZOOM) Offset.Zero else offset + pan
+                awaitEachGesture {
+                    awaitFirstDown(requireUnconsumed = false)
+                    do {
+                        val event = awaitPointerEvent()
+                        val zoomChange = event.calculateZoom()
+                        val panChange = event.calculatePan()
+                        val isMultiTouch = event.changes.size > 1
+
+                        if (isMultiTouch || scale > MIN_ZOOM) {
+                            val newScale = (scale * zoomChange).coerceIn(MIN_ZOOM, MAX_ZOOM)
+                            scale = newScale
+                            offset = if (newScale <= MIN_ZOOM) Offset.Zero else offset + panChange
+                            event.changes.forEach { change ->
+                                if (change.positionChanged()) change.consume()
+                            }
+                        }
+                        // else: un solo dedo y sin zoom aplicado -- no se consume, para que el
+                        // HorizontalPager reciba el arrastre y cambie de página (Escenario 3).
+                    } while (event.changes.any { it.pressed })
                 }
             }
             .graphicsLayer(

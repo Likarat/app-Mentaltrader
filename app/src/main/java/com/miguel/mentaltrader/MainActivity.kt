@@ -169,6 +169,14 @@ fun MentaltraderApp(navController: NavHostController = rememberNavController()) 
     // aplican a "Nueva operación" deben aplicar también a esta ruta parametrizada.
     val isFormRoute = currentRoute == RUTA_NUEVA_OPERACION || currentRoute?.startsWith(RUTA_EDITAR_OPERACION_BASE) == true
 
+    // Bug real reportado por el usuario (2026-08-04): el detalle de una operación (HU-018) se
+    // pushea ENCIMA de la pestaña Historial igual que "Nueva operación"/Ajustes, pero se había
+    // quedado afuera de isFormRoute -- sin flecha "atrás" visible, y al cambiar de pestaña y
+    // volver, seguía mostrando el detalle en vez del listado (mismo bug de fondo ya documentado
+    // más abajo para isFormRoute/RUTA_AJUSTES, nunca extendido a esta ruta).
+    val isDetalleOperacionRoute = currentRoute?.startsWith(RUTA_DETALLE_OPERACION_BASE) == true
+    val isRutaPusheadaSobrePestana = isFormRoute || currentRoute == RUTA_AJUSTES || isDetalleOperacionRoute
+
     // HU-019 Escenario 1/4: el visor de imagen es pantalla completa de verdad (fondo negro, sin
     // barra superior/inferior) -- también es la única ruta donde se permite rotar a horizontal,
     // y una bottomBar visible en landscape no tendría sentido en ese layout. Su propio botón
@@ -226,15 +234,17 @@ fun MentaltraderApp(navController: NavHostController = rememberNavController()) 
         currentRoute == RUTA_NUEVA_OPERACION -> "Nueva operación"
         currentRoute?.startsWith(RUTA_EDITAR_OPERACION_BASE) == true -> "Editar operación"
         currentRoute == RUTA_AJUSTES -> "Ajustes"
+        isDetalleOperacionRoute -> "Detalle de operación"
         else -> "Mentaltrader"
     }
 
-    // Bugs reales reportados por el usuario (2026-07-29): en Ajustes y en Nueva operación no
-    // había ninguna forma VISIBLE de volver (solo el gesto/botón "atrás" del sistema, poco
-    // descubrible) — se sentía "trabado". Se agrega una flecha "atrás" explícita en el
-    // TopAppBar para ambas pantallas, usando el mismo requestExit (respeta el diálogo de
-    // confirmación de HU-009 cuando corresponde).
-    val showBackAction = isFormRoute || currentRoute == RUTA_AJUSTES
+    // Bugs reales reportados por el usuario (2026-07-29, y 2026-08-04 para el detalle de
+    // operación): en Ajustes, Nueva operación y el detalle de una operación no había ninguna
+    // forma VISIBLE de volver (solo el gesto/botón "atrás" del sistema, poco descubrible) — se
+    // sentía "trabado". Se agrega una flecha "atrás" explícita en el TopAppBar para las tres,
+    // usando el mismo requestExit (respeta el diálogo de confirmación de HU-009 cuando
+    // corresponde -- el detalle nunca tiene cambios sin guardar, así que ahí siempre sale directo).
+    val showBackAction = isRutaPusheadaSobrePestana
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -265,15 +275,16 @@ fun MentaltraderApp(navController: NavHostController = rememberNavController()) 
             if (!isVisorImagenRoute) {
                 AppBottomNavigationBar(navController) { destino ->
                     requestExit {
-                        // Bug real reportado por el usuario: Nueva operación y Ajustes se pushean
-                        // ENCIMA de la pestaña activa (no son pestañas en sí). Si se navega a otra
-                        // pestaña con popUpTo(start){saveState=true} mientras alguna de las dos está
-                        // arriba de la pila, Navigation-Compose la guarda como si fuera parte del
-                        // estado restaurable de la pestaña de origen, y la vuelve a mostrar más tarde
-                        // al re-visitar esa pestaña ("la operación/el ajuste seguía ahí"). Por eso
-                        // primero se la saca de la pila con un popBackStack limpio (sin saveState),
-                        // y RECIÉN DESPUÉS se hace el cambio de pestaña estándar.
-                        if (isFormRoute || currentRoute == RUTA_AJUSTES) {
+                        // Bug real reportado por el usuario: Nueva operación, Ajustes y el detalle
+                        // de una operación (HU-018, agregado 2026-08-04) se pushean ENCIMA de la
+                        // pestaña activa (no son pestañas en sí). Si se navega a otra pestaña con
+                        // popUpTo(start){saveState=true} mientras alguna de las tres está arriba de
+                        // la pila, Navigation-Compose la guarda como si fuera parte del estado
+                        // restaurable de la pestaña de origen, y la vuelve a mostrar más tarde al
+                        // re-visitar esa pestaña ("la operación/el ajuste/el detalle seguía ahí").
+                        // Por eso primero se la saca de la pila con un popBackStack limpio (sin
+                        // saveState), y RECIÉN DESPUÉS se hace el cambio de pestaña estándar.
+                        if (isRutaPusheadaSobrePestana) {
                             navController.popBackStack()
                         }
                         navController.navigate(destino.route) {
