@@ -6,6 +6,7 @@ import com.miguel.mentaltrader.core.data.CatalogRepository
 import com.miguel.mentaltrader.core.data.CatalogSeeder
 import com.miguel.mentaltrader.core.data.DataResetService
 import com.miguel.mentaltrader.core.data.HistorialFilterRepository
+import com.miguel.mentaltrader.core.data.InicioFilterRepository
 import com.miguel.mentaltrader.core.image.ImageProcessor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -28,6 +29,10 @@ class MentaltraderApplication : Application() {
      * para todo el ciclo de vida del proceso, vía el `Context.historialFilterDataStore` interno de
      * [HistorialFilterRepository]. */
     val historialFilterRepository: HistorialFilterRepository by lazy { HistorialFilterRepository(this) }
+    /** HU-030: singleton real de app (mismo criterio que [historialFilterRepository]) -- un solo
+     * DataStore Preferences ("inicio_filter") propio de Inicio para todo el ciclo de vida del
+     * proceso, vía el `Context.inicioFilterDataStore` interno de [InicioFilterRepository]. */
+    val inicioFilterRepository: InicioFilterRepository by lazy { InicioFilterRepository(this) }
     val catalogRepository: CatalogRepository by lazy {
         CatalogRepository(database.catalogItemDao(), database.operationDao())
     }

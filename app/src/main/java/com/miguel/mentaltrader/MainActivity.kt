@@ -60,7 +60,8 @@ import com.miguel.mentaltrader.feature.historial.HistorialVisorImagenScreen
 import com.miguel.mentaltrader.feature.historial.HistorialVisorImagenViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
-import com.miguel.mentaltrader.feature.metricas.InicioScreen
+import com.miguel.mentaltrader.feature.inicio.InicioScreen
+import com.miguel.mentaltrader.feature.inicio.InicioViewModel
 import com.miguel.mentaltrader.feature.registro.OperationFormScreen
 import com.miguel.mentaltrader.feature.registro.OperationFormViewModel
 import com.miguel.mentaltrader.ui.theme.MentaltraderTheme
@@ -303,7 +304,18 @@ fun MentaltraderApp(navController: NavHostController = rememberNavController()) 
             startDestination = Destino.Inicio.route,
             modifier = androidx.compose.ui.Modifier.padding(innerPadding)
         ) {
-            composable(Destino.Inicio.route) { InicioScreen() }
+            composable(Destino.Inicio.route) {
+                val inicioViewModel: InicioViewModel = viewModel(
+                    factory = InicioViewModel.Factory(application.database.operationDao(), application.inicioFilterRepository)
+                )
+                InicioScreen(
+                    viewModel = inicioViewModel,
+                    // HU-031 Escenario 1: mismo destino real que el FAB "Nueva operación" (HU-008,
+                    // EP-001 ya archivada) y que HistorialScreen (HU-025), sin duplicar esa
+                    // navegación.
+                    onNewOperationClick = { navController.navigate(RUTA_NUEVA_OPERACION) }
+                )
+            }
             composable(Destino.Historial.route) {
                 HistorialScreen(
                     viewModel = historialViewModel,

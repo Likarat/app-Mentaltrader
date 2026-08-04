@@ -174,9 +174,17 @@ fun HistorialScreen(
  *   limpiar el filtro, el usuario usa "Limpiar filtros" en [HistorialFilterPanel] (siempre visible
  *   arriba de este bloque, ver HU-022 Escenario 4), no se duplica ese botón aquí.
  * `null` no renderiza nada (edge de `pendingDeleteIds`, ver KDoc de [HistorialEmptyState]).
+ *
+ * NO `private` (HU-031, sub-slice EP-004-c de EP-004): `feature/inicio/InicioScreen.kt` invoca
+ * directamente este composable con [HistorialEmptyState.PRIMERA_VEZ] para el caso de "primera vez,
+ * nunca registró ninguna operación" (HU-031 Escenario 1, reutiliza el mismo mensaje+CTA sin
+ * redefinirlo, design.md decisión #6 del change `metricas-deteccion-patrones-inicio`) -- el caso
+ * [HistorialEmptyState.SIN_RESULTADOS_FILTRO] NO se reutiliza (Inicio no tiene concepto de "filtro"
+ * más allá del periodo; su mensaje propio de "sin datos para el periodo" vive en
+ * `InicioEmptyStateContent`, `feature/inicio`).
  */
 @Composable
-private fun HistorialEmptyStateContent(emptyState: HistorialEmptyState?, onNewOperationClick: () -> Unit) {
+fun HistorialEmptyStateContent(emptyState: HistorialEmptyState?, onNewOperationClick: () -> Unit) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         when (emptyState) {
             HistorialEmptyState.PRIMERA_VEZ -> {
