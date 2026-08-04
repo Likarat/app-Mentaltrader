@@ -261,6 +261,10 @@ class OperationFormViewModel(
                 }
                 CatalogAddResult.Duplicate ->
                     _state.value = _state.value.copy(addCatalogError = CatalogRepository.DUPLICATE_MESSAGE)
+                // Bug real reportado por el usuario (2026-08-04): el campo vacío creaba un
+                // elemento de catálogo vacío, sin ningún aviso.
+                CatalogAddResult.Blank ->
+                    _state.value = _state.value.copy(addCatalogError = CatalogRepository.BLANK_MESSAGE)
             }
         }
     }
@@ -384,6 +388,25 @@ class OperationFormViewModel(
             val risk = parseDecimal(s.riskPercentageText)
             if (risk == null || risk < 0f || risk > 100f) {
                 errors[OperationFormState.FIELD_RISK] = "Debe estar entre 0 y 100"
+            }
+        }
+
+        // HU-004 Escenario 5 (enmienda 2026-08-04, bug real reportado por el usuario): el signo de
+        // Resultado en R debe ser coherente con el Resultado -- Ganada no admite R negativo,
+        // Perdida no admite R positivo, Break Even admite cualquier signo (incluido 0).
+        if (s.resultInRText.isNotBlank()) {
+            val magnitude = parseDecimal(s.resultInRText)
+            if (magnitude != null) {
+                val signedValue = if (s.resultInRSign == OperationFormState.SIGN_NEGATIVE) -magnitude else magnitude
+                val incoherente = when (s.result) {
+                    ResultType.WIN -> signedValue < 0f
+                    ResultType.LOSS -> signedValue > 0f
+                    ResultType.BREAK_EVEN, null -> false
+                }
+                if (incoherente) {
+                    errors[OperationFormState.FIELD_RESULT_IN_R] =
+                        "El signo de R no es coherente con el Resultado seleccionado"
+                }
             }
         }
 

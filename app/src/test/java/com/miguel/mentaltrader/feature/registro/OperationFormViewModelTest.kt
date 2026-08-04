@@ -195,6 +195,8 @@ class OperationFormViewModelTest {
         val errorId = catalogItemDao.seed(CatalogType.ERROR, "Ninguno")
         val viewModel = createViewModel()
         viewModel.fillMinimalRequiredFields(assetId, emotionId, emotionId, errorId)
+        // HU-004 Escenario 5 (enmienda 2026-08-04): R negativo requiere Resultado = Perdida.
+        viewModel.onResultSelected(ResultType.LOSS)
         viewModel.onRiskPercentageChange("2.5")
         viewModel.onResultInRChange("-1.5")
         viewModel.onPlannedRatioChange("1:2")
@@ -397,6 +399,80 @@ class OperationFormViewModelTest {
         assertTrue(viewModel.state.value.fieldErrors.containsKey(OperationFormState.FIELD_RISK))
     }
 
+    // HU-004 Escenario 5 (enmienda 2026-08-04, bug real reportado por el usuario): Ganada no
+    // admite Resultado en R negativo.
+    @Test
+    fun `resultado ganada con R negativo bloquea el guardado`() = runTest {
+        val assetId = catalogItemDao.seed(CatalogType.ASSET, "XAUUSD")
+        val emotionId = catalogItemDao.seed(CatalogType.EMOTION, "Confianza")
+        val errorId = catalogItemDao.seed(CatalogType.ERROR, "Ninguno")
+        val viewModel = createViewModel()
+        viewModel.fillMinimalRequiredFields(assetId, emotionId, emotionId, errorId)
+        viewModel.onResultSelected(ResultType.WIN)
+        viewModel.onResultInRSignChange(OperationFormState.SIGN_NEGATIVE)
+        viewModel.onResultInRChange("1.5")
+
+        viewModel.save()
+
+        assertEquals(0, operationDao.inserted.size)
+        assertTrue(viewModel.state.value.fieldErrors.containsKey(OperationFormState.FIELD_RESULT_IN_R))
+    }
+
+    // HU-004 Escenario 5: Perdida no admite Resultado en R positivo.
+    @Test
+    fun `resultado perdida con R positivo bloquea el guardado`() = runTest {
+        val assetId = catalogItemDao.seed(CatalogType.ASSET, "XAUUSD")
+        val emotionId = catalogItemDao.seed(CatalogType.EMOTION, "Confianza")
+        val errorId = catalogItemDao.seed(CatalogType.ERROR, "Ninguno")
+        val viewModel = createViewModel()
+        viewModel.fillMinimalRequiredFields(assetId, emotionId, emotionId, errorId)
+        viewModel.onResultSelected(ResultType.LOSS)
+        viewModel.onResultInRSignChange(OperationFormState.SIGN_POSITIVE)
+        viewModel.onResultInRChange("1.5")
+
+        viewModel.save()
+
+        assertEquals(0, operationDao.inserted.size)
+        assertTrue(viewModel.state.value.fieldErrors.containsKey(OperationFormState.FIELD_RESULT_IN_R))
+    }
+
+    // HU-004 Escenario 5: Perdida con R negativo es coherente y guarda sin error.
+    @Test
+    fun `resultado perdida con R negativo guarda sin error`() = runTest {
+        val assetId = catalogItemDao.seed(CatalogType.ASSET, "XAUUSD")
+        val emotionId = catalogItemDao.seed(CatalogType.EMOTION, "Confianza")
+        val errorId = catalogItemDao.seed(CatalogType.ERROR, "Ninguno")
+        val viewModel = createViewModel()
+        viewModel.fillMinimalRequiredFields(assetId, emotionId, emotionId, errorId)
+        viewModel.onResultSelected(ResultType.LOSS)
+        viewModel.onResultInRSignChange(OperationFormState.SIGN_NEGATIVE)
+        viewModel.onResultInRChange("1.5")
+
+        viewModel.save()
+
+        assertTrue(viewModel.state.value.fieldErrors.isEmpty())
+        assertTrue(viewModel.state.value.isSaved)
+        assertEquals(-1.5f, operationDao.inserted.single().resultInR)
+    }
+
+    // HU-004 Escenario 5: Break Even acepta cualquier signo, incluso negativo, sin error.
+    @Test
+    fun `resultado break even con R negativo guarda sin error`() = runTest {
+        val assetId = catalogItemDao.seed(CatalogType.ASSET, "XAUUSD")
+        val emotionId = catalogItemDao.seed(CatalogType.EMOTION, "Confianza")
+        val errorId = catalogItemDao.seed(CatalogType.ERROR, "Ninguno")
+        val viewModel = createViewModel()
+        viewModel.fillMinimalRequiredFields(assetId, emotionId, emotionId, errorId)
+        viewModel.onResultSelected(ResultType.BREAK_EVEN)
+        viewModel.onResultInRSignChange(OperationFormState.SIGN_NEGATIVE)
+        viewModel.onResultInRChange("0.3")
+
+        viewModel.save()
+
+        assertTrue(viewModel.state.value.fieldErrors.isEmpty())
+        assertTrue(viewModel.state.value.isSaved)
+    }
+
     // HU-004 Escenario 4: Resultado en R negativo de magnitud grande, sin límite inferior.
     @Test
     fun `resultado en R negativo de magnitud grande se acepta sin bloquear el guardado`() = runTest {
@@ -405,6 +481,8 @@ class OperationFormViewModelTest {
         val errorId = catalogItemDao.seed(CatalogType.ERROR, "Ninguno")
         val viewModel = createViewModel()
         viewModel.fillMinimalRequiredFields(assetId, emotionId, emotionId, errorId)
+        // HU-004 Escenario 5 (enmienda 2026-08-04): R negativo requiere Resultado = Perdida.
+        viewModel.onResultSelected(ResultType.LOSS)
         viewModel.onResultInRSignChange(OperationFormState.SIGN_NEGATIVE)
         viewModel.onResultInRChange("15.5")
 

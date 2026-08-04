@@ -1,11 +1,12 @@
 package com.miguel.mentaltrader
 
-import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertIsNotSelected
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -33,18 +34,20 @@ class AppNavigationTest {
         // Desde EP-003 (historial-estudio-operaciones), Historial ya muestra el listado real
         // agrupado y paginado (o su estado vacío) en vez del placeholder de EP-005 — ver
         // HistorialScreen.kt. El dispositivo real puede tener operaciones guardadas de pruebas
-        // manuales previas, así que se acepta cualquiera de los dos: estado vacío o al menos una
+        // manuales previas (incluso varias -- bug real reportado por el usuario 2026-08-04:
+        // `onNode(matcher).assertExists()` exige EXACTAMENTE 1 coincidencia, y con 2+ operaciones
+        // reales ya rompía), así que se acepta cualquiera de los dos: estado vacío o al menos una
         // tarjeta de operación real (identificable por el Resultado, siempre uno de estos 3
-        // valores fijos del enum, a diferencia del Activo que es dato variable).
+        // valores fijos del enum, a diferencia del Activo que es dato variable) -- se verifica
+        // "existe al menos una" por separado para cada texto candidato, sin importar cuántas
+        // coincidencias haya en total.
         composeTestRule.onNodeWithText("Historial").performClick()
-        composeTestRule
-            .onNode(
-                hasText("Todavía no registraste ninguna operación") or
-                    hasText("WIN", substring = true) or
-                    hasText("LOSS", substring = true) or
-                    hasText("BREAK_EVEN", substring = true)
-            )
-            .assertExists()
+        val muestraEstadoVacioOAlgunaOperacion =
+            composeTestRule.onAllNodesWithText("Todavía no registraste ninguna operación").fetchSemanticsNodes().isNotEmpty() ||
+                composeTestRule.onAllNodesWithText("WIN", substring = true).fetchSemanticsNodes().isNotEmpty() ||
+                composeTestRule.onAllNodesWithText("LOSS", substring = true).fetchSemanticsNodes().isNotEmpty() ||
+                composeTestRule.onAllNodesWithText("BREAK_EVEN", substring = true).fetchSemanticsNodes().isNotEmpty()
+        assertTrue(muestraEstadoVacioOAlgunaOperacion)
     }
 
     @Test

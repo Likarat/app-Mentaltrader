@@ -103,6 +103,10 @@ class EtiquetasViewModel(
                 is CatalogAddResult.Added -> _state.value = _state.value.copy(addFieldValue = "", addError = null)
                 CatalogAddResult.Duplicate ->
                     _state.value = _state.value.copy(addError = CatalogRepository.DUPLICATE_MESSAGE)
+                // Bug real reportado por el usuario (2026-08-04): el campo vacío creaba un
+                // elemento de catálogo vacío, sin ningún aviso.
+                CatalogAddResult.Blank ->
+                    _state.value = _state.value.copy(addError = CatalogRepository.BLANK_MESSAGE)
             }
         }
     }

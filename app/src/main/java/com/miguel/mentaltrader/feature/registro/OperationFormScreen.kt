@@ -278,8 +278,12 @@ fun OperationFormScreen(
                     onValueChange = viewModel::onResultInRChange,
                     label = { Text("Magnitud") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    isError = state.fieldErrors.containsKey(OperationFormState.FIELD_RESULT_IN_R),
                     modifier = Modifier.weight(1f)
                 )
+            }
+            state.fieldErrors[OperationFormState.FIELD_RESULT_IN_R]?.let { message ->
+                Text(message, color = MaterialTheme.colorScheme.error)
             }
             OperationFormState.formatResultInR(state.resultInRSign, state.resultInRText)?.let { formatted ->
                 Text(formatted, color = MaterialTheme.colorScheme.primary)

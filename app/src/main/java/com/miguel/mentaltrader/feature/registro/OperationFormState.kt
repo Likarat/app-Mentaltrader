@@ -45,6 +45,7 @@ data class OperationFormState(
         const val FIELD_EMOTION_AFTER = "emotionAfter"
         const val FIELD_ERROR = "error"
         const val FIELD_RESULT = "result"
+        const val FIELD_RESULT_IN_R = "resultInR"
         const val FIELD_RISK = "risk"
         const val FIELD_RATIO = "ratio"
         const val FIELD_DESCRIPTION = "description"
