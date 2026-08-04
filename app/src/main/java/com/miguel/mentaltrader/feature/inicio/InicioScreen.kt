@@ -11,12 +11,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -113,7 +119,7 @@ fun InicioScreen(
             item { MetricsSummaryCards(summary) }
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("R acumulado", style = MaterialTheme.typography.titleMedium)
+                    RAcumuladoTitleWithHelp()
                     RAcumuladoLineChart(points = cumulativeSeries, modifier = Modifier.fillMaxWidth())
                 }
             }
@@ -306,6 +312,47 @@ private fun MetricsSummaryCards(summary: OperationMetricsSummary) {
                 color = InicioFormatting.colorFor(summary.avgResultInR)
             )
         }
+    }
+}
+
+/**
+ * Bug real reportado por el usuario (2026-08-04): la gráfica de R acumulado no explicaba qué es
+ * "R" ni qué está midiendo. Se agrega un ícono de ayuda junto al título que abre un diálogo con
+ * la explicación -- el mismo criterio de "múltiplo de riesgo" ya implícito en Riesgo (%) y
+ * Resultado en R del formulario de registro (HU-001/HU-004), pero nunca explicado en la UI.
+ */
+@Composable
+private fun RAcumuladoTitleWithHelp() {
+    var showHelp by remember { mutableStateOf(false) }
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text("R acumulado", style = MaterialTheme.typography.titleMedium)
+        IconButton(onClick = { showHelp = true }) {
+            Icon(
+                Icons.Filled.Info,
+                contentDescription = "Qué significa R",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+    if (showHelp) {
+        AlertDialog(
+            onDismissRequest = { showHelp = false },
+            title = { Text("¿Qué es \"R\"?") },
+            text = {
+                Text(
+                    "R mide el resultado de una operación en múltiplos de lo que arriesgaste, " +
+                        "no en dinero ni en porcentaje. +2R significa que ganaste el doble de lo " +
+                        "que arriesgaste; -1R que perdiste exactamente lo arriesgado. Así podés " +
+                        "comparar operaciones de distinto tamaño en una misma escala.\n\n" +
+                        "Esta gráfica suma el R de cada operación en orden cronológico: cuando la " +
+                        "línea sube, tu resultado acumulado mejora; cuando cruza por debajo de la " +
+                        "línea gris (0R), tu balance acumulado es negativo."
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { showHelp = false }) { Text("Entendido") }
+            }
+        )
     }
 }
 

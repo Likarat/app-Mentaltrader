@@ -47,35 +47,60 @@ fun RAcumuladoLineChart(
         MaterialTheme.colorScheme.error
     }
 
-    Canvas(modifier = modifier.height(160.dp).fillMaxWidth()) {
-        val maxValue = points.maxOf { it.cumulativeResultInR }
-        val minValue = points.minOf { it.cumulativeResultInR }
-        // Evita una división por cero cuando todos los puntos son iguales (ej. serie plana en 0).
-        val range = (maxValue - minValue).takeIf { it > 0f } ?: 1f
-        val stepX = size.width / (points.size - 1)
+    val maxValue = points.maxOf { it.cumulativeResultInR }
+    val minValue = points.minOf { it.cumulativeResultInR }
 
-        fun yFor(value: Float): Float = size.height - ((value - minValue) / range) * size.height
+    // Bug real reportado por el usuario (2026-08-04): la gráfica no tenía ninguna referencia
+    // numérica -- una polilínea sin ejes no comunica qué se está midiendo. Se agregan las
+    // etiquetas de valor máximo/mínimo del eje Y (mismo formato "+2.0R"/"-1.5R" que las tarjetas
+    // de resumen, InicioFormatting.signedR) superpuestas en las esquinas del Canvas.
+    Box(modifier = modifier.height(160.dp).fillMaxWidth()) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            // Evita una división por cero cuando todos los puntos son iguales (ej. serie plana en 0).
+            val range = (maxValue - minValue).takeIf { it > 0f } ?: 1f
+            val stepX = size.width / (points.size - 1)
 
-        val path = androidx.compose.ui.graphics.Path().apply {
-            points.forEachIndexed { index, point ->
-                val x = stepX * index
-                val y = yFor(point.cumulativeResultInR)
-                if (index == 0) moveTo(x, y) else lineTo(x, y)
+            fun yFor(value: Float): Float = size.height - ((value - minValue) / range) * size.height
+
+            val path = androidx.compose.ui.graphics.Path().apply {
+                points.forEachIndexed { index, point ->
+                    val x = stepX * index
+                    val y = yFor(point.cumulativeResultInR)
+                    if (index == 0) moveTo(x, y) else lineTo(x, y)
+                }
+            }
+            drawPath(path = path, color = lineColor, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 4f, cap = StrokeCap.Round))
+
+            // Línea de referencia en R=0, para poder ubicar visualmente dónde el acumulado cruza a
+            // territorio negativo (siempre que 0 caiga dentro del rango visible).
+            if (minValue <= 0f && maxValue >= 0f) {
+                val zeroY = yFor(0f)
+                drawLine(
+                    color = Color.Gray.copy(alpha = 0.4f),
+                    start = Offset(0f, zeroY),
+                    end = Offset(size.width, zeroY),
+                    strokeWidth = 2f
+                )
             }
         }
-        drawPath(path = path, color = lineColor, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 4f, cap = StrokeCap.Round))
-
-        // Línea de referencia en R=0, para poder ubicar visualmente dónde el acumulado cruza a
-        // territorio negativo (siempre que 0 caiga dentro del rango visible).
-        if (minValue <= 0f && maxValue >= 0f) {
-            val zeroY = yFor(0f)
-            drawLine(
-                color = Color.Gray.copy(alpha = 0.4f),
-                start = Offset(0f, zeroY),
-                end = Offset(size.width, zeroY),
-                strokeWidth = 2f
-            )
-        }
+        Text(
+            InicioFormatting.signedR(maxValue),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.align(Alignment.TopStart)
+        )
+        Text(
+            InicioFormatting.signedR(minValue),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.align(Alignment.BottomStart)
+        )
+        Text(
+            InicioFormatting.signedR(points.last().cumulativeResultInR),
+            style = MaterialTheme.typography.labelSmall,
+            color = lineColor,
+            modifier = Modifier.align(Alignment.TopEnd)
+        )
     }
 }
 
