@@ -45,12 +45,12 @@ docs/
 
 ### Contexto del proyecto
 
-- **Nombre**: {{PROJECT_NAME}}
-- **Dominio**: {{DOMAIN_HINT}}
-- **Stakeholders**: {{STAKEHOLDERS}}
-- **Framework de priorización**: {{PRIORITIZATION_FRAMEWORK}}
+- **Nombre**: Mentaltrader (Bitácora de Trading Forex)
+- **Dominio**: Bitácora personal de trading forex — app Android nativa, single-user, sin backend ni cuentas, 100% offline/local (incluidas imágenes). Registro rápido de operaciones + historial agrupado por mes + métricas/detección de patrones (emociones, errores, resultado en R).
+- **Stakeholders**: Miguel Torres (usuario único, trader y product owner — construye la app para su propio uso).
+- **Framework de priorización**: MoSCoW (`docs/05-priorizacion/moscow-2026-07-27.md`).
 
-(Si los valores aparecen como `{{...}}` aún, ejecuta `/trycore:onboard` para parametrizar.)
+(Parametrizado a partir de `Especificacion_Bitacora_Trading.md` y `docs/05-priorizacion/`.)
 
 ### Convenciones de naming
 
@@ -123,15 +123,13 @@ Outer loop (por release):       Release Gate (seguridad · diseño · UX · cohe
 Estos puntos de extensión los leen los agentes `security-reviewer`, `stack-guardian`,
 `data-consistency-checker`, `ux-krug-reviewer`, `simple-design-reviewer` y `ux-fidelity-reviewer`:
 
-- **PRD técnico (fuente del stack)**: {{PRD_TECH_PATH}}
-- **Capa de servicios externos / IA (frontera)**: {{EXTERNAL_SERVICE_LAYER}}
-- **Lógica que debe ser determinista (no-IA)**: {{DETERMINISTIC_LAYER}}
-- **Categorías de datos sensibles / PII reguladas**: {{SENSITIVE_DATA_CATEGORIES}}
-- **Secretos server-side**: {{SERVER_SIDE_SECRETS}}
-- **Decisiones de alto impacto que exigen explicabilidad UX**: {{HIGH_STAKES_DECISIONS}}
-- **Fuente de diseño / referencia visual**: {{DESIGN_SOURCE}}
-
-(Si aparecen como `{{...}}`, ejecuta `/build:onboard` para parametrizarlos.)
+- **PRD técnico (fuente del stack)**: `Especificacion_Bitacora_Trading.md#2-decisiones-técnicas-y-stack` (mismo `source` declarado en `.claude/config/stack-allowlist.json`). Stack: Kotlin + Jetpack Compose (tema oscuro), MVVM/StateFlow, Room sobre SQLite, DataStore Preferences, Navigation Compose, Paging 3, Coil, gráficas con Compose Canvas puro (sin librería nueva, decisión de EP-004).
+- **Capa de servicios externos / IA (frontera)**: **No aplica.** V1 es 100% local/offline, sin backend, sin llamadas de red, sin ningún servicio de IA (`Especificacion_Bitacora_Trading.md §1/§9`: sin llamadas de red; `stack-allowlist.json#deny_examples` prohíbe explícitamente `retrofit`/`okhttp`).
+- **Lógica que debe ser determinista (no-IA)**: Toda la app es determinista — no hay componente de IA/ML en ningún punto. Cálculos críticos: agregaciones SQL de métricas (`OperationDao.metricsSummary`/`emotionRanking`/`errorRanking`, EP-004), resumen mensual (`monthlySummaries`, EP-003), y toda la validación de formulario (EP-001).
+- **Categorías de datos sensibles / PII reguladas**: Ninguna PII regulada en sentido estricto (single-user, sin cuentas, sin datos de terceros). Datos personales del propio usuario a tratar con cuidado igual: operaciones de trading (montos/resultados/razonamiento emocional en texto libre) e imágenes adjuntas (capturas de pantalla de operaciones) — todo almacenado solo en `filesDir`/Room local del dispositivo, nunca transmitido.
+- **Secretos server-side**: **No aplica.** Sin backend ni claves de servicios externos en v1.
+- **Decisiones de alto impacto que exigen explicabilidad UX**: Ninguna decisión automatizada/algorítmica de alto impacto — la app solo registra y agrega datos que el propio usuario interpreta (no sugiere ni ejecuta operaciones). El estándar de explicabilidad aplicable es que las métricas agregadas (HU-026/027) sean trazables a un cálculo determinista simple y visible, no una caja negra.
+- **Fuente de diseño / referencia visual**: Sin mockups formales (decisión de producto explícita, `Especificacion_Bitacora_Trading.md §1`: "la UI se ajusta de forma iterativa durante el desarrollo"). Fuente de verdad visual: el PRD/spec descriptivo (tema oscuro por defecto, layout de una columna, orden de campos ya fijado) — mismo criterio ya registrado en `build-state.json#design_source`.
 
 ### Requisitos
 
