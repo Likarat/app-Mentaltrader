@@ -33,7 +33,7 @@ fun GradientButton(
     } else {
         SolidColor(MaterialTheme.colorScheme.surfaceContainerHighest)
     }
-    val contentColor = if (enabled) OnTurquoiseAccent else MaterialTheme.colorScheme.onSurfaceVariant
+    val contentColor = if (enabled) OnDeepBlueAccent else MaterialTheme.colorScheme.onSurfaceVariant
 
     Box(
         modifier = modifier

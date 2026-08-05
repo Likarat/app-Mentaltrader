@@ -21,6 +21,8 @@ import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -129,7 +131,9 @@ fun HistorialScreen(
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(vertical = 8.dp)
+            // bottom = 96.dp (en vez de 8.dp) despeja el FAB "+" flotante (MainActivity), que no
+            // participa del innerPadding del Scaffold y tapaba la última operación de la lista.
+            contentPadding = PaddingValues(top = 8.dp, bottom = 96.dp)
         ) {
             items(
                 count = items.itemCount,
@@ -257,9 +261,18 @@ private fun HistorialFilterPanel(viewModel: HistorialViewModel, filterState: His
                 )
             }
             Icon(
-                imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
                 contentDescription = if (expanded) "Ocultar filtros" else "Mostrar filtros",
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        if (!expanded && !filterState.isEmpty) {
+            Text(
+                filterSummaryText(filterState, assets, emotions, errorsCatalog),
+                modifier = Modifier.padding(top = 2.dp),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
@@ -305,9 +318,47 @@ private fun HistorialFilterPanel(viewModel: HistorialViewModel, filterState: His
                         Text("Limpiar filtros", modifier = Modifier.padding(start = 4.dp))
                     }
                 }
+
+                // Forma alternativa de colapsar el panel una vez aplicados los filtros, sin
+                // depender solo de la flecha de arriba (que queda fuera de vista si el contenido
+                // expandido es largo).
+                TextButton(
+                    onClick = { expanded = false },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Filled.KeyboardArrowUp, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Text("Ocultar filtros", modifier = Modifier.padding(start = 4.dp))
+                }
             }
         }
     }
+}
+
+/** Resumen legible de los criterios activos de [filterState] (HU-022/HU-023), para mostrar debajo
+ * del encabezado del panel cuando está colapsado -- sin esto, "Filtros activos" no dice CUÁLES. */
+private fun filterSummaryText(
+    filterState: HistorialFilterState,
+    assets: List<CatalogItem>,
+    emotions: List<CatalogItem>,
+    errorsCatalog: List<CatalogItem>
+): String {
+    val parts = mutableListOf<String>()
+    filterState.selectedPeriodo?.let { periodo ->
+        parts += PERIODO_CHIPS.firstOrNull { it.first == periodo }?.second ?: periodo.name
+    }
+    filterState.result?.let { result ->
+        parts += when (result) {
+            ResultType.WIN -> "Ganada"
+            ResultType.LOSS -> "Perdida"
+            ResultType.BREAK_EVEN -> "Break Even"
+        }
+    }
+    filterState.assetId?.let { id -> assets.firstOrNull { it.id == id }?.name?.let { parts += it } }
+    filterState.errorId?.let { id -> errorsCatalog.firstOrNull { it.id == id }?.name?.let { parts += it } }
+    filterState.emotionBeforeId?.let { id -> emotions.firstOrNull { it.id == id }?.name?.let { parts += "Antes: $it" } }
+    filterState.emotionAfterId?.let { id -> emotions.firstOrNull { it.id == id }?.name?.let { parts += "Después: $it" } }
+    filterState.searchText?.trim()?.takeIf { it.isNotEmpty() }?.let { parts += "\"$it\"" }
+    return parts.joinToString(" · ")
 }
 
 private val PERIODO_CHIPS = listOf(
