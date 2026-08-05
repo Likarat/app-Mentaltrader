@@ -2,37 +2,42 @@ package com.miguel.mentaltrader.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Paleta "Morado medianoche + turquesa": fondo con mezcla morado-negro (varias superficies
-// elevadas, no un solo azul/negro plano) y acentos turquesa/lavanda. Sin variante clara en v1.
-//
-// Bug real reportado por el usuario (2026-08-04): el fondo azulado anterior (MidnightBackground
-// 0xFF0C1220 y el resto de la escala) se percibía "muy plano". Se desplaza el matiz de toda la
-// escala de fondo/superficies de azul hacia morado (más rojo relativo al verde, manteniendo el
-// azul como componente dominante) preservando la misma progresión de luminosidad -- sigue siendo
-// un tema oscuro real, solo con más profundidad de matiz.
+// Paleta "Pizarra azulada + azul/vinotinto": fondo y superficies en un gris pizarra oscuro de baja
+// saturación (look "terminal de trading", elegante y neutro) con DOS acentos -- azul profundo y
+// vinotinto -- elegidos por el usuario tras varias rondas de ajuste (comparación visual vía
+// artifact, no a ciegas). El dúo esmeralda/ámbar de la ronda anterior no convenció ("no combina
+// mucho"). Ver AppBackgroundGradient/CardBaseGradient en Theme.kt para los degradés.
 
-// Fondo y superficies (de más profunda a más elevada).
-val MidnightBackground = Color(0xFF120E24)
-val MidnightSurface = Color(0xFF1A1533)
-val MidnightSurfaceContainerLowest = Color(0xFF0F0C1E)
-val MidnightSurfaceContainerLow = Color(0xFF201A3C)
-val MidnightSurfaceContainer = Color(0xFF281F49)
-val MidnightSurfaceContainerHigh = Color(0xFF332856)
-val MidnightSurfaceContainerHighest = Color(0xFF3E3268)
-val MidnightOutline = Color(0xFF4F4478)
-val MidnightOutlineVariant = Color(0xFF362C54)
+// Fondo y superficies (de más profunda a más elevada) -- gris-pizarra, saturación baja.
+val SlateBackground = Color(0xFF11151C)
+val SlateSurface = Color(0xFF161B24)
+val SlateSurfaceContainerLowest = Color(0xFF0D1016)
+val SlateSurfaceContainerLow = Color(0xFF1B212B)
+val SlateSurfaceContainer = Color(0xFF212836)
+val SlateSurfaceContainerHigh = Color(0xFF2A3242)
+val SlateSurfaceContainerHighest = Color(0xFF333D50)
+val SlateOutline = Color(0xFF4A5568)
+val SlateOutlineVariant = Color(0xFF2E3644)
 
-// Acento primario: turquesa (evoluciona el acento previo, más profundidad de contenedor).
-val TurquoiseAccent = Color(0xFF4FD8C8)
-val OnTurquoiseAccent = Color(0xFF00332C)
-val TurquoiseAccentContainer = Color(0xFF1E4A45)
-val OnTurquoiseAccentContainer = Color(0xFFB8F5EA)
+// Acento primario: azul profundo (relleno de fondo/tarjetas/FAB -- ver DeepBlueAccent en
+// AppBackgroundGradient/CardBaseGradient/PrimaryActionGradient, Theme.kt) + una variante clara
+// (BrightBlueAccent) para TEXTO/ÍCONOS ("Filtros activos", títulos de sección). Bug real encontrado
+// antes de mostrarlo: usar el mismo DeepBlueAccent oscuro como colorScheme.primary hacía
+// ILEGIBLE cualquier texto de ese color sobre la propia franja azul del fondo (mismo tono exacto
+// detrás y adelante) -- BrightBlueAccent es sensiblemente más claro que el azul del fondo/tarjetas,
+// así que el texto se lee sin importar qué haya detrás.
+val DeepBlueAccent = Color(0xFF1B3A78)
+val OnDeepBlueAccent = Color(0xFFDCE6FF)
+val BlueAccentContainer = Color(0xFF14224A)
+val OnBlueAccentContainer = Color(0xFFB9D0FF)
+val BrightBlueAccent = Color(0xFF7FB0FF)
+val OnBrightBlueAccent = Color(0xFF07203F)
 
-// Acento secundario: lavanda, para elementos de apoyo (chips no seleccionados, iconografía).
-val LavenderAccent = Color(0xFFC0AEEB)
-val OnLavenderAccent = Color(0xFF29204A)
-val LavenderAccentContainer = Color(0xFF3B3163)
-val OnLavenderAccentContainer = Color(0xFFE7DFFF)
+// Acento secundario: vinotinto.
+val WineAccent = Color(0xFF6B1E2E)
+val OnWineAccent = Color(0xFFF7E2E7)
+val WineAccentContainer = Color(0xFF3A1420)
+val OnWineAccentContainer = Color(0xFFFFD9E0)
 
 // Semántico: resultado de operación (WIN/LOSS) y error/destructivo.
 val WinGreen = Color(0xFF4FDB8C)
@@ -44,3 +49,10 @@ val OnErrorContainer = Color(0xFFFFDAD3)
 
 val OnDark = Color(0xFFE7EBF3)
 val OnDarkMuted = Color(0xFFA6B0C4)
+
+// Degradé PROPIO del menú inferior (NavigationBar, MainActivity) -- brush INDEPENDIENTE del fondo
+// general y de las tarjetas: el usuario pidió mantener el menú tal cual quedó en una ronda
+// anterior ("el menú me gustó, se mantiene igual"), sin relación con el resto de la paleta, por más
+// que el fondo/tarjetas sigan cambiando. Ver BottomNavGradient en Theme.kt.
+val DeepTealAccent = Color(0xFF14524A)
+val NavyBackground = Color(0xFF0A0E1A)

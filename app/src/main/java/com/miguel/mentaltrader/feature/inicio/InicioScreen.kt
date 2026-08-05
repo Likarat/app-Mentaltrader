@@ -1,5 +1,6 @@
 package com.miguel.mentaltrader.feature.inicio
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,8 +15,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -31,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.miguel.mentaltrader.core.data.CatalogRankingItem
@@ -38,6 +38,8 @@ import com.miguel.mentaltrader.core.data.OperationMetricsSummary
 import com.miguel.mentaltrader.feature.historial.HistorialEmptyState
 import com.miguel.mentaltrader.feature.historial.HistorialEmptyStateContent
 import com.miguel.mentaltrader.feature.registro.OperationFormViewModel
+import com.miguel.mentaltrader.ui.theme.CardBaseGradient
+import com.miguel.mentaltrader.ui.theme.CardVignetteOverlay
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -113,25 +115,31 @@ fun InicioScreen(
 
         LazyColumn(
             modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValuesVertical16,
+            contentPadding = PaddingValuesContent,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item { MetricsSummaryCards(summary) }
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    RAcumuladoTitleWithHelp()
-                    RAcumuladoLineChart(points = cumulativeSeries, modifier = Modifier.fillMaxWidth())
+                // Bug real reportado por el usuario: con el fondo general en degradé, una gráfica
+                // sin panel propio no se distinguía como gráfica -- se le da su propia tarjeta.
+                GradientCard {
+                    Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        RAcumuladoTitleWithHelp()
+                        RAcumuladoLineChart(points = cumulativeSeries, modifier = Modifier.fillMaxWidth())
+                    }
                 }
             }
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Distribución de resultados", style = MaterialTheme.typography.titleMedium)
-                    ResultDistributionBarChart(
-                        winPercent = summary.winPercent,
-                        lossPercent = summary.lossPercent,
-                        breakEvenPercent = summary.breakEvenPercent,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                GradientCard {
+                    Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("Distribución de resultados", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+                        ResultDistributionBarChart(
+                            winPercent = summary.winPercent,
+                            lossPercent = summary.lossPercent,
+                            breakEvenPercent = summary.breakEvenPercent,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
                 }
             }
             item {
@@ -284,7 +292,15 @@ private fun parseInicioDateEndMillis(text: String): Long? = try {
     null
 }
 
-private val PaddingValuesVertical16 = androidx.compose.foundation.layout.PaddingValues(vertical = 16.dp, horizontal = 16.dp)
+/** Padding del LazyColumn de Inicio: el bottom extra (96.dp en vez de 16.dp) despeja el FAB "+"
+ * flotante (definido en MainActivity, no participa del innerPadding del Scaffold) para que no tape
+ * el último item ("Errores más frecuentes"). */
+private val PaddingValuesContent = androidx.compose.foundation.layout.PaddingValues(
+    start = 16.dp,
+    end = 16.dp,
+    top = 16.dp,
+    bottom = 96.dp
+)
 
 @Composable
 private fun MetricsSummaryCards(summary: OperationMetricsSummary) {
@@ -310,6 +326,13 @@ private fun MetricsSummaryCards(summary: OperationMetricsSummary) {
                 value = InicioFormatting.signedR(summary.avgResultInR),
                 modifier = Modifier.weight(1f),
                 color = InicioFormatting.colorFor(summary.avgResultInR)
+            )
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            MetricCard(
+                label = "Riesgo promedio",
+                value = "${InicioFormatting.oneDecimal(summary.avgRiskPercentage)}%",
+                modifier = Modifier.weight(1f)
             )
         }
     }
@@ -363,14 +386,30 @@ private fun RowScope.MetricCard(
     modifier: Modifier = Modifier,
     color: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurface
 ) {
-    Card(modifier = modifier, colors = CardDefaults.cardColors()) {
+    GradientCard(modifier = modifier) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(12.dp),
             horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
         ) {
             Text(value, style = MaterialTheme.typography.titleLarge, color = color, textAlign = TextAlign.Center)
-            Text(label, style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center)
+            Text(label, style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurface)
         }
+    }
+}
+
+/** Tarjeta en degradé azul→vinotinto con viñeta oscura (elegidos por el usuario comparando
+ * opciones vía artifact) -- reemplaza el `Card(colors = CardDefaults.cardColors())` plano que
+ * usaban las tarjetas de Inicio. [CardVignetteOverlay] se aplica como un segundo `background`
+ * ENCIMA de [CardBaseGradient] (el radial con alpha compone sobre el brush de abajo). */
+@Composable
+private fun GradientCard(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    Box(
+        modifier = modifier
+            .clip(MaterialTheme.shapes.medium)
+            .background(CardBaseGradient)
+            .background(CardVignetteOverlay)
+    ) {
+        content()
     }
 }
 

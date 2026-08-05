@@ -9,6 +9,8 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -64,6 +66,8 @@ import com.miguel.mentaltrader.feature.inicio.InicioScreen
 import com.miguel.mentaltrader.feature.inicio.InicioViewModel
 import com.miguel.mentaltrader.feature.registro.OperationFormScreen
 import com.miguel.mentaltrader.feature.registro.OperationFormViewModel
+import com.miguel.mentaltrader.ui.theme.AppBackgroundGradient
+import com.miguel.mentaltrader.ui.theme.BottomNavGradient
 import com.miguel.mentaltrader.ui.theme.MentaltraderTheme
 import com.miguel.mentaltrader.ui.theme.PrimaryActionGradient
 
@@ -310,10 +314,17 @@ fun MentaltraderApp(navController: NavHostController = rememberNavController()) 
             }
         }
     ) { innerPadding ->
+        // AppBackgroundGradient detrás del contenido -- el bottomBar de arriba usa su propio
+        // BottomNavGradient (brush independiente, ver Theme.kt), sin morado en ninguno de los dos.
+        Box(
+            modifier = androidx.compose.ui.Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .background(AppBackgroundGradient)
+        ) {
         NavHost(
             navController = navController,
-            startDestination = Destino.Inicio.route,
-            modifier = androidx.compose.ui.Modifier.padding(innerPadding)
+            startDestination = Destino.Inicio.route
         ) {
             composable(Destino.Inicio.route) {
                 val inicioViewModel: InicioViewModel = viewModel(
@@ -462,6 +473,7 @@ fun MentaltraderApp(navController: NavHostController = rememberNavController()) 
                 AjustesScreen(viewModel = ajustesViewModel)
             }
         }
+        }
     }
 
     if (pendingExitAction != null) {
@@ -489,7 +501,14 @@ private fun AppBottomNavigationBar(navController: NavHostController, onNavigate:
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
 
-    NavigationBar {
+    // Pedido del usuario: el menú inferior en degradé (en vez de un containerColor sólido) --
+    // containerColor = Transparent + el brush detrás, mismo truco que el FAB (PrimaryActionGradient)
+    // más arriba en este archivo. BottomNavGradient es un brush PROPIO (no AppBackgroundGradient):
+    // el usuario pidió mantener este resultado fijo mientras seguía ajustando el fondo general.
+    NavigationBar(
+        containerColor = androidx.compose.ui.graphics.Color.Transparent,
+        modifier = androidx.compose.ui.Modifier.background(BottomNavGradient)
+    ) {
         Destino.items.forEach { destino ->
             NavigationBarItem(
                 selected = currentRoute == destino.route,

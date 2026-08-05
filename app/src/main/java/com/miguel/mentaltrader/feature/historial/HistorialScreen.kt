@@ -21,6 +21,8 @@ import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -30,6 +32,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.InputChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -129,7 +132,9 @@ fun HistorialScreen(
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(vertical = 8.dp)
+            // bottom = 96.dp (en vez de 8.dp) despeja el FAB "+" flotante (MainActivity), que no
+            // participa del innerPadding del Scaffold y tapaba la última operación de la lista.
+            contentPadding = PaddingValues(top = 8.dp, bottom = 96.dp)
         ) {
             items(
                 count = items.itemCount,
@@ -257,10 +262,33 @@ private fun HistorialFilterPanel(viewModel: HistorialViewModel, filterState: His
                 )
             }
             Icon(
-                imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
                 contentDescription = if (expanded) "Ocultar filtros" else "Mostrar filtros",
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
+        }
+
+        if (!expanded && !filterState.isEmpty) {
+            // Bug real reportado por el usuario: el resumen de texto plano no decía a qué
+            // CATEGORÍA pertenecía cada valor (ej. "Ninguno" solo, sin saber si era el Activo o el
+            // Error filtrado) -- cada chip ahora lleva su categoría como prefijo, y se puede quitar
+            // ese único filtro con su "X" sin tener que expandir el panel ni limpiarlos todos.
+            val chips = activeFilterChips(filterState, assets, emotions, errorsCatalog, viewModel)
+            LazyRow(
+                modifier = Modifier.padding(top = 6.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                items(chips) { chip ->
+                    InputChip(
+                        selected = false,
+                        onClick = chip.onRemove,
+                        label = { Text(chip.label) },
+                        trailingIcon = {
+                            Icon(Icons.Filled.Close, contentDescription = "Quitar filtro", modifier = Modifier.size(16.dp))
+                        }
+                    )
+                }
+            }
         }
 
         if (expanded) {
@@ -305,9 +333,74 @@ private fun HistorialFilterPanel(viewModel: HistorialViewModel, filterState: His
                         Text("Limpiar filtros", modifier = Modifier.padding(start = 4.dp))
                     }
                 }
+
+                // Forma alternativa de colapsar el panel una vez aplicados los filtros, sin
+                // depender solo de la flecha de arriba (que queda fuera de vista si el contenido
+                // expandido es largo).
+                TextButton(
+                    onClick = { expanded = false },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Filled.KeyboardArrowUp, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Text("Ocultar filtros", modifier = Modifier.padding(start = 4.dp))
+                }
             }
         }
     }
+}
+
+/** Resumen legible de los criterios activos de [filterState] (HU-022/HU-023), para mostrar debajo
+ * del encabezado del panel cuando está colapsado -- sin esto, "Filtros activos" no dice CUÁLES. */
+/** Un filtro activo mostrado como chip removible (HistorialFilterPanel colapsado): [label] lleva
+ * la categoría como prefijo ("Error: Ninguno", no solo "Ninguno" -- bug real reportado por el
+ * usuario, sin la categoría no se sabía a qué campo pertenecía cada valor) y [onRemove] quita
+ * ÚNICAMENTE ese criterio (no los demás), a diferencia de "Limpiar filtros" que los quita todos. */
+private data class ActiveFilterChip(val label: String, val onRemove: () -> Unit)
+
+private fun activeFilterChips(
+    filterState: HistorialFilterState,
+    assets: List<CatalogItem>,
+    emotions: List<CatalogItem>,
+    errorsCatalog: List<CatalogItem>,
+    viewModel: HistorialViewModel
+): List<ActiveFilterChip> {
+    val chips = mutableListOf<ActiveFilterChip>()
+    filterState.selectedPeriodo?.let { periodo ->
+        val label = PERIODO_CHIPS.firstOrNull { it.first == periodo }?.second ?: periodo.name
+        chips += ActiveFilterChip("Periodo: $label") { viewModel.onSelectPeriodo(null) }
+    }
+    filterState.result?.let { result ->
+        val label = when (result) {
+            ResultType.WIN -> "Ganada"
+            ResultType.LOSS -> "Perdida"
+            ResultType.BREAK_EVEN -> "Break Even"
+        }
+        chips += ActiveFilterChip("Resultado: $label") { viewModel.onFilterResult(null) }
+    }
+    filterState.assetId?.let { id ->
+        assets.firstOrNull { it.id == id }?.name?.let { name ->
+            chips += ActiveFilterChip("Activo: $name") { viewModel.onFilterAsset(null) }
+        }
+    }
+    filterState.errorId?.let { id ->
+        errorsCatalog.firstOrNull { it.id == id }?.name?.let { name ->
+            chips += ActiveFilterChip("Error: $name") { viewModel.onFilterError(null) }
+        }
+    }
+    filterState.emotionBeforeId?.let { id ->
+        emotions.firstOrNull { it.id == id }?.name?.let { name ->
+            chips += ActiveFilterChip("Antes: $name") { viewModel.onFilterEmotionBefore(null) }
+        }
+    }
+    filterState.emotionAfterId?.let { id ->
+        emotions.firstOrNull { it.id == id }?.name?.let { name ->
+            chips += ActiveFilterChip("Después: $name") { viewModel.onFilterEmotionAfter(null) }
+        }
+    }
+    filterState.searchText?.trim()?.takeIf { it.isNotEmpty() }?.let { text ->
+        chips += ActiveFilterChip("\"$text\"") { viewModel.onSearchTextChanged(null) }
+    }
+    return chips
 }
 
 private val PERIODO_CHIPS = listOf(

@@ -17,7 +17,8 @@ data class OperationMetricsSummary(
     val breakEvenPercent: Int,
     val avgQuality: Float,
     val totalResultInR: Float,
-    val avgResultInR: Float
+    val avgResultInR: Float,
+    val avgRiskPercentage: Float
 ) {
     companion object {
         val EMPTY = OperationMetricsSummary(
@@ -27,7 +28,8 @@ data class OperationMetricsSummary(
             breakEvenPercent = 0,
             avgQuality = 0f,
             totalResultInR = 0f,
-            avgResultInR = 0f
+            avgResultInR = 0f,
+            avgRiskPercentage = 0f
         )
     }
 }

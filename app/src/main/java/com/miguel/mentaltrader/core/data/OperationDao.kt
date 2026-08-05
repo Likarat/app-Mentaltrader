@@ -155,7 +155,8 @@ interface OperationDao {
             END AS breakEvenPercent,
             COALESCE(AVG(quality), 0.0) AS avgQuality,
             COALESCE(SUM(resultInR), 0.0) AS totalResultInR,
-            CASE WHEN COUNT(*) = 0 THEN 0.0 ELSE COALESCE(SUM(resultInR), 0.0) / COUNT(*) END AS avgResultInR
+            CASE WHEN COUNT(*) = 0 THEN 0.0 ELSE COALESCE(SUM(resultInR), 0.0) / COUNT(*) END AS avgResultInR,
+            COALESCE(AVG(riskPercentage), 0.0) AS avgRiskPercentage
         FROM operation
         WHERE (:dateFrom IS NULL OR dateTime >= :dateFrom)
           AND (:dateTo IS NULL OR dateTime <= :dateTo)
