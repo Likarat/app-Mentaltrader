@@ -12,4 +12,9 @@
 /captures
 .externalNativeBuild
 .cxx
+
+# Firma de release -- secreto, nunca al repo (ver keystore.properties)
+keystore.properties
+*.jks
+*.keystore
 local.properties
