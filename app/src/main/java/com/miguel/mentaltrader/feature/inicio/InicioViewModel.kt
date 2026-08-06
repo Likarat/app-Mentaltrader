@@ -127,11 +127,18 @@ class InicioViewModel(
         operationDao.resultInROrderedByDateAsc(filter.dateFrom, filter.dateTo).map { values -> ResultInRCumulativeSeries.build(values) }
     }
 
-    /** HU-027 Escenario 1/3/4 / HU-028 Escenario 1: ranking de emociones más frecuentes
-     * (cualquiera de sus 2 roles, ver KDoc de [OperationDao.emotionRanking]) dentro del periodo
-     * seleccionado. Lista vacía si no hay operaciones en ese rango, sin error. */
-    val emotionRanking: Flow<List<CatalogRankingItem>> = filterState.flatMapLatest { filter ->
-        operationDao.emotionRanking(filter.dateFrom, filter.dateTo)
+    /** Fix: ranking de emociones "antes" más frecuentes dentro del periodo seleccionado -- separado
+     * del de "después" (antes combinaban ambos roles en un solo ranking, ver KDoc de
+     * [OperationDao.emotionBeforeRanking]). Lista vacía si no hay operaciones en ese rango, sin
+     * error. */
+    val emotionBeforeRanking: Flow<List<CatalogRankingItem>> = filterState.flatMapLatest { filter ->
+        operationDao.emotionBeforeRanking(filter.dateFrom, filter.dateTo)
+    }
+
+    /** Fix: ranking de emociones "después" más frecuentes dentro del periodo seleccionado, misma
+     * semántica que [emotionBeforeRanking] pero sobre [OperationDao.emotionAfterRanking]. */
+    val emotionAfterRanking: Flow<List<CatalogRankingItem>> = filterState.flatMapLatest { filter ->
+        operationDao.emotionAfterRanking(filter.dateFrom, filter.dateTo)
     }
 
     /** HU-027 Escenario 2/3/4 / HU-028 Escenario 1: ranking de errores más frecuentes dentro del

@@ -10,6 +10,7 @@ import com.miguel.mentaltrader.core.data.CatalogItemDao
 import com.miguel.mentaltrader.core.data.CatalogRepository
 import com.miguel.mentaltrader.core.data.CatalogUpdateResult
 import com.miguel.mentaltrader.core.data.OperationImageDao
+import com.miguel.mentaltrader.core.data.OperationUsageSummary
 import com.miguel.mentaltrader.core.image.DiskSpaceCalculator
 import com.miguel.mentaltrader.core.image.ImageProcessor
 import com.miguel.mentaltrader.core.model.CatalogType
@@ -25,6 +26,11 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.Locale
 
+/** Fix: fila de [EtiquetasUiState.pendingDeleteUsagePreview] -- [OperationUsageSummary] ya
+ * resuelto a un nombre de activo mostrable (el DAO solo conoce `assetId`, ver KDoc de
+ * [OperationUsageSummary]). */
+data class UsagePreviewEntry(val dateTime: Long, val assetName: String)
+
 data class EtiquetasUiState(
     val selectedType: CatalogType = CatalogType.ASSET,
     val addFieldValue: String = "",
@@ -35,8 +41,14 @@ data class EtiquetasUiState(
     val pendingDeleteItem: CatalogItem? = null,
     /** HU-012: cantidad de operaciones que usan [pendingDeleteItem], para mostrar la advertencia
      * con conteo en el diálogo de confirmación. Null mientras se está consultando o si no hay
-     * ninguna eliminación pendiente. */
+     * ninguna eliminación pendiente. Fix: cuando es > 0, `EtiquetasScreen` ya no ofrece "Eliminar"
+     * -- muestra directamente el detalle de [pendingDeleteUsagePreview] (el borrado está
+     * bloqueado, ver `CatalogRepository.deleteItem`). */
     val pendingDeleteUsageCount: Int? = null,
+    /** Fix: vista previa (fecha + activo) de las operaciones que usan [pendingDeleteItem] cuando
+     * [pendingDeleteUsageCount] es mayor a 0 -- vacía mientras no hace falta o mientras se está
+     * consultando. */
+    val pendingDeleteUsagePreview: List<UsagePreviewEntry> = emptyList(),
     val blockedDeleteMessage: String? = null,
     /** HU-014: espacio total aproximado (bytes) ocupado por las imágenes + miniaturas ya
      * guardadas. 0 por defecto (Escenario 2: sin imágenes todavía), se recalcula una vez al
@@ -137,19 +149,36 @@ class EtiquetasViewModel(
     }
 
     fun onRequestDelete(item: CatalogItem) {
-        _state.value = _state.value.copy(pendingDeleteItem = item, pendingDeleteUsageCount = null)
+        _state.value = _state.value.copy(
+            pendingDeleteItem = item,
+            pendingDeleteUsageCount = null,
+            pendingDeleteUsagePreview = emptyList()
+        )
         // HU-012 Escenario 1: consulta el conteo de uso para enriquecer el diálogo de confirmación
-        // ya existente (HU-011) -- no reemplaza el paso de confirmar/cancelar, solo agrega el dato.
+        // ya existente (HU-011). Fix: cuando el conteo es > 0 también trae la vista previa (fecha +
+        // activo) -- `EtiquetasScreen` la usa para mostrar directamente que el borrado está
+        // bloqueado, en vez del diálogo de confirmar/cancelar.
         viewModelScope.launch {
             val count = catalogRepository.usageCountOf(item)
+            val preview = if (count > 0) usagePreviewFor(item) else emptyList()
             if (_state.value.pendingDeleteItem?.id == item.id) {
-                _state.value = _state.value.copy(pendingDeleteUsageCount = count)
+                _state.value = _state.value.copy(pendingDeleteUsageCount = count, pendingDeleteUsagePreview = preview)
             }
         }
     }
 
+    private suspend fun usagePreviewFor(item: CatalogItem): List<UsagePreviewEntry> {
+        val summaries = catalogRepository.usagePreviewOf(item)
+        val assetNames = assets.value.associate { it.id to it.name }
+        return summaries.map { UsagePreviewEntry(dateTime = it.dateTime, assetName = assetNames[it.assetId] ?: "—") }
+    }
+
     fun onCancelDelete() {
-        _state.value = _state.value.copy(pendingDeleteItem = null, pendingDeleteUsageCount = null)
+        _state.value = _state.value.copy(
+            pendingDeleteItem = null,
+            pendingDeleteUsageCount = null,
+            pendingDeleteUsagePreview = emptyList()
+        )
     }
 
     fun onConfirmDelete() {
@@ -157,11 +186,16 @@ class EtiquetasViewModel(
         viewModelScope.launch {
             when (val result = catalogRepository.deleteItem(item)) {
                 CatalogDeleteResult.Deleted ->
-                    _state.value = _state.value.copy(pendingDeleteItem = null, pendingDeleteUsageCount = null)
+                    _state.value = _state.value.copy(
+                        pendingDeleteItem = null,
+                        pendingDeleteUsageCount = null,
+                        pendingDeleteUsagePreview = emptyList()
+                    )
                 is CatalogDeleteResult.Blocked ->
                     _state.value = _state.value.copy(
                         pendingDeleteItem = null,
                         pendingDeleteUsageCount = null,
+                        pendingDeleteUsagePreview = emptyList(),
                         blockedDeleteMessage = result.reason
                     )
             }
