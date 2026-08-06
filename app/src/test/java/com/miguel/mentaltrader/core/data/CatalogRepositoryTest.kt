@@ -178,10 +178,11 @@ class CatalogRepositoryTest {
         assertEquals(0, repository.usageCountOf(sinUso))
     }
 
-    // HU-012 Escenario 3: eliminar un elemento en uso lo retira del catálogo sin tocar las
-    // operaciones que ya lo usaban -- conservan su valor histórico intacto (sin FK/cascade).
+    // Fix (reemplaza el antiguo HU-012 Escenario 3): un elemento en uso ya NO se puede eliminar --
+    // antes se borraba igual dejando operaciones con una referencia huérfana; ahora deleteItem lo
+    // bloquea y conserva tanto el elemento del catálogo como la operación que lo usaba, intactos.
     @Test
-    fun `eliminar un elemento en uso lo retira del catalogo sin tocar las operaciones que ya lo usaban`() = runTest {
+    fun `eliminar un elemento en uso lo bloquea y no toca ni el catalogo ni la operacion`() = runTest {
         val asset = (repository.addItem(CatalogType.ASSET, "EURUSD") as CatalogAddResult.Added).item
         val emotion = (repository.addItem(CatalogType.EMOTION, "Confianza") as CatalogAddResult.Added).item
         val error = (repository.addItem(CatalogType.ERROR, "Ninguno") as CatalogAddResult.Added).item
@@ -189,13 +190,45 @@ class CatalogRepositoryTest {
 
         val result = repository.deleteItem(asset)
 
-        assertEquals(CatalogDeleteResult.Deleted, result)
-        assertNull(dao.getById(asset.id))
+        assertTrue(result is CatalogDeleteResult.Blocked)
+        assertTrue(dao.getById(asset.id) != null)
         assertEquals(asset.id, operationDao.getById(opId)!!.assetId)
     }
 
-    private fun operacionDe(assetId: Long, emotionId: Long, errorId: Long) = Operation(
-        dateTime = 0L,
+    @Test
+    fun `eliminar un elemento en uso bloquea tambien para emociones y errores`() = runTest {
+        val emotion = (repository.addItem(CatalogType.EMOTION, "Confianza") as CatalogAddResult.Added).item
+        operationDao.insert(operacionDe(assetId = 1L, emotionId = emotion.id, errorId = 1L))
+
+        val result = repository.deleteItem(emotion)
+
+        assertTrue(result is CatalogDeleteResult.Blocked)
+        assertTrue(dao.getById(emotion.id) != null)
+    }
+
+    @Test
+    fun `usagePreviewOf devuelve las operaciones que usan el elemento de la mas reciente a la mas antigua`() = runTest {
+        val asset = (repository.addItem(CatalogType.ASSET, "EURUSD") as CatalogAddResult.Added).item
+        val opAntigua = operationDao.insert(operacionDe(assetId = asset.id, emotionId = 1L, errorId = 1L, dateTime = 100L))
+        val opReciente = operationDao.insert(operacionDe(assetId = asset.id, emotionId = 1L, errorId = 1L, dateTime = 200L))
+
+        val preview = repository.usagePreviewOf(asset)
+
+        assertEquals(listOf(opReciente, opAntigua), preview.map { it.id })
+    }
+
+    @Test
+    fun `usagePreviewOf respeta el limite acotado`() = runTest {
+        val asset = (repository.addItem(CatalogType.ASSET, "EURUSD") as CatalogAddResult.Added).item
+        repeat(3) { operationDao.insert(operacionDe(assetId = asset.id, emotionId = 1L, errorId = 1L, dateTime = it.toLong())) }
+
+        val preview = repository.usagePreviewOf(asset, limit = 2)
+
+        assertEquals(2, preview.size)
+    }
+
+    private fun operacionDe(assetId: Long, emotionId: Long, errorId: Long, dateTime: Long = 0L) = Operation(
+        dateTime = dateTime,
         assetId = assetId,
         direction = Direction.BUY,
         quality = 5f,

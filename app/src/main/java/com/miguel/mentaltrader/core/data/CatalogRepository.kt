@@ -29,9 +29,15 @@ class CatalogRepository(
     private val operationDao: OperationDao
 ) {
 
-    /** HU-012: cuántas operaciones ya registradas usan [item] -- para advertir antes de eliminar,
-     * no para bloquear (la eliminación en sí la sigue decidiendo el usuario vía [deleteItem]). */
+    /** HU-012: cuántas operaciones ya registradas usan [item] -- para advertir antes de eliminar.
+     * Fix: ahora [deleteItem] SÍ bloquea el borrado cuando este conteo es mayor a 0 (antes solo
+     * advertía y dejaba borrar igual, dejando referencias huérfanas en `operation`). */
     suspend fun usageCountOf(item: CatalogItem): Int = operationDao.countUsageOfCatalogItem(item.id)
+
+    /** Fix: vista previa acotada (las [limit] operaciones más recientes) de qué usa [item], para
+     * listarlas en el diálogo que bloquea su borrado en vez de mostrar solo el conteo. */
+    suspend fun usagePreviewOf(item: CatalogItem, limit: Int = USAGE_PREVIEW_LIMIT): List<OperationUsageSummary> =
+        operationDao.getUsageSummaries(item.id, limit)
 
     suspend fun addItem(type: CatalogType, name: String): CatalogAddResult {
         val trimmed = name.trim()
@@ -71,6 +77,13 @@ class CatalogRepository(
                 CatalogType.EMOTION -> Unit // las emociones semilla no están protegidas (spec: set inicial editable)
             }
         }
+        // Fix: reportado por el usuario -- un elemento en uso se podía borrar igual, dejando
+        // operaciones con una referencia a un CatalogItem inexistente. Ahora se bloquea siempre
+        // que haya al menos una operación que lo use, sin importar el tipo ni si es semilla.
+        val usageCount = operationDao.countUsageOfCatalogItem(item.id)
+        if (usageCount > 0) {
+            return CatalogDeleteResult.Blocked(usageBlockedMessage(item.name, usageCount))
+        }
         catalogItemDao.delete(item)
         if (catalogItemDao.countByType(item.type) == 0) {
             CatalogSeeder.ensureSeeded(catalogItemDao)
@@ -81,8 +94,12 @@ class CatalogRepository(
     companion object {
         const val DUPLICATE_MESSAGE = "Este valor ya existe en el catálogo"
         const val BLANK_MESSAGE = "No se ha registrado ningún valor"
+        const val USAGE_PREVIEW_LIMIT = 5
         private const val NO_EXCLUSION = 0L
         private const val SEED_ERROR_BLOCKED_MESSAGE = "\"Ninguno\" no puede eliminarse."
         private const val SEED_ASSET_BLOCKED_MESSAGE = "\"XAUUSD\" no puede eliminarse mientras sea el único activo."
+
+        fun usageBlockedMessage(name: String, usageCount: Int): String =
+            "\"$name\" no puede eliminarse: está en uso en $usageCount operación(es)."
     }
 }

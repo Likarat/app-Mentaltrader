@@ -6,6 +6,7 @@ import com.miguel.mentaltrader.core.data.MonthSummary
 import com.miguel.mentaltrader.core.data.Operation
 import com.miguel.mentaltrader.core.data.OperationDao
 import com.miguel.mentaltrader.core.data.OperationMetricsSummary
+import com.miguel.mentaltrader.core.data.OperationUsageSummary
 import com.miguel.mentaltrader.core.model.ResultType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,13 +16,16 @@ import kotlinx.coroutines.flow.map
  * Fake de OperationDao compartido por los tests unitarios JVM (sin Room). [getAllOrderedByDateDesc]
  * deriva de un único [MutableStateFlow] de respaldo, mismo patrón que [FakeCatalogItemDao].
  * [pagingSourceOrderedByDateDesc]/[monthlySummaries]/[pagingSourceFiltered]/[metricsSummary]/
- * [emotionRanking]/[errorRanking] (EP-003 Historial, EP-004 Inicio) requieren Room real
- * (PagingSource/SQL agregado) y no se ejercitan contra este fake -- lanzan
+ * [emotionBeforeRanking]/[emotionAfterRanking]/[errorRanking] (EP-003 Historial, EP-004 Inicio)
+ * requieren Room real (PagingSource/SQL agregado) y no se ejercitan contra este fake -- lanzan
  * `UnsupportedOperationException`, mismo criterio que los fakes locales de `feature/historial`.
  * [resultInROrderedByDateAsc] SÍ tiene una implementación real (proyección simple sobre la misma
  * lista en memoria, sin agregación): `InicioViewModel` la transforma en Kotlin puro
  * (`ResultInRCumulativeSeries`), y esa transformación es justamente lo que se testea contra este
- * fake (mismo criterio que otros campos "pass-through" de este archivo).
+ * fake (mismo criterio que otros campos "pass-through" de este archivo). [getUsageSummaries] SÍ
+ * tiene implementación real (mismo filtro en memoria que [countUsageOfCatalogItem]) -- la usan
+ * `CatalogRepositoryTest`/`EtiquetasViewModelTest` para probar el bloqueo de borrado de un
+ * `CatalogItem` en uso.
  */
 class FakeOperationDao : OperationDao {
     private val allOperations = MutableStateFlow<List<Operation>>(emptyList())
@@ -81,6 +85,13 @@ class FakeOperationDao : OperationDao {
             it.assetId == id || it.emotionBeforeId == id || it.emotionAfterId == id || it.errorId == id
         }
 
+    override suspend fun getUsageSummaries(id: Long, limit: Int): List<OperationUsageSummary> =
+        allOperations.value
+            .filter { it.assetId == id || it.emotionBeforeId == id || it.emotionAfterId == id || it.errorId == id }
+            .sortedByDescending { it.dateTime }
+            .take(limit)
+            .map { OperationUsageSummary(id = it.id, dateTime = it.dateTime, assetId = it.assetId) }
+
     override fun metricsSummary(dateFrom: Long?, dateTo: Long?): Flow<OperationMetricsSummary> =
         throw UnsupportedOperationException("Requiere Room real (agregación SQL), no ejercitado contra este fake")
 
@@ -95,7 +106,10 @@ class FakeOperationDao : OperationDao {
                 .map { it.resultInR }
         }
 
-    override fun emotionRanking(dateFrom: Long?, dateTo: Long?): Flow<List<CatalogRankingItem>> =
+    override fun emotionBeforeRanking(dateFrom: Long?, dateTo: Long?): Flow<List<CatalogRankingItem>> =
+        throw UnsupportedOperationException("Requiere Room real (JOIN/GROUP BY agregado), no ejercitado contra este fake")
+
+    override fun emotionAfterRanking(dateFrom: Long?, dateTo: Long?): Flow<List<CatalogRankingItem>> =
         throw UnsupportedOperationException("Requiere Room real (JOIN/GROUP BY agregado), no ejercitado contra este fake")
 
     override fun errorRanking(dateFrom: Long?, dateTo: Long?): Flow<List<CatalogRankingItem>> =

@@ -29,6 +29,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.miguel.mentaltrader.core.data.CatalogItem
 import com.miguel.mentaltrader.core.model.CatalogType
+import com.miguel.mentaltrader.feature.registro.OperationFormViewModel
+import java.time.Instant
+import java.time.ZoneId
 
 private val TABS = listOf(
     CatalogType.ASSET to "Activos",
@@ -116,27 +119,42 @@ fun EtiquetasScreen(viewModel: EtiquetasViewModel, modifier: Modifier = Modifier
 
     state.pendingDeleteItem?.let { pending ->
         val usageCount = state.pendingDeleteUsageCount
-        AlertDialog(
-            onDismissRequest = viewModel::onCancelDelete,
-            title = { Text("Eliminar elemento") },
-            text = {
-                Text(
-                    if (usageCount != null && usageCount > 0) {
-                        "\"${pending.name}\" está en uso en $usageCount operación(es). Si lo " +
-                            "eliminás, esas operaciones conservan su valor histórico sin cambios. " +
-                            "¿Igual querés eliminarlo?"
-                    } else {
-                        "¿Estás seguro que deseas eliminar \"${pending.name}\"?"
+        // Fix: un elemento en uso ya no ofrece "Eliminar" -- el borrado está bloqueado
+        // (CatalogRepository.deleteItem), así que se muestra directamente por qué, con la lista
+        // acotada de operaciones que lo usan, en vez de un botón que siempre fallaría.
+        if (usageCount != null && usageCount > 0) {
+            AlertDialog(
+                onDismissRequest = viewModel::onCancelDelete,
+                title = { Text("No se puede eliminar") },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text("\"${pending.name}\" está en uso en $usageCount operación(es) y no puede eliminarse.")
+                        state.pendingDeleteUsagePreview.forEach { usage ->
+                            Text("• ${formatUsageDate(usage.dateTime)} — ${usage.assetName}")
+                        }
+                        val remaining = usageCount - state.pendingDeleteUsagePreview.size
+                        if (remaining > 0) {
+                            Text("y $remaining más")
+                        }
                     }
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = viewModel::onConfirmDelete) { Text("Eliminar") }
-            },
-            dismissButton = {
-                TextButton(onClick = viewModel::onCancelDelete) { Text("Cancelar") }
-            }
-        )
+                },
+                confirmButton = {
+                    TextButton(onClick = viewModel::onCancelDelete) { Text("Entendido") }
+                }
+            )
+        } else {
+            AlertDialog(
+                onDismissRequest = viewModel::onCancelDelete,
+                title = { Text("Eliminar elemento") },
+                text = { Text("¿Estás seguro que deseas eliminar \"${pending.name}\"?") },
+                confirmButton = {
+                    TextButton(onClick = viewModel::onConfirmDelete) { Text("Eliminar") }
+                },
+                dismissButton = {
+                    TextButton(onClick = viewModel::onCancelDelete) { Text("Cancelar") }
+                }
+            )
+        }
     }
 
     state.blockedDeleteMessage?.let { message ->
@@ -150,6 +168,9 @@ fun EtiquetasScreen(viewModel: EtiquetasViewModel, modifier: Modifier = Modifier
         )
     }
 }
+
+private fun formatUsageDate(millis: Long): String =
+    Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate().format(OperationFormViewModel.DATE_FORMATTER)
 
 @Composable
 private fun EditCatalogItemDialog(

@@ -236,10 +236,12 @@ class EtiquetasViewModelTest {
         assertNull(viewModel.state.value.pendingDeleteUsageCount)
     }
 
-    // HU-012 Escenario 3: confirmar la eliminación de un elemento en uso lo retira del catálogo
-    // igual (el historial ya registrado conserva su valor porque las operaciones no se tocan).
+    // Fix (reemplaza el antiguo HU-012 Escenario 3): confirmar la eliminación de un elemento en
+    // uso ya NO lo elimina -- queda bloqueado, con el elemento y la operación intactos. Este test
+    // ejercita la defensa del ViewModel/Repository directamente (sin pasar por la UI, que ya no
+    // ofrece "Eliminar" para un elemento en uso, ver `solicitar eliminar...`).
     @Test
-    fun `confirmar la eliminacion de un elemento en uso lo elimina y conserva las operaciones que ya lo usaban`() = runTest {
+    fun `confirmar la eliminacion de un elemento en uso lo bloquea y conserva el elemento y la operacion`() = runTest {
         val id = dao.seed(CatalogType.ASSET, "EURUSD", isDefault = false)
         val opId = operationDao.insert(operacionConAsset(id))
         viewModel.onRequestDelete(dao.getById(id)!!)
@@ -248,8 +250,33 @@ class EtiquetasViewModelTest {
 
         assertNull(viewModel.state.value.pendingDeleteItem)
         assertNull(viewModel.state.value.pendingDeleteUsageCount)
-        assertNull(dao.getById(id))
+        assertTrue(viewModel.state.value.blockedDeleteMessage != null)
+        assertTrue(dao.getById(id) != null)
         assertEquals(id, operationDao.getById(opId)!!.assetId)
+    }
+
+    // Fix: solicitar eliminar un elemento en uso también trae la vista previa (fecha + activo) de
+    // qué lo usa, para que la UI la muestre en el diálogo de bloqueo.
+    @Test
+    fun `solicitar eliminar un elemento en uso trae la vista previa con el nombre del activo`() = runTest {
+        val assetId = dao.seed(CatalogType.ASSET, "EURUSD", isDefault = false)
+        operationDao.insert(operacionConAsset(assetId).copy(dateTime = 100L))
+
+        viewModel.onRequestDelete(dao.getById(assetId)!!)
+
+        val preview = viewModel.state.value.pendingDeleteUsagePreview
+        assertEquals(1, preview.size)
+        assertEquals("EURUSD", preview.first().assetName)
+    }
+
+    // Fix: solicitar eliminar un elemento sin uso no trae ninguna vista previa (no hace falta).
+    @Test
+    fun `solicitar eliminar un elemento sin uso deja la vista previa vacia`() = runTest {
+        val id = dao.seed(CatalogType.ASSET, "EURUSD", isDefault = false)
+
+        viewModel.onRequestDelete(dao.getById(id)!!)
+
+        assertTrue(viewModel.state.value.pendingDeleteUsagePreview.isEmpty())
     }
 
     private fun operacionConAsset(assetId: Long) = Operation(

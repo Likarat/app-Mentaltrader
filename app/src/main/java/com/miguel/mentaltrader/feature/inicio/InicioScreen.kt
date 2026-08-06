@@ -72,7 +72,8 @@ fun InicioScreen(
 ) {
     val summary by viewModel.metricsSummary.collectAsState(initial = OperationMetricsSummary.EMPTY)
     val cumulativeSeries by viewModel.cumulativeSeries.collectAsState(initial = emptyList())
-    val emotionRanking by viewModel.emotionRanking.collectAsState(initial = emptyList())
+    val emotionBeforeRanking by viewModel.emotionBeforeRanking.collectAsState(initial = emptyList())
+    val emotionAfterRanking by viewModel.emotionAfterRanking.collectAsState(initial = emptyList())
     val errorRanking by viewModel.errorRanking.collectAsState(initial = emptyList())
     val filterState by viewModel.filterState.collectAsState()
     // HU-029: error de UI cuando el rango personalizado confirmado tiene fin anterior a inicio
@@ -143,7 +144,10 @@ fun InicioScreen(
                 }
             }
             item {
-                RankingSection(title = "Emociones más frecuentes", items = emotionRanking)
+                RankingSection(title = "Emociones antes", items = emotionBeforeRanking)
+            }
+            item {
+                RankingSection(title = "Emociones después", items = emotionAfterRanking)
             }
             item {
                 RankingSection(title = "Errores más frecuentes", items = errorRanking)

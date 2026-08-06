@@ -185,32 +185,38 @@ interface OperationDao {
     )
     fun resultInROrderedByDateAsc(dateFrom: Long?, dateTo: Long?): Flow<List<Float?>>
 
-    /** HU-027 Escenario 1/3 / HU-028 Escenario 1: ranking de emociones más frecuentes DENTRO del
-     * rango [dateFrom]/[dateTo] opcional (mismo criterio "`null` en ambos == todas" que
-     * [metricsSummary]) -- el filtro se aplica DENTRO de cada rama del `UNION ALL` (misma
-     * operación, mismo `dateTime`, filtrado antes de combinar los 2 roles). Cuenta CADA aparición
-     * de un `CatalogItem` de tipo EMOTION en cualquiera de sus 2 roles posibles
-     * ([Operation.emotionBeforeId] y [Operation.emotionAfterId]), agrupando por `CatalogItem.id`
-     * sin distinguir el rol (HU-027 nota técnica: "agrupando por `CatalogItem.id`"). Desempate
-     * determinístico por nombre ascendente (HU-027 Escenario 3: mismo orden en cada render). */
+    /** Fix: ranking de emociones "antes" más frecuentes DENTRO del rango [dateFrom]/[dateTo]
+     * opcional (mismo criterio "`null` en ambos == todas" que [metricsSummary]) -- reemplaza al
+     * antiguo `emotionRanking`, que combinaba antes/después en un solo ranking vía `UNION ALL`; la
+     * pantalla de Inicio ahora los muestra por separado (mismo desempate determinístico por
+     * nombre ascendente que tenía `emotionRanking`). */
     @Query(
         """
         SELECT ci.id AS id, ci.name AS name, COUNT(*) AS frequency
-        FROM (
-            SELECT emotionBeforeId AS emotionId FROM operation
-            WHERE (:dateFrom IS NULL OR dateTime >= :dateFrom)
-              AND (:dateTo IS NULL OR dateTime <= :dateTo)
-            UNION ALL
-            SELECT emotionAfterId AS emotionId FROM operation
-            WHERE (:dateFrom IS NULL OR dateTime >= :dateFrom)
-              AND (:dateTo IS NULL OR dateTime <= :dateTo)
-        ) e
-        JOIN catalog_item ci ON ci.id = e.emotionId
+        FROM operation o
+        JOIN catalog_item ci ON ci.id = o.emotionBeforeId
+        WHERE (:dateFrom IS NULL OR o.dateTime >= :dateFrom)
+          AND (:dateTo IS NULL OR o.dateTime <= :dateTo)
         GROUP BY ci.id
         ORDER BY frequency DESC, ci.name ASC
         """
     )
-    fun emotionRanking(dateFrom: Long?, dateTo: Long?): Flow<List<CatalogRankingItem>>
+    fun emotionBeforeRanking(dateFrom: Long?, dateTo: Long?): Flow<List<CatalogRankingItem>>
+
+    /** Fix: ranking de emociones "después" más frecuentes, misma semántica que
+     * [emotionBeforeRanking] pero sobre [Operation.emotionAfterId]. */
+    @Query(
+        """
+        SELECT ci.id AS id, ci.name AS name, COUNT(*) AS frequency
+        FROM operation o
+        JOIN catalog_item ci ON ci.id = o.emotionAfterId
+        WHERE (:dateFrom IS NULL OR o.dateTime >= :dateFrom)
+          AND (:dateTo IS NULL OR o.dateTime <= :dateTo)
+        GROUP BY ci.id
+        ORDER BY frequency DESC, ci.name ASC
+        """
+    )
+    fun emotionAfterRanking(dateFrom: Long?, dateTo: Long?): Flow<List<CatalogRankingItem>>
 
     /** HU-027 Escenario 2/3 / HU-028 Escenario 1: ranking de errores más frecuentes DENTRO del
      * rango [dateFrom]/[dateTo] opcional (mismo alcance que [emotionRanking]). Agrupa por
@@ -239,4 +245,13 @@ interface OperationDao {
             "OR emotionAfterId = :id OR errorId = :id"
     )
     suspend fun countUsageOfCatalogItem(id: Long): Int
+
+    /** Fix: vista previa acotada (más recientes primero) de las operaciones que usan un
+     * `CatalogItem`, mismo WHERE que [countUsageOfCatalogItem] -- se usa para listar cuáles son en
+     * el diálogo que bloquea su borrado, en vez de solo mostrar el conteo. */
+    @Query(
+        "SELECT id, dateTime, assetId FROM operation WHERE assetId = :id OR emotionBeforeId = :id " +
+            "OR emotionAfterId = :id OR errorId = :id ORDER BY dateTime DESC LIMIT :limit"
+    )
+    suspend fun getUsageSummaries(id: Long, limit: Int): List<OperationUsageSummary>
 }
