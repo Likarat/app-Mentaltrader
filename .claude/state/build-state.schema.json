@@ -35,16 +35,27 @@
     "parallel_front": {
       "description": "Coordinación outer-loop de worktrees inter-épica (C). null = modo secuencial normal.",
       "oneOf": [ { "type": "null" }, { "$ref": "#/$defs/parallel_front" } ]
-    }
+    },
+    "project_kind": {
+      "type": ["string", "null"],
+      "enum": ["greenfield", "brownfield", null],
+      "description": "Tipo de proyecto. brownfield = ya construido (el requisito de épica caparazón NO aplica y no se pregunta); greenfield = app nueva (activa el gate foundation); null = indeterminado (lo resuelve /build:onboard con el humano). Detección automática en trycore-build init."
+    },
+    "project_kind_source": {
+      "type": ["string", "null"],
+      "enum": ["auto", "human", null],
+      "description": "Quién fijó project_kind: auto (heurística del CLI, solo con certeza) | human (confirmado en onboard ante ambigüedad)."
+    },
+    "foundation": { "$ref": "#/$defs/foundation" }
   },
   "$defs": {
     "scaffold": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Gate de PROYECTO (Paso 1 fundamental): el scaffold runnable existe. Precondición EXPLÍCITA y restrictiva — solo pasa a confirmed=true por confirmación humana (vía building-a-slice Fase 0 / dor-dod-gatekeeper), nunca por auto-detección. El arnés NO genera el scaffold.",
+      "description": "Gate de PROYECTO (Paso 1 fundamental): el scaffold runnable existe. Precondición EXPLÍCITA y restrictiva — solo pasa a confirmed=true por confirmación humana, nunca del arnés (vía building-a-slice Fase 0 / dor-dod-gatekeeper), nunca por auto-detección. El arnés NO genera el scaffold.",
       "required": ["confirmed"],
       "properties": {
-        "confirmed": { "type": "boolean", "description": "true solo tras confirmación explícita de que el esqueleto runnable existe." },
+        "confirmed": { "type": "boolean", "description": "true solo tras confirmación humana de que el esqueleto runnable existe." },
         "confirmed_by": { "type": ["string", "null"], "description": "Agente/skill que registró la confirmación." },
         "confirmed_at": { "type": ["string", "null"], "format": "date-time" },
         "notes": { "type": "string", "description": "Evidencia libre (p.ej. 'build/dev arranca vacío sin error')." }
@@ -53,7 +64,7 @@
     "design_source": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Gate de PROYECTO para slices con UI: existe una fuente de diseño declarada (prototipo/export). Espejo de scaffold: confirmed pasa a true SOLO por confirmación humana, nunca por auto-detección. El arnés NO genera el prototipo. applies=false apaga todo el mecanismo (proyecto sin UI).",
+      "description": "Gate de PROYECTO para slices con UI: existe una fuente de diseño declarada (prototipo/export). Espejo de scaffold: confirmed pasa a true SOLO por confirmación humana, nunca por auto-detección. El prototipo puede generarse con /build:prototype (skill prototyping-screens); confirmed sigue siendo exclusivamente humano. applies=false apaga todo el mecanismo (proyecto sin UI).",
       "required": ["applies", "confirmed"],
       "properties": {
         "applies": { "type": "boolean", "description": "¿el proyecto tiene UI / hay diseño que respetar? false → mecanismo N/A." },
@@ -62,6 +73,34 @@
         "confirmed_at": { "type": ["string", "null"], "format": "date-time" },
         "source": { "type": "string", "description": "Puntero a la fuente: ruta/URL del prototipo o export (el DESIGN_SOURCE del dominio)." },
         "notes": { "type": "string", "description": "Evidencia libre (p.ej. 'prototipo en docs/… revisado y vigente')." }
+      }
+    },
+    "foundation": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Gate de PROYECTO (solo greenfield): la épica caparazón — navegación/menús, layout/panel central, homepage, login/authN, redirecciones/guards — debe construirse y archivarse ANTES que cualquier épica business. El contrato es la checklist (podada por el humano en /build:onboard según el tipo de app); cada ítem applies=true exige evidence en el DoD (patrón wiring_checklist, nada de palabra de honor). El arnés propone el borrador de la épica pero solo lo escribe con aprobación humana explícita.",
+      "required": ["required"],
+      "properties": {
+        "required": { "type": "boolean", "description": "true solo en greenfield con contrato confirmado en onboard. false = N/A (brownfield o proyecto sin caparazón exigible)." },
+        "epic": {
+          "oneOf": [ { "type": "null" }, { "type": "string", "pattern": "^EP-[0-9]{3}$" } ],
+          "description": "La épica caparazón del backlog. null mientras no exista (el gate del DoR bloquea business igual)."
+        },
+        "completed_at": { "type": ["string", "null"], "format": "date-time", "description": "Cuándo se archivó la épica caparazón con toda la checklist evidenciada. null = pendiente." },
+        "checklist": {
+          "type": "array",
+          "description": "Contrato del caparazón. Ids canónicos: navegacion-menus, layout-panel-central, homepage, login-authn, redirecciones-guards (podables; extensible por proyecto).",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["item", "applies"],
+            "properties": {
+              "item": { "type": "string", "description": "Id kebab-case del ítem del contrato." },
+              "applies": { "type": "boolean", "description": "false = podado en onboard (p.ej. homepage en una API sin UI)." },
+              "evidence": { "type": "string", "description": "Evidencia de ejecución que demuestra el ítem construido (test/comando/screenshot). Vacío mientras pendiente." }
+            }
+          }
+        }
       }
     },
     "slice": {
@@ -113,17 +152,18 @@
         "reflected_at": { "type": "string", "format": "date-time", "description": "Cuándo se reflexionó (ISO-8601 UTC). Lo escribe /build:reflect." },
         "wiring_checklist": {
           "type": "array",
-          "description": "Handoff FINO del cableado (A1): un item por escenario AC de cada HU y por punto de integración entre capas (SPA↔gateway↔core↔worker↔persistencia). Nace failing; pasa a passing SOLO tras prueba real ejecutada (con evidence), nunca por inspección. Sobrevive al reset de contexto: una sesión fresca lee los failing de disco y NO declara 'hecho' si quedan. El wiring-adversarial-verifier audita estos items antes de cerrar wiring_verified. Ausente/vacío en slices triviales.",
+          "description": "Handoff FINO del cableado (A1): un item por escenario AC de cada HU y por punto de integración entre capas (SPA↔gateway↔core↔worker↔persistencia). Nace failing; pasa a passing SOLO tras prueba real ejecutada (con evidence), nunca por inspección. Sobrevive al reset de contexto: una sesión fresca lee los failing de disco y NO declara 'hecho' si quedan. El wiring-adversarial-verifier audita estos items antes de cerrar wiring_verified. Ausente/vacío en slices triviales. Incluye los items BND-<frontera>-<forma> (kind integration_point, ref boundary:<id>#<kind>) de fronteras declaradas en config/build-config.json#boundaries[].",
           "items": {
             "type": "object",
             "additionalProperties": false,
             "required": ["id", "kind", "ref", "status"],
             "properties": {
               "id": { "type": "string", "description": "Identificador estable del item (p.ej. HU-003-AC2 o INT-spa-gateway)." },
-              "kind": { "type": "string", "enum": ["hu_ac", "integration_point"], "description": "hu_ac = escenario Given/When/Then de una HU; integration_point = cableado entre dos capas." },
+              "kind": { "type": "string", "enum": ["hu_ac", "integration_point"], "description": "hu_ac = escenario Given/When/Then de una HU; integration_point = cableado entre dos capas, o intercambio real con una frontera externa (items BND-*)." },
               "ref": { "type": "string", "description": "A qué apunta: el AC (HU-XXX#escenario) o el par de capas (capaA→capaB)." },
               "status": { "type": "string", "enum": ["failing", "passing"], "description": "failing al nacer; passing SOLO tras prueba real ejecutada." },
-              "evidence": { "type": "string", "description": "Evidencia de ejecución que justificó passing (test, comando, salida). Vacío mientras failing." }
+              "evidence": { "type": "string", "description": "Evidencia de ejecución que justificó passing (test, comando, salida). Vacío mientras failing." },
+              "verified_at_sha": { "type": "string", "description": "OPCIONAL. Sha del commit en que la evidence de este item fue reproducida por última vez. Lo estampa el build-orchestrator al aplicar un veredicto del wiring-adversarial-verifier. Habilita la re-verificación incremental: en pasadas posteriores el verificador solo re-ejecuta la evidencia de items cuyo código cambió desde este sha (git diff <sha>..HEAD -- <rutas del item>); los demás conservan veredicto. Ausente = el item nunca fue verificado por el verificador (se re-ejecuta siempre)." }
             }
           }
         },
