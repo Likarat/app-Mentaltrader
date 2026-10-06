@@ -1,0 +1,4 @@
+{
+  "branch_prefixes": ["feature", "fix", "chore"],
+  "protected_branches": ["main", "master", "develop"]
+}

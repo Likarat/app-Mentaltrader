@@ -21,6 +21,15 @@
             "command": "\"${CLAUDE_PLUGIN_ROOT:-$CLAUDE_PROJECT_DIR/.claude}/hooks/build/load-build-state.sh\""
           }
         ]
+      },
+      {
+        "matcher": "startup|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT:-$CLAUDE_PROJECT_DIR/.claude}/hooks/build/session-start.sh\""
+          }
+        ]
       }
     ],
     "PreToolUse": [
@@ -49,6 +58,15 @@
             "command": "\"${CLAUDE_PLUGIN_ROOT:-$CLAUDE_PROJECT_DIR/.claude}/hooks/build/design-source-guard.sh\""
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT:-$CLAUDE_PROJECT_DIR/.claude}/hooks/build/destructive-guard.sh\""
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -71,6 +89,15 @@
           {
             "type": "command",
             "command": "\"${CLAUDE_PLUGIN_ROOT:-$CLAUDE_PROJECT_DIR/.claude}/hooks/build/context-monitor.sh\""
+          }
+        ]
+      },
+      {
+        "matcher": "Bash|Edit|Write|MultiEdit|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT:-$CLAUDE_PROJECT_DIR/.claude}/hooks/build/event-emitter.sh\""
           }
         ]
       }
@@ -105,6 +132,19 @@
           {
             "type": "command",
             "command": "\"${CLAUDE_PLUGIN_ROOT:-$CLAUDE_PROJECT_DIR/.claude}/hooks/build/context-monitor.sh\""
+          }
+        ]
+      },
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT:-$CLAUDE_PROJECT_DIR/.claude}/hooks/build/dual-compare.sh\""
+          },
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT:-$CLAUDE_PROJECT_DIR/.claude}/hooks/build/session-stop.sh\""
           }
         ]
       }
