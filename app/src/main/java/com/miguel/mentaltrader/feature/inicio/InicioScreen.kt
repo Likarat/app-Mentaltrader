@@ -234,10 +234,18 @@ private fun InicioCustomDateRangeFields(
     error: Boolean,
     onRangeChanged: (Long?, Long?) -> Unit
 ) {
-    var desdeText by remember(filterState.dateFrom) {
+    // Bug HU-029/AC2 (reportado 2026-10-06): con `remember(filterState.dateFrom)`, cada tecleo que
+    // deja el texto incompleto (p.ej. borrar un dígito) produce un parseo nulo que
+    // `InicioViewModel.onCustomDateRange` propaga de vuelta a `filterState.dateFrom = null`; como
+    // el remember estaba keyed a ese valor, el cambio de key reinicializaba el buffer a "",
+    // borrando la fecha completa en vez de solo el dígito. Sin key: el buffer local es la única
+    // fuente de verdad mientras el usuario edita -- el valor de `filterState` solo importa para la
+    // inicialización, que ya ocurre naturalmente al entrar en composición (este composable solo se
+    // compone cuando selectedPeriodo == PERSONALIZADO, ver InicioScreen línea ~95).
+    var desdeText by remember {
         mutableStateOf(filterState.dateFrom?.let { millisToDateText(it) } ?: "")
     }
-    var hastaText by remember(filterState.dateTo) {
+    var hastaText by remember {
         mutableStateOf(filterState.dateTo?.let { millisToDateText(it) } ?: "")
     }
 
