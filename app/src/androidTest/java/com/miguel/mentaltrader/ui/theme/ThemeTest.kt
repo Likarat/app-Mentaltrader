@@ -32,6 +32,6 @@ class ThemeTest {
 
         composeTestRule.waitForIdle()
         assertEquals(MentaltraderDarkColorScheme.background, backgroundCapturado)
-        assertEquals(MidnightBackground, backgroundCapturado)
+        assertEquals(SlateBackground, backgroundCapturado)
     }
 }
