@@ -187,7 +187,7 @@ class HistorialDetalleViewModelTest {
         override fun metricsSummary(dateFrom: Long?, dateTo: Long?): Flow<com.miguel.mentaltrader.core.data.OperationMetricsSummary> =
             throw UnsupportedOperationException("No usado por HistorialDetalleViewModelTest (EP-004, feature/inicio)")
 
-        override fun resultInROrderedByDateAsc(dateFrom: Long?, dateTo: Long?): Flow<List<Float?>> =
+        override fun resultInROrderedByDateAsc(dateFrom: Long?, dateTo: Long?): Flow<List<com.miguel.mentaltrader.core.data.OperationDateResult>> =
             throw UnsupportedOperationException("No usado por HistorialDetalleViewModelTest (EP-004, feature/inicio)")
 
         override fun emotionBeforeRanking(dateFrom: Long?, dateTo: Long?): Flow<List<com.miguel.mentaltrader.core.data.CatalogRankingItem>> =

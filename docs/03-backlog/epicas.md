@@ -138,6 +138,8 @@
 - Gráfica de línea de R acumulado y gráfica de barras de distribución de resultados.
 - Ranking de emociones y errores más frecuentes en el periodo seleccionado.
 - Filtro de periodo predefinido y personalizado, persistido entre sesiones (DataStore Preferences).
+
+> OpenSpec change: `inicio-grafica-interactiva-y-alternador-resumen` (HU-037, HU-038).
 - Codificación por color de valores positivos/negativos (verde/rojo) consistente con el resto de la app.
 - Estado vacío en Inicio cuando no hay operaciones en el periodo.
 - Exploración táctil (tap + arrastre) sobre la gráfica de R acumulado, mostrando fecha y valor de R del punto más cercano.

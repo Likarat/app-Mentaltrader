@@ -15,6 +15,12 @@ data class OperationMetricsSummary(
     val winPercent: Int,
     val lossPercent: Int,
     val breakEvenPercent: Int,
+    /** HU-038: conteo absoluto exacto por categoría, calculado en SQL (no derivado de los
+     * porcentajes enteros ya redondeados, que perdería precisión) -- alimenta el modo "Número"
+     * del alternador porcentaje/número del resumen de Inicio. */
+    val winCount: Int,
+    val lossCount: Int,
+    val breakEvenCount: Int,
     val avgQuality: Float,
     val totalResultInR: Float,
     val avgResultInR: Float,
@@ -26,6 +32,9 @@ data class OperationMetricsSummary(
             winPercent = 0,
             lossPercent = 0,
             breakEvenPercent = 0,
+            winCount = 0,
+            lossCount = 0,
+            breakEvenCount = 0,
             avgQuality = 0f,
             totalResultInR = 0f,
             avgResultInR = 0f,

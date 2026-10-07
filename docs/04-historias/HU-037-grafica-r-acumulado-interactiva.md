@@ -36,7 +36,12 @@ No cubre el caso de "menos de 2 puntos" (gráfica no se dibuja, ver HU-031 estad
 ### Escenario 3 — Happy path: soltar el dedo fija el último punto tocado
 - **Dado que** el usuario está arrastrando el dedo con el indicador visible sobre un punto
 - **Cuando** levanta el dedo de la pantalla
-- **Entonces** el indicador permanece visible fijo en el último punto tocado, hasta que el usuario toque en otro lugar de la pantalla fuera de la gráfica o inicie un nuevo arrastre
+- **Entonces** el indicador permanece visible fijo en el último punto tocado, hasta que el usuario toque en cualquier lugar de la gráfica (sin arrastrar) o inicie un nuevo arrastre
+
+> **Nota de alcance (confirmada con el usuario, 2026-10-07)**: el indicador se limpia con un toque
+> simple **dentro de la propia gráfica** (no en cualquier parte de la pantalla fuera de ella, como
+> decía una redacción anterior de este escenario). El usuario siempre tiene una forma de limpiarlo
+> sin iniciar un nuevo arrastre; se acotó la superficie de detección a la gráfica misma.
 
 ### Escenario 4 — Edge: arrastre fuera de los límites horizontales de la gráfica
 - **Dado que** el usuario está arrastrando el dedo sobre la gráfica
@@ -62,3 +67,5 @@ No cubre el caso de "menos de 2 puntos" (gráfica no se dibuja, ver HU-031 estad
 - [x] **E**stimable — hit-testing sobre una serie ya existente y un overlay de tooltip; alcance acotado a un solo componente (`RAcumuladoLineChart`).
 - [x] **S**mall — una sola capa (presentación/UI), un solo componente Canvas, cabe en un slice corto.
 - [x] **T**estable — 5 escenarios en Given/When/Then con resultados observables (indicador visible, valor correcto, clamping en bordes, comportamiento con 2 puntos).
+
+> OpenSpec change: `inicio-grafica-interactiva-y-alternador-resumen`.
