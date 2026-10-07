@@ -19,11 +19,14 @@ DataStore.
 - **THEN** el sistema restaura el porcentaje en ambas superficies (tarjetas y gráfica de barras) de
   forma consistente con el valor mostrado antes de alternar
 
-#### Scenario: Periodo sin operaciones
-- **WHEN** el usuario alterna a modo Número con un periodo seleccionado que no tiene operaciones
-  registradas
-- **THEN** el sistema muestra 0 en cada categoría (Ganadas, Perdidas, BE) sin errores, valores
-  negativos ni "NaN"
+#### Scenario: Una categoría sin operaciones dentro de un periodo con datos
+- **WHEN** el usuario alterna a modo Número con un periodo que tiene operaciones, pero ninguna de
+  una categoría concreta (p. ej. ninguna Perdida)
+- **THEN** el sistema muestra 0 en esa categoría, sin errores, valores negativos ni "NaN", mientras
+  las demás categorías muestran su conteo real
+
+> Un periodo SIN ninguna operación no llega a mostrar este control (cae en el estado vacío de
+> HU-031, que reemplaza todo el contenido de Inicio) — fuera de alcance de este requirement.
 
 #### Scenario: Riesgo promedio no se ve afectado por el modo
 - **WHEN** el resumen está en modo Número y el usuario revisa la tarjeta "Riesgo promedio"

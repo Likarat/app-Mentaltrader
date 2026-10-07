@@ -23,7 +23,7 @@ con su fecha y su valor de R acumulado formateado con signo (mismo formato que
 - **WHEN** el usuario levanta el dedo de la pantalla mientras el indicador está visible sobre un
   punto
 - **THEN** el indicador permanece visible fijo en ese último punto tocado, hasta que el usuario
-  toque fuera de la gráfica o inicie un nuevo arrastre
+  toque en cualquier lugar DENTRO de la gráfica (sin arrastrar) o inicie un nuevo arrastre
 
 #### Scenario: Arrastre fuera de los límites horizontales de la gráfica
 - **WHEN** el dedo, durante el arrastre, sale del área horizontal donde hay puntos dibujados (antes

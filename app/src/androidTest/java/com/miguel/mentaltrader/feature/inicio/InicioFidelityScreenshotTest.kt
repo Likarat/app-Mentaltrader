@@ -114,14 +114,54 @@ class InicioFidelityScreenshotTest {
         saveScreenshot("fidelity_02_modo_numero.png")
     }
 
+    // Hallazgo del verificador adversarial: un arrastre hasta el borde (x=0) deja la linea vertical
+    // del indicador justo sobre el borde del Canvas, invisible en el screenshot. Se arrastra al
+    // centro para que la linea vertical quede claramente visible, no solo el tooltip.
     @Test
-    fun capturarTooltipDeLaGraficaDeRAcumuladoAlArrastrar() {
+    fun capturarTooltipYLineaVerticalDeLaGraficaDeRAcumuladoAlArrastrar() {
         composeTestRule.onNodeWithTag(RACUMULADO_CANVAS_TEST_TAG).performTouchInput {
-            down(Offset(centerX, centerY))
-            moveTo(Offset(0f, centerY))
+            down(Offset(0f, centerY))
+            moveTo(Offset(centerX, centerY))
         }
         composeTestRule.waitForIdle()
 
-        saveScreenshot("fidelity_03_tooltip_racumulado.png")
+        saveScreenshot("fidelity_03_tooltip_fixed.png")
+    }
+
+    // HU-038 Escenario 3 (reescrito 2026-10-07): una categoria en cero DENTRO de un periodo que SI
+    // tiene operaciones (no el periodo totalmente vacio, que es responsabilidad del estado vacio de
+    // HU-031). Aqui todas las operaciones son WIN -- Perdidas/BE deben verse en "0", no "NaN".
+    @Test
+    fun capturarModoNumeroConCategoriaEnCeroDentroDePeriodoConDatos() = runBlocking {
+        database.operationDao().let { dao ->
+            // Limpia las 9 operaciones mixtas sembradas en setUp() e inserta solo WIN.
+            database.clearAllTables()
+            repeat(5) {
+                dao.insert(
+                    Operation(
+                        dateTime = 1_700_000_000_000L + it * 86_400_000L,
+                        assetId = 1L,
+                        direction = Direction.BUY,
+                        quality = 7f,
+                        emotionBeforeId = 1L,
+                        emotionAfterId = 1L,
+                        errorId = 1L,
+                        result = ResultType.WIN,
+                        resultInR = 1f,
+                        entryDescription = "solo-ganadas",
+                        createdAt = 0L,
+                        updatedAt = 0L
+                    )
+                )
+            }
+        }
+        composeTestRule.waitForIdle()
+        Thread.sleep(500)
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithText("Ver en número").performClick()
+        composeTestRule.waitForIdle()
+
+        saveScreenshot("fidelity_04_categoria_en_cero.png")
     }
 }

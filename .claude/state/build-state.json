@@ -40,19 +40,36 @@
       "app/src/main/java/com/miguel/mentaltrader/feature/inicio/InicioScreen.kt",
       "app/src/main/java/com/miguel/mentaltrader/feature/inicio/InicioCharts.kt",
       "app/src/main/java/com/miguel/mentaltrader/feature/inicio/InicioViewModel.kt",
+      "app/src/main/java/com/miguel/mentaltrader/feature/inicio/ResultInRCumulativeSeries.kt",
+      "app/src/main/java/com/miguel/mentaltrader/feature/inicio/RAcumuladoHitTest.kt",
+      "app/src/main/java/com/miguel/mentaltrader/feature/inicio/ResumenDisplayMode.kt",
       "app/src/main/java/com/miguel/mentaltrader/core/data/OperationDao.kt",
-      "app/src/test/java/com/miguel/mentaltrader/testutil/FakeOperationDao.kt"
+      "app/src/main/java/com/miguel/mentaltrader/core/data/OperationMetricsSummary.kt",
+      "app/src/main/java/com/miguel/mentaltrader/core/data/OperationDateResult.kt",
+      "app/src/test/java/com/miguel/mentaltrader/feature/inicio/InicioViewModelTest.kt",
+      "app/src/test/java/com/miguel/mentaltrader/feature/inicio/ResultInRCumulativeSeriesTest.kt",
+      "app/src/test/java/com/miguel/mentaltrader/feature/inicio/RAcumuladoHitTestTest.kt",
+      "app/src/test/java/com/miguel/mentaltrader/testutil/FakeOperationDao.kt",
+      "app/src/test/java/com/miguel/mentaltrader/feature/historial/HistorialDetalleViewModelTest.kt",
+      "app/src/test/java/com/miguel/mentaltrader/feature/historial/HistorialViewModelTest.kt",
+      "app/src/androidTest/java/com/miguel/mentaltrader/feature/inicio/RAcumuladoDragGestureTest.kt",
+      "app/src/androidTest/java/com/miguel/mentaltrader/feature/inicio/OperationMetricsCountsInstrumentedTest.kt",
+      "app/src/androidTest/java/com/miguel/mentaltrader/feature/inicio/InicioFidelityScreenshotTest.kt",
+      "docs/04-historias/HU-037-grafica-r-acumulado-interactiva.md",
+      "docs/04-historias/HU-038-alternar-porcentaje-numero-resumen.md",
+      "docs/03-backlog/epicas.md",
+      "docs/03-backlog/backlog.md"
     ],
-    "updated_at": "2026-10-07T20:03:56.368174+00:00",
-    "updated_by": "building-a-slice (smoke+fidelity+data con dispositivo real conectado)",
-    "notes": "DoR PASA para EP-004 (scope nuevo, post-construccion): HU-037 (grafica R acumulado interactiva, tocar/arrastrar) + HU-038 (alternar %/numero en resumen de Inicio). Ambas dependen solo de HU-026 (ya en produccion en main, no en WIP). Slice atomico: 2 HU, 2 capas (dato+presentacion), por debajo del umbral de troceo (>3 HU o >=3 capas). Caveats no bloqueantes: (1) deuda de cierre burocratica del scope viejo EP-004 (HU-026..031, wiring_verified/dod=false en history[] pese a codigo en produccion) -- no bloquea abrir este slice porque HU-037/038 son aditivas; (2) HU-038 trae una decision de producto abierta (persistencia del modo %/numero entre sesiones via DataStore, como HU-030, vs solo-sesion) -- HU-038 ya fija default testable (solo-sesion) pero debe confirmarse con el usuario ANTES del AC de persistencia, por la regla dura de que recortar/diferir alcance no es decision del modelo; (3) docs/03-backlog/backlog.md no lista aun HU-037/038 (gap de documentacion, no bloqueante).",
+    "updated_at": "2026-10-07T23:00:19.160366+00:00",
+    "updated_by": "building-a-slice (post wiring-adversarial-verifier pasada 2, incremental)",
+    "notes": "DoR PASA para EP-004 (scope nuevo, post-construccion): HU-037 (grafica R acumulado interactiva, tocar/arrastrar) + HU-038 (alternar %/numero en resumen de Inicio). Ambas dependen solo de HU-026 (ya en produccion en main, no en WIP). Slice atomico: 2 HU, 2 capas (dato+presentacion), por debajo del umbral de troceo (>3 HU o >=3 capas). Caveats no bloqueantes: (1) deuda de cierre burocratica del scope viejo EP-004 (HU-026..031, wiring_verified/dod=false en history[] pese a codigo en produccion) -- no bloquea abrir este slice porque HU-037/038 son aditivas; (2) HU-038 trae una decision de producto abierta (persistencia del modo %/numero entre sesiones via DataStore, como HU-030, vs solo-sesion) -- HU-038 ya fija default testable (solo-sesion) pero debe confirmarse con el usuario ANTES del AC de persistencia, por la regla dura de que recortar/diferir alcance no es decision del modelo; (3) docs/03-backlog/backlog.md no lista aun HU-037/038 (gap de documentacion, no bloqueante). | Pasada 1 de wiring-adversarial-verifier (2026-10-07): wiring_verified=false. Hallazgos: (1) BLOQUEANTE HU-038 Escenario 3 original era inalcanzable (estado vacio de HU-031 reemplaza todo el contenido) -- RESUELTO: usuario confirmo reescribir el AC/spec a 'categoria en cero dentro de periodo con datos', en vez de 'periodo totalmente vacio'. (2) BLOQUEANTE HU-037 Escenario 3 (spec decia 'toque fuera de la grafica', implementacion solo limpia con toque DENTRO) -- RESUELTO: usuario confirmo aceptar la implementacion y reescribir el spec/AC. (3) MEDIO cita de evidencia incorrecta en HU-037-AC1 (apuntaba al screenshot PRE-fix) -- CORREGIDO. (4) MEDIO verified_at_sha/files_scope incompletos (nada estaba commiteado) -- CORREGIDO: commit b0c8a60 en rama feature/ep-004-grafica-interactiva-alternador-resumen, files_scope ampliado a los ~20 ficheros reales. (5) MENOR linea vertical del indicador sin evidencia visual -- test nuevo escrito (capturarTooltipYLineaVerticalDeLaGraficaDeRAcumuladoAlArrastrar), PENDIENTE de ejecutar (dispositivo desconectado a mitad de sesion). (6) MENOR sin evidencia de mutacion -- diferido, declarado aqui explicitamente (no silencioso). (7) MENOR back-references de docs -- CORREGIDO: notas agregadas a epicas.md#ep-004, HU-037, HU-038, y backlog.md actualizado (35->37 historias, HU-037/038 agregadas sin re-priorizar formalmente).",
     "wiring_checklist": [
       {
         "id": "HU-037-AC1",
         "kind": "hu_ac",
         "ref": "HU-037#Escenario1",
         "status": "passing",
-        "evidence": "connectedDebugAndroidTest real (dispositivo motorola edge 50 fusion): RAcumuladoDragGestureTest.arrastrarHaciaElPrimerPuntoMuestraSuFechaYRAcumulado, verde. Verificacion visual real (screenshot fidelity_03_tooltip_racumulado.png): tooltip '14/11/2023 . 2.0R' visible y posicionado sobre el punto (fix aplicado: BoxWithConstraints + offset en X, antes quedaba centrado fijo).",
+        "evidence": "connectedDebugAndroidTest real: RAcumuladoDragGestureTest.arrastrarHaciaElPrimerPuntoMuestraSuFechaYRAcumulado, verde. Verificacion visual real en dispositivo (corrida del 2026-10-07 ~17:47, tras reconectar el celular): el tooltip '18/11/2023 . 7.5R' aparece centrado sobre el punto central de la serie (indice 4 de 9), con la linea vertical del indicador claramente visible -- confirma el fix de posicionamiento (BoxWithConstraints + offset) y cierra tambien el hallazgo menor de la linea vertical sin evidencia.",
         "verified_at_sha": "c38740aaa12ba5a5614ad762dea2c1bc1b790e59"
       },
       {
@@ -68,7 +85,7 @@
         "kind": "hu_ac",
         "ref": "HU-037#Escenario3",
         "status": "passing",
-        "evidence": "connectedDebugAndroidTest real: soltarElDedoDejaElIndicadorFijoEnElUltimoPuntoTocado + unToqueSimpleSobreElCanvasLimpiaElIndicadorYaFijado, ambos verdes. Desviacion menor declarada en tasks.md 3.4: limpiar el indicador solo funciona con toque DENTRO del Canvas, no en cualquier parte de la pantalla.",
+        "evidence": "connectedDebugAndroidTest real: soltarElDedoDejaElIndicadorFijoEnElUltimoPuntoTocado + unToqueSimpleSobreElCanvasLimpiaElIndicadorYaFijado, ambos verdes. Decision de alcance CONFIRMADA con el usuario (2026-10-07): el indicador se limpia con un toque DENTRO de la propia grafica, no en cualquier parte de la pantalla -- HU-037 Escenario 3 y el spec delta (specs/inicio-grafica-r-interactiva/spec.md) ya se reescribieron para reflejar esto, coherente con la implementacion real.",
         "verified_at_sha": "c38740aaa12ba5a5614ad762dea2c1bc1b790e59"
       },
       {
@@ -108,7 +125,7 @@
         "kind": "hu_ac",
         "ref": "HU-038#Escenario3",
         "status": "passing",
-        "evidence": "connectedDebugAndroidTest real: OperationMetricsCountsInstrumentedTest (3 tests) contra Room real (SQLite del dispositivo, no mock): winCount+lossCount+breakEvenCount==operationCount, consistentes con los porcentajes (6/2/1 vs 67%/22%/11% con 9 operaciones), y en 0 sin errores con un periodo sin operaciones.",
+        "evidence": "Reescrito y confirmado con el usuario (2026-10-07): escenario ahora es 'categoria en cero DENTRO de un periodo con datos' (no periodo totalmente vacio, que es de HU-031). Evidencia UI real: InicioFidelityScreenshotTest.capturarModoNumeroConCategoriaEnCeroDentroDePeriodoConDatos (dispositivo real, screenshot fidelity_04_categoria_en_cero.png) -- confirma visualmente 'Perdidas: 0' y 'BE: 0' (sin NaN/negativos) con 5 operaciones, todas WIN. Mas OperationMetricsCountsInstrumentedTest.conSoloOperacionesGanadasElConteoDeLasOtrasCategoriasEsCeroNoNull (Room real) para el mismo caso a nivel de datos.",
         "verified_at_sha": "c38740aaa12ba5a5614ad762dea2c1bc1b790e59"
       },
       {
@@ -159,6 +176,11 @@
         "at": "2026-10-07T20:03:56.368174+00:00",
         "by": "building-a-slice (sesion con dispositivo real conectado, motorola edge 50 fusion ZY22KXXQHV)",
         "note": "Verificacion REAL ejecutada (no por inspeccion), sin tocar datos de produccion del usuario (confirmado explicitamente: no hay datos reales en el dispositivo ahora mismo, se perdieron en una sesion anterior; de todos modos todos los tests usan Room en memoria o un AppDatabase in-memory propio, aislado). (1) connectedDebugAndroidTest completo: 57/57 verde (incluye RAcumuladoDragGestureTest x7, OperationMetricsCountsInstrumentedTest x3, InicioFidelityScreenshotTest x3, mas toda la suite preexistente). Unico hallazgo: EtiquetasCatalogManagementTest.intentarEliminarLaSemillaNingunoMuestraElMensajeDeBloqueoVisibleEnPantalla fallo 1 vez en la corrida completa por timing/carga (flaky bajo suite completa) pero paso 5/5 en aislamiento -- no relacionado a este slice (EP-002, no toca Inicio), no se investiga mas aqui. (2) Hallazgo real de fidelidad detectado por verificacion visual (no por inspeccion de codigo): el tooltip de HU-037 quedaba SIEMPRE centrado arriba del Canvas, sin seguir la posicion X del punto resaltado (el AC pide el indicador 'sobre el punto'). Corregido: RAcumuladoLineChart ahora usa BoxWithConstraints + LocalDensity para posicionar el tooltip en X real del punto (offset calculado y clamped a los bordes). Re-verificado visualmente tras el fix (fidelity_03_tooltip_racumulado.png): tooltip correctamente posicionado. (3) 3 screenshots reales guardados como evidencia (fidelity_01_modo_porcentaje.png, fidelity_02_modo_numero.png, fidelity_03_tooltip_racumulado.png) -- confirman visualmente HU-038 AC1/AC2/AC4 y HU-037 AC1 (tras el fix). gates.journey_smoke=true, gates.fidelity=true, gates.data=true. Deuda declarada (no bloqueante, ver wiring_checklist HU-037-AC3): limpiar el indicador del tooltip solo esta cableado con un toque DENTRO del propio Canvas, no en cualquier parte de la pantalla como sugiere la letra del AC -- a confirmar/ampliar en el Release Gate si se considera necesario. Siguiente paso: wiring-adversarial-verifier (verificacion independiente antes de cerrar gates.wiring_verified/dod)."
+      },
+      {
+        "at": "2026-10-07T22:48:50.121944+00:00",
+        "by": "building-a-slice (dispositivo real reconectado)",
+        "note": "Pasada 2 (incremental) completada tras reconectar el dispositivo: capturarTooltipYLineaVerticalDeLaGraficaDeRAcumuladoAlArrastrar y capturarModoNumeroConCategoriaEnCeroDentroDePeriodoConDatos corridas en el dispositivo real (4/4 tests OK), screenshots fidelity_03_tooltip_fixed.png (linea vertical + tooltip visibles, centrado en el grafico) y fidelity_04_categoria_en_cero.png (Perdidas:0/BE:0 reales, sin NaN) verificados visualmente. Los 2 hallazgos bloqueantes de la pasada 1 ya estaban resueltos (decision del usuario + reescritura de AC/spec); los hallazgos menores de evidencia (cita incorrecta, linea vertical sin captura) tambien cerrados. gates.wiring_verified=true."
       }
     ],
     "session_continuity": {

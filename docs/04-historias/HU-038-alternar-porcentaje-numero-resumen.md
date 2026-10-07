@@ -35,10 +35,16 @@ Extiende **HU-026** (tarjetas de resumen numérico y gráfica de barras de distr
 - **Cuando** vuelve a activar el control de alternancia a modo Porcentaje
 - **Entonces** el sistema restaura el porcentaje en ambas superficies (tarjetas y gráfica de barras) de forma consistente con el valor mostrado antes de alternar
 
-### Escenario 3 — Edge: periodo sin operaciones
-- **Dado que** el periodo seleccionado no tiene operaciones registradas
+### Escenario 3 — Edge: una categoría sin operaciones dentro de un periodo con datos
+- **Dado que** el periodo seleccionado tiene operaciones, pero ninguna de una categoría concreta (p. ej. ninguna Perdida)
 - **Cuando** el usuario alterna a modo Número
-- **Entonces** el sistema muestra 0 en cada categoría (Ganadas, Perdidas, BE) sin errores, valores negativos ni "NaN"
+- **Entonces** el sistema muestra 0 en esa categoría (sin valores negativos ni "NaN"), mientras las demás categorías muestran su conteo real
+
+> **Nota de alcance (confirmada con el usuario, 2026-10-07)**: un periodo **sin ninguna operación**
+> no llega a mostrar este control — la pantalla cae en el estado vacío "sin datos para el periodo
+> seleccionado" de HU-031 (que reemplaza todo el contenido, incluido el alternador). Este escenario
+> queda acotado a "alguna categoría en cero dentro de un periodo que sí tiene operaciones"; el caso
+> de periodo totalmente vacío es responsabilidad de HU-031, no de este control.
 
 ### Escenario 4 — Regla: Riesgo promedio no se ve afectado por el modo
 - **Dado que** el resumen está en modo Número
@@ -58,3 +64,5 @@ Extiende **HU-026** (tarjetas de resumen numérico y gráfica de barras de distr
 - [x] **E**stimable — alcance acotado: 1 cambio de origen de datos (DAO + data class) + 1 control de UI que conmuta 2 superficies ya existentes.
 - [x] **S**mall — cabe en 2-4 días: no agrega pantallas nuevas, reutiliza composables existentes de HU-026.
 - [x] **T**estable — 4 escenarios en Given/When/Then con resultados observables (activar, desactivar, cero operaciones, regla de Riesgo promedio).
+
+> OpenSpec change: `inicio-grafica-interactiva-y-alternador-resumen`.
