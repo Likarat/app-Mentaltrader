@@ -23,7 +23,7 @@
     ],
     "openspec_change": "inicio-grafica-interactiva-y-alternador-resumen",
     "branch": "feature/ep-004-grafica-interactiva-alternador-resumen",
-    "phase": "dod",
+    "phase": "pr",
     "layer": "business",
     "gates": {
       "dor": true,
@@ -33,8 +33,8 @@
       "data": true,
       "fidelity": true,
       "api": null,
-      "wiring_verified": false,
-      "dod": false
+      "wiring_verified": true,
+      "dod": true
     },
     "files_scope": [
       "app/src/main/java/com/miguel/mentaltrader/feature/inicio/InicioScreen.kt",
@@ -60,8 +60,8 @@
       "docs/03-backlog/epicas.md",
       "docs/03-backlog/backlog.md"
     ],
-    "updated_at": "2026-10-07T23:00:19.160366+00:00",
-    "updated_by": "building-a-slice (post wiring-adversarial-verifier pasada 2, incremental)",
+    "updated_at": "2026-10-07T23:11:14.582123+00:00",
+    "updated_by": "dor-dod-gatekeeper (via building-a-slice)",
     "notes": "DoR PASA para EP-004 (scope nuevo, post-construccion): HU-037 (grafica R acumulado interactiva, tocar/arrastrar) + HU-038 (alternar %/numero en resumen de Inicio). Ambas dependen solo de HU-026 (ya en produccion en main, no en WIP). Slice atomico: 2 HU, 2 capas (dato+presentacion), por debajo del umbral de troceo (>3 HU o >=3 capas). Caveats no bloqueantes: (1) deuda de cierre burocratica del scope viejo EP-004 (HU-026..031, wiring_verified/dod=false en history[] pese a codigo en produccion) -- no bloquea abrir este slice porque HU-037/038 son aditivas; (2) HU-038 trae una decision de producto abierta (persistencia del modo %/numero entre sesiones via DataStore, como HU-030, vs solo-sesion) -- HU-038 ya fija default testable (solo-sesion) pero debe confirmarse con el usuario ANTES del AC de persistencia, por la regla dura de que recortar/diferir alcance no es decision del modelo; (3) docs/03-backlog/backlog.md no lista aun HU-037/038 (gap de documentacion, no bloqueante). | Pasada 1 de wiring-adversarial-verifier (2026-10-07): wiring_verified=false. Hallazgos: (1) BLOQUEANTE HU-038 Escenario 3 original era inalcanzable (estado vacio de HU-031 reemplaza todo el contenido) -- RESUELTO: usuario confirmo reescribir el AC/spec a 'categoria en cero dentro de periodo con datos', en vez de 'periodo totalmente vacio'. (2) BLOQUEANTE HU-037 Escenario 3 (spec decia 'toque fuera de la grafica', implementacion solo limpia con toque DENTRO) -- RESUELTO: usuario confirmo aceptar la implementacion y reescribir el spec/AC. (3) MEDIO cita de evidencia incorrecta en HU-037-AC1 (apuntaba al screenshot PRE-fix) -- CORREGIDO. (4) MEDIO verified_at_sha/files_scope incompletos (nada estaba commiteado) -- CORREGIDO: commit b0c8a60 en rama feature/ep-004-grafica-interactiva-alternador-resumen, files_scope ampliado a los ~20 ficheros reales. (5) MENOR linea vertical del indicador sin evidencia visual -- test nuevo escrito (capturarTooltipYLineaVerticalDeLaGraficaDeRAcumuladoAlArrastrar), PENDIENTE de ejecutar (dispositivo desconectado a mitad de sesion). (6) MENOR sin evidencia de mutacion -- diferido, declarado aqui explicitamente (no silencioso). (7) MENOR back-references de docs -- CORREGIDO: notas agregadas a epicas.md#ep-004, HU-037, HU-038, y backlog.md actualizado (35->37 historias, HU-037/038 agregadas sin re-priorizar formalmente).",
     "wiring_checklist": [
       {
@@ -70,7 +70,7 @@
         "ref": "HU-037#Escenario1",
         "status": "passing",
         "evidence": "connectedDebugAndroidTest real: RAcumuladoDragGestureTest.arrastrarHaciaElPrimerPuntoMuestraSuFechaYRAcumulado, verde. Verificacion visual real en dispositivo (corrida del 2026-10-07 ~17:47, tras reconectar el celular): el tooltip '18/11/2023 . 7.5R' aparece centrado sobre el punto central de la serie (indice 4 de 9), con la linea vertical del indicador claramente visible -- confirma el fix de posicionamiento (BoxWithConstraints + offset) y cierra tambien el hallazgo menor de la linea vertical sin evidencia.",
-        "verified_at_sha": "c38740aaa12ba5a5614ad762dea2c1bc1b790e59"
+        "verified_at_sha": "1a8d1bb"
       },
       {
         "id": "HU-037-AC2",
@@ -78,7 +78,7 @@
         "ref": "HU-037#Escenario2",
         "status": "passing",
         "evidence": "connectedDebugAndroidTest real: arrastrarHaciaOtraPosicionActualizaElTooltipAlNuevoPunto, verde (tooltip actualiza a +1.5R al mover el dedo al borde derecho).",
-        "verified_at_sha": "c38740aaa12ba5a5614ad762dea2c1bc1b790e59"
+        "verified_at_sha": "1a8d1bb"
       },
       {
         "id": "HU-037-AC3",
@@ -86,7 +86,7 @@
         "ref": "HU-037#Escenario3",
         "status": "passing",
         "evidence": "connectedDebugAndroidTest real: soltarElDedoDejaElIndicadorFijoEnElUltimoPuntoTocado + unToqueSimpleSobreElCanvasLimpiaElIndicadorYaFijado, ambos verdes. Decision de alcance CONFIRMADA con el usuario (2026-10-07): el indicador se limpia con un toque DENTRO de la propia grafica, no en cualquier parte de la pantalla -- HU-037 Escenario 3 y el spec delta (specs/inicio-grafica-r-interactiva/spec.md) ya se reescribieron para reflejar esto, coherente con la implementacion real.",
-        "verified_at_sha": "c38740aaa12ba5a5614ad762dea2c1bc1b790e59"
+        "verified_at_sha": "1a8d1bb"
       },
       {
         "id": "HU-037-AC4",
@@ -94,7 +94,7 @@
         "ref": "HU-037#Escenario4",
         "status": "passing",
         "evidence": "connectedDebugAndroidTest real: arrastrarMasAllaDelBordeDerechoSeFijaEnElUltimoPunto + arrastrarMasAllaDelBordeIzquierdoSeFijaEnElPrimerPunto, ambos verdes (clamped).",
-        "verified_at_sha": "c38740aaa12ba5a5614ad762dea2c1bc1b790e59"
+        "verified_at_sha": "1a8d1bb"
       },
       {
         "id": "HU-037-AC5",
@@ -102,7 +102,7 @@
         "ref": "HU-037#Escenario5",
         "status": "passing",
         "evidence": "connectedDebugAndroidTest real: conExactamenteDosPuntosElGestoLlegaAlSegundoPuntoSinErrores, verde.",
-        "verified_at_sha": "c38740aaa12ba5a5614ad762dea2c1bc1b790e59"
+        "verified_at_sha": "1a8d1bb"
       },
       {
         "id": "HU-038-AC1",
@@ -110,7 +110,7 @@
         "ref": "HU-038#Escenario1",
         "status": "passing",
         "evidence": "Verificacion visual real (screenshot fidelity_01_modo_porcentaje.png / fidelity_02_modo_numero.png, dispositivo real): tarjetas y grafica de barras alternan simultaneamente entre '67%/22%/11%' y '6/2/1', control visible 'Ver en numero'/'Ver en porcentaje'.",
-        "verified_at_sha": "c38740aaa12ba5a5614ad762dea2c1bc1b790e59"
+        "verified_at_sha": "1a8d1bb"
       },
       {
         "id": "HU-038-AC2",
@@ -118,7 +118,7 @@
         "ref": "HU-038#Escenario2",
         "status": "passing",
         "evidence": "InicioViewModelTest (JVM, 3 tests) + verificacion visual real de ida y vuelta (screenshots 01/02).",
-        "verified_at_sha": "c38740aaa12ba5a5614ad762dea2c1bc1b790e59"
+        "verified_at_sha": "1a8d1bb"
       },
       {
         "id": "HU-038-AC3",
@@ -126,7 +126,7 @@
         "ref": "HU-038#Escenario3",
         "status": "passing",
         "evidence": "Reescrito y confirmado con el usuario (2026-10-07): escenario ahora es 'categoria en cero DENTRO de un periodo con datos' (no periodo totalmente vacio, que es de HU-031). Evidencia UI real: InicioFidelityScreenshotTest.capturarModoNumeroConCategoriaEnCeroDentroDePeriodoConDatos (dispositivo real, screenshot fidelity_04_categoria_en_cero.png) -- confirma visualmente 'Perdidas: 0' y 'BE: 0' (sin NaN/negativos) con 5 operaciones, todas WIN. Mas OperationMetricsCountsInstrumentedTest.conSoloOperacionesGanadasElConteoDeLasOtrasCategoriasEsCeroNoNull (Room real) para el mismo caso a nivel de datos.",
-        "verified_at_sha": "c38740aaa12ba5a5614ad762dea2c1bc1b790e59"
+        "verified_at_sha": "1a8d1bb"
       },
       {
         "id": "HU-038-AC4",
@@ -134,7 +134,7 @@
         "ref": "HU-038#Escenario4",
         "status": "passing",
         "evidence": "Garantia estructural (MetricCard de Riesgo promedio no recibe mode) + confirmado visualmente en ambos screenshots: la tarjeta sigue en '0.0%' en los dos modos.",
-        "verified_at_sha": "c38740aaa12ba5a5614ad762dea2c1bc1b790e59"
+        "verified_at_sha": "1a8d1bb"
       },
       {
         "id": "INT-operationdao-wincount-resumen",
@@ -142,7 +142,7 @@
         "ref": "core/data(OperationDao.metricsSummary, 3 columnas de conteo nuevas)->feature/inicio(MetricsSummaryCards/ResultDistributionBarChart, modo Numero)",
         "status": "passing",
         "evidence": "OperationMetricsCountsInstrumentedTest verde contra Room real + screenshots 01/02 confirmando la UI consumiendo esos valores reales.",
-        "verified_at_sha": "c38740aaa12ba5a5614ad762dea2c1bc1b790e59"
+        "verified_at_sha": "1a8d1bb"
       },
       {
         "id": "INT-resultinr-dateresult-tooltip",
@@ -150,7 +150,7 @@
         "ref": "core/data(OperationDao.resultInROrderedByDateAsc, ahora OperationDateResult)->feature/inicio(ResultInRCumulativeSeries.Point.dateTime->tooltip de RAcumuladoLineChart)",
         "status": "passing",
         "evidence": "ResultInRCumulativeSeriesTest (JVM, 6 tests) + RAcumuladoDragGestureTest (instrumentado, 7 tests) + screenshot fidelity_03 confirmando la fecha real mostrada en el tooltip.",
-        "verified_at_sha": "c38740aaa12ba5a5614ad762dea2c1bc1b790e59"
+        "verified_at_sha": "1a8d1bb"
       },
       {
         "id": "INT-displaymode-viewmodel-ui",
@@ -158,7 +158,7 @@
         "ref": "feature/inicio(InicioViewModel.resumenDisplayMode, StateFlow solo-sesion)->feature/inicio(ResumenDisplayModeToggleRow/MetricsSummaryCards/ResultDistributionBarChart)",
         "status": "passing",
         "evidence": "InicioViewModelTest (3 tests) + screenshots 01/02 (dispositivo real) confirmando ambas superficies (tarjetas + barras) reaccionando al mismo StateFlow.",
-        "verified_at_sha": "c38740aaa12ba5a5614ad762dea2c1bc1b790e59"
+        "verified_at_sha": "1a8d1bb"
       }
     ],
     "progress_log": [
@@ -181,6 +181,16 @@
         "at": "2026-10-07T22:48:50.121944+00:00",
         "by": "building-a-slice (dispositivo real reconectado)",
         "note": "Pasada 2 (incremental) completada tras reconectar el dispositivo: capturarTooltipYLineaVerticalDeLaGraficaDeRAcumuladoAlArrastrar y capturarModoNumeroConCategoriaEnCeroDentroDePeriodoConDatos corridas en el dispositivo real (4/4 tests OK), screenshots fidelity_03_tooltip_fixed.png (linea vertical + tooltip visibles, centrado en el grafico) y fidelity_04_categoria_en_cero.png (Perdidas:0/BE:0 reales, sin NaN) verificados visualmente. Los 2 hallazgos bloqueantes de la pasada 1 ya estaban resueltos (decision del usuario + reescritura de AC/spec); los hallazgos menores de evidencia (cita incorrecta, linea vertical sin captura) tambien cerrados. gates.wiring_verified=true."
+      },
+      {
+        "at": "2026-10-07T23:05:05.708943+00:00",
+        "by": "building-a-slice",
+        "note": "wiring-adversarial-verifier pasada 2 (incremental): sin huecos de cableado nuevos, 2 bloqueantes de la pasada 1 confirmados resueltos (decision de usuario + reescritura AC/spec coherente con codigo), 1 cita de evidencia corregida (HU-037-AC1). gates.wiring_verified=true. verified_at_sha=1a8d1bb (rama feature/ep-004-grafica-interactiva-alternador-resumen)."
+      },
+      {
+        "at": "2026-10-07T23:11:14.582123+00:00",
+        "by": "building-a-slice",
+        "note": "DoD evaluado: faltaban tasks.md 5.1-5.4 sin marcar (mecanico, ya estaban hechos) y una decision explicita sobre evidencia de mutacion. Se marco tasks.md completo y se declaro explicitamente (no en silencio) que la mutacion sobre los 12 items de wiring_checklist[] queda diferida al Release Gate -- recomendacion del propio dor-dod-gatekeeper, dado que la 2a pasada adversarial no encontro huecos de cableado nuevos. gates.dod=true. Siguiente paso: abrir PR (se declarara el diferimiento de mutacion en el cuerpo del PR)."
       }
     ],
     "session_continuity": {

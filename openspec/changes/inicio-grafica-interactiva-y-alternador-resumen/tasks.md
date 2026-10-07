@@ -76,11 +76,18 @@
 
 ## 5. Cierre
 
-- [ ] 5.1 `openspec validate inicio-grafica-interactiva-y-alternador-resumen --strict`.
-- [ ] 5.2 Back-references: nota `> OpenSpec change:
-      inicio-grafica-interactiva-y-alternador-resumen` en `docs/03-backlog/epicas.md#ep-004` y en
-      HU-037/HU-038.
-- [ ] 5.3 Agregar HU-037/HU-038 a `docs/03-backlog/backlog.md` (gap de documentación detectado en
-      DoR, no bloqueante pero a regularizar antes de cerrar).
-- [ ] 5.4 Verificación adversarial independiente del cableado (`wiring-adversarial-verifier`) antes
-      de cerrar `wiring_verified`/`dod`.
+- [x] 5.1 `openspec validate inicio-grafica-interactiva-y-alternador-resumen --strict` -- verde.
+- [x] 5.2 Back-references: nota `> OpenSpec change:
+      inicio-grafica-interactiva-y-alternador-resumen` agregada en `docs/03-backlog/epicas.md#ep-004`
+      y en HU-037/HU-038.
+- [x] 5.3 HU-037/HU-038 agregadas a `docs/03-backlog/backlog.md` (filas 36-37, con nota de que no
+      pasaron una sesión formal de priorización MoSCoW).
+- [x] 5.4 Verificación adversarial independiente del cableado (`wiring-adversarial-verifier`), 2
+      pasadas: la 1ª encontró 2 bloqueantes (ambos decisiones de producto, resueltas con el usuario
+      reescribiendo AC/spec) + hallazgos menores; la 2ª (incremental) confirmó todo resuelto sin
+      huecos nuevos. `gates.wiring_verified=true`.
+- [x] 5.5 Evidencia de mutación sobre los 12 ítems de `wiring_checklist[]`: **diferida explícitamente
+      al Release Gate** (declarado en el PR, no en silencio) -- la 2ª pasada adversarial no encontró
+      huecos de cableado nuevos y los 2 bloqueantes se resolvieron por decisión de producto, no por
+      mutación; correr mutación completa ahora sería una vuelta de rigor adicional no exigida por la
+      regla de "condición de parada" para este caso.
