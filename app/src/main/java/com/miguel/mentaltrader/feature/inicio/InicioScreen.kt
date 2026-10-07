@@ -84,6 +84,9 @@ fun InicioScreen(
     // señales que necesita InicioEmptyState.resolve -- lógica PURA, testeada aparte en
     // InicioEmptyStateTest, sin duplicar ningún cálculo nuevo aquí.
     val totalOperationCount by viewModel.totalOperationCount.collectAsState(initial = 0)
+    // HU-038: modo de visualización (Porcentaje/Número) del resumen -- solo-sesión, ver KDoc de
+    // InicioViewModel.resumenDisplayMode.
+    val resumenDisplayMode by viewModel.resumenDisplayMode.collectAsState()
 
     Column(modifier = modifier.fillMaxWidth()) {
         PeriodoSelectorRow(selected = filterState.selectedPeriodo, onSelect = viewModel::onSelectPeriodo)
@@ -119,7 +122,13 @@ fun InicioScreen(
             contentPadding = PaddingValuesContent,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            item { MetricsSummaryCards(summary) }
+            item {
+                ResumenDisplayModeToggleRow(
+                    mode = resumenDisplayMode,
+                    onToggle = viewModel::toggleResumenDisplayMode
+                )
+            }
+            item { MetricsSummaryCards(summary, resumenDisplayMode) }
             item {
                 // Bug real reportado por el usuario: con el fondo general en degradé, una gráfica
                 // sin panel propio no se distinguía como gráfica -- se le da su propia tarjeta.
@@ -135,9 +144,13 @@ fun InicioScreen(
                     Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("Distribución de resultados", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
                         ResultDistributionBarChart(
+                            mode = resumenDisplayMode,
                             winPercent = summary.winPercent,
                             lossPercent = summary.lossPercent,
                             breakEvenPercent = summary.breakEvenPercent,
+                            winCount = summary.winCount,
+                            lossCount = summary.lossCount,
+                            breakEvenCount = summary.breakEvenCount,
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
@@ -281,7 +294,9 @@ private fun InicioCustomDateRangeFields(
 
 private val INICIO_DATE_FORMATTER: DateTimeFormatter = OperationFormViewModel.DATE_FORMATTER
 
-private fun millisToDateText(millis: Long): String =
+/** `internal` (no `private`): HU-037 la reutiliza desde `InicioCharts.kt` (tooltip de arrastre de
+ * `RAcumuladoLineChart`) para mostrar la misma fecha formateada que el resto de Inicio. */
+internal fun millisToDateText(millis: Long): String =
     Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate().format(INICIO_DATE_FORMATTER)
 
 private fun parseInicioDateStartMillis(text: String): Long? = try {
@@ -306,17 +321,50 @@ private val PaddingValuesContent = androidx.compose.foundation.layout.PaddingVal
     bottom = 96.dp
 )
 
+/**
+ * HU-038: único control que alterna [ResumenDisplayMode] para [MetricsSummaryCards] y
+ * `ResultDistributionBarChart` a la vez -- "Riesgo promedio" no lo lee (KDoc de
+ * [ResumenDisplayMode]).
+ */
 @Composable
-private fun MetricsSummaryCards(summary: OperationMetricsSummary) {
+private fun ResumenDisplayModeToggleRow(mode: ResumenDisplayMode, onToggle: () -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("Resumen", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+        FilterChip(
+            selected = mode == ResumenDisplayMode.NUMERO,
+            onClick = onToggle,
+            label = { Text(if (mode == ResumenDisplayMode.PORCENTAJE) "Ver en número" else "Ver en porcentaje") }
+        )
+    }
+}
+
+@Composable
+private fun MetricsSummaryCards(summary: OperationMetricsSummary, mode: ResumenDisplayMode) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             MetricCard(label = "Operaciones", value = summary.operationCount.toString(), modifier = Modifier.weight(1f))
             MetricCard(label = "Calidad prom.", value = InicioFormatting.oneDecimal(summary.avgQuality), modifier = Modifier.weight(1f))
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            MetricCard(label = "% Ganadas", value = "${summary.winPercent}%", modifier = Modifier.weight(1f))
-            MetricCard(label = "% Perdidas", value = "${summary.lossPercent}%", modifier = Modifier.weight(1f))
-            MetricCard(label = "% BE", value = "${summary.breakEvenPercent}%", modifier = Modifier.weight(1f))
+            // HU-038 Escenario 1/2: "Ganadas"/"Perdidas"/"BE" alternan porcentaje <-> conteo
+            // absoluto según el modo compartido -- Escenario 3 (periodo sin operaciones) ya queda
+            // cubierto porque winCount/lossCount/breakEvenCount vienen en 0 desde la misma query
+            // SQL que ya garantiza 0 (no NULL/NaN) para los porcentajes.
+            MetricCard(
+                label = if (mode == ResumenDisplayMode.PORCENTAJE) "% Ganadas" else "Ganadas",
+                value = if (mode == ResumenDisplayMode.PORCENTAJE) "${summary.winPercent}%" else summary.winCount.toString(),
+                modifier = Modifier.weight(1f)
+            )
+            MetricCard(
+                label = if (mode == ResumenDisplayMode.PORCENTAJE) "% Perdidas" else "Perdidas",
+                value = if (mode == ResumenDisplayMode.PORCENTAJE) "${summary.lossPercent}%" else summary.lossCount.toString(),
+                modifier = Modifier.weight(1f)
+            )
+            MetricCard(
+                label = if (mode == ResumenDisplayMode.PORCENTAJE) "% BE" else "BE",
+                value = if (mode == ResumenDisplayMode.PORCENTAJE) "${summary.breakEvenPercent}%" else summary.breakEvenCount.toString(),
+                modifier = Modifier.weight(1f)
+            )
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             MetricCard(

@@ -153,6 +153,9 @@ interface OperationDao {
             CASE WHEN COUNT(*) = 0 THEN 0 ELSE
                 CAST(ROUND(100.0 * SUM(CASE WHEN result = 'BREAK_EVEN' THEN 1 ELSE 0 END) / COUNT(*)) AS INTEGER)
             END AS breakEvenPercent,
+            COALESCE(SUM(CASE WHEN result = 'WIN' THEN 1 ELSE 0 END), 0) AS winCount,
+            COALESCE(SUM(CASE WHEN result = 'LOSS' THEN 1 ELSE 0 END), 0) AS lossCount,
+            COALESCE(SUM(CASE WHEN result = 'BREAK_EVEN' THEN 1 ELSE 0 END), 0) AS breakEvenCount,
             COALESCE(AVG(quality), 0.0) AS avgQuality,
             COALESCE(SUM(resultInR), 0.0) AS totalResultInR,
             CASE WHEN COUNT(*) = 0 THEN 0.0 ELSE COALESCE(SUM(resultInR), 0.0) / COUNT(*) END AS avgResultInR,
@@ -164,26 +167,27 @@ interface OperationDao {
     )
     fun metricsSummary(dateFrom: Long?, dateTo: Long?): Flow<OperationMetricsSummary>
 
-    /** HU-026 Escenario 2 / HU-028 Escenario 1: valor de `resultInR` de cada operación DENTRO del
+    /** HU-026 Escenario 2 / HU-028 Escenario 1: `dateTime`+`resultInR` de cada operación DENTRO del
      * rango [dateFrom]/[dateTo] opcional (mismo criterio "`null` en ambos == todas" que
      * [metricsSummary]), ordenado cronológicamente ascendente (la más antigua primero) --
-     * proyección liviana de una sola columna (NO la entidad [Operation] completa, sigue el
-     * mandato de "no cargar todo a memoria" incluso para esta lista ordenada) para que
+     * proyección liviana de 2 columnas ([OperationDateResult], NO la entidad [Operation] completa,
+     * sigue el mandato de "no cargar todo a memoria" incluso para esta lista ordenada) para que
      * `InicioViewModel` construya el punto-a-punto del R acumulado en Kotlin puro
      * (`ResultInRCumulativeSeries`, testeada aparte en JVM sin Room). Se resuelve así
      * (post-procesamiento fuera de SQL) y no con una función de ventana (`SUM() OVER`, que
      * requeriría SQLite >= 3.25) porque el SQLite embebido de minSdk 27 (Android 8.1) no la
      * soporta de forma confiable en todo el rango de dispositivos objetivo -- ver design.md
-     * decisión #1/#3 de este change. */
+     * decisión #1/#3 de este change. HU-037: `dateTime` se agrega (antes solo `resultInR`) para que
+     * el tooltip de arrastre de la gráfica pueda mostrar la fecha del punto tocado, no solo su R. */
     @Query(
         """
-        SELECT resultInR FROM operation
+        SELECT dateTime, resultInR FROM operation
         WHERE (:dateFrom IS NULL OR dateTime >= :dateFrom)
           AND (:dateTo IS NULL OR dateTime <= :dateTo)
         ORDER BY dateTime ASC
         """
     )
-    fun resultInROrderedByDateAsc(dateFrom: Long?, dateTo: Long?): Flow<List<Float?>>
+    fun resultInROrderedByDateAsc(dateFrom: Long?, dateTo: Long?): Flow<List<OperationDateResult>>
 
     /** Fix: ranking de emociones "antes" más frecuentes DENTRO del rango [dateFrom]/[dateTo]
      * opcional (mismo criterio "`null` en ambos == todas" que [metricsSummary]) -- reemplaza al

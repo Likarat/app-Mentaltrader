@@ -155,6 +155,22 @@ class InicioViewModel(
      * seleccionado". */
     val totalOperationCount: Flow<Int> = operationDao.countAll()
 
+    private val _resumenDisplayMode = MutableStateFlow(ResumenDisplayMode.PORCENTAJE)
+    /** HU-038 (nuevo slice, post-construccion): modo de visualización (Porcentaje/Número)
+     * compartido por `MetricsSummaryCards` y `ResultDistributionBarChart`. Decisión de producto
+     * confirmada con el usuario (2026-10-07, ver HU-038 §Contexto): es estado de solo-sesión, NO
+     * se persiste en [filterRepository]/DataStore -- a diferencia de [filterState] (HU-030), vuelve
+     * siempre a [ResumenDisplayMode.PORCENTAJE] al reconstruirse el ViewModel. */
+    val resumenDisplayMode: StateFlow<ResumenDisplayMode> = _resumenDisplayMode.asStateFlow()
+
+    /** HU-038 Escenario 1/2: alterna entre Porcentaje y Número. No dispara ninguna consulta nueva
+     * a [operationDao] -- es una derivación local sobre el mismo [OperationMetricsSummary] ya
+     * cargado (las tarjetas/gráfica de barras leen [resumenDisplayMode] para decidir qué campo
+     * mostrar, ver `InicioScreen`/`InicioCharts`). */
+    fun toggleResumenDisplayMode() {
+        _resumenDisplayMode.value = _resumenDisplayMode.value.toggled()
+    }
+
     class Factory(
         private val operationDao: OperationDao,
         private val filterRepository: InicioFilterRepository

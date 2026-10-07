@@ -21,7 +21,7 @@ Extiende **HU-026** (tarjetas de resumen numérico y gráfica de barras de distr
 
 **Nota técnica de origen de datos**: `OperationMetricsSummary` (y el cálculo SQL en `OperationDao.metricsSummary` que lo alimenta) hoy solo expone `winPercent`, `lossPercent`, `breakEvenPercent` (enteros ya redondeados) y `operationCount` (total). No existe un conteo absoluto por categoría (cuántas ganadas, perdidas, BE por separado) — derivarlo del porcentaje entero perdería precisión por redondeo. Esta historia requiere ampliar el cálculo SQL y el data class para exponer el conteo exacto por categoría (p. ej. `winCount`, `lossCount`, `breakEvenCount`), no es un cambio solo de UI.
 
-**Decisión de producto pendiente de confirmar**: se asume que el modo elegido (Porcentaje/Número) persiste mientras el usuario permanece en la pantalla de Inicio —incluyendo cambios de periodo/filtro de fecha— pero vuelve al default (Porcentaje) al reabrir la app, sin usar DataStore. Esto es consistente con no sobrealcanzar lo pedido, pero el proyecto ya tiene precedente de persistir preferencias de Inicio entre sesiones vía DataStore (**HU-030**, filtro de periodo). Si se prefiere que el modo también persista entre sesiones, es un ajuste menor de alcance a confirmar antes de construir.
+**Decisión de producto confirmada (2026-10-07, usuario)**: el modo elegido (Porcentaje/Número) persiste mientras el usuario permanece en la pantalla de Inicio —incluyendo cambios de periodo/filtro de fecha— pero vuelve al default (Porcentaje) al reabrir la app. No usa DataStore (a diferencia de **HU-030**, filtro de periodo, que sí persiste entre sesiones): se confirmó explícitamente mantener el alcance acotado a estado de sesión.
 
 ## Criterios de aceptación
 

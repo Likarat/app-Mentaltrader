@@ -5,6 +5,7 @@ import com.miguel.mentaltrader.core.data.CatalogRankingItem
 import com.miguel.mentaltrader.core.data.MonthSummary
 import com.miguel.mentaltrader.core.data.Operation
 import com.miguel.mentaltrader.core.data.OperationDao
+import com.miguel.mentaltrader.core.data.OperationDateResult
 import com.miguel.mentaltrader.core.data.OperationMetricsSummary
 import com.miguel.mentaltrader.core.data.OperationUsageSummary
 import com.miguel.mentaltrader.core.model.ResultType
@@ -99,11 +100,11 @@ class FakeOperationDao : OperationDao {
      * `<= dateTo` que la query real de Room) -- es la única de las 4 queries nuevas de EP-004 con
      * implementación real en este fake (ver KDoc de la clase), y `InicioViewModelTest` la usa para
      * testear el recálculo/aislamiento real entre periodos sucesivos (HU-028 Escenario 2). */
-    override fun resultInROrderedByDateAsc(dateFrom: Long?, dateTo: Long?): Flow<List<Float?>> =
+    override fun resultInROrderedByDateAsc(dateFrom: Long?, dateTo: Long?): Flow<List<OperationDateResult>> =
         allOperations.map { list ->
             list.filter { (dateFrom == null || it.dateTime >= dateFrom) && (dateTo == null || it.dateTime <= dateTo) }
                 .sortedBy { it.dateTime }
-                .map { it.resultInR }
+                .map { OperationDateResult(dateTime = it.dateTime, resultInR = it.resultInR) }
         }
 
     override fun emotionBeforeRanking(dateFrom: Long?, dateTo: Long?): Flow<List<CatalogRankingItem>> =
