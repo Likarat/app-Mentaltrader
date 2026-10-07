@@ -55,6 +55,14 @@ android {
                 enable = false
             }
         }
+        debug {
+            // Sin esto, un build debug (firma distinta a la de release) no se puede instalar en
+            // ningún dispositivo que ya tenga la app release real instalada -- Android rechaza el
+            // install por firma incompatible (INSTALL_FAILED_UPDATE_INCOMPATIBLE). El sufijo lo
+            // convierte en un paquete separado (com.miguel.mentaltrader.debug), que convive sin
+            // tocar la instalación release ni sus datos.
+            applicationIdSuffix = ".debug"
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
