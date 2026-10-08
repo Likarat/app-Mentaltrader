@@ -348,6 +348,39 @@ class InicioViewModelTest {
         assertNull(viewModel.filterState.value.dateTo)
     }
 
+    // ---- HU-038 (nuevo slice, post-construccion): alternar modo Porcentaje/Numero en el resumen ----
+    // Decision de producto confirmada con el usuario (2026-10-07, ver HU-038 Contexto): el modo NO
+    // se persiste entre sesiones (a diferencia del filtro de periodo, HU-030) -- siempre arranca en
+    // PORCENTAJE al construir el ViewModel, sin tocar filterRepository/DataStore.
+
+    @Test
+    fun `resumenDisplayMode arranca siempre en PORCENTAJE (HU-038)`() = runTest {
+        val viewModel = createViewModel()
+
+        assertEquals(ResumenDisplayMode.PORCENTAJE, viewModel.resumenDisplayMode.value)
+    }
+
+    @Test
+    fun `alternar resumenDisplayMode cambia a NUMERO y vuelve a PORCENTAJE (HU-038 Escenario 1 y 2)`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.toggleResumenDisplayMode()
+        assertEquals(ResumenDisplayMode.NUMERO, viewModel.resumenDisplayMode.value)
+
+        viewModel.toggleResumenDisplayMode()
+        assertEquals(ResumenDisplayMode.PORCENTAJE, viewModel.resumenDisplayMode.value)
+    }
+
+    @Test
+    fun `cambiar de periodo no resetea el modo de visualizacion ya elegido (HU-038, ortogonal a HU-028)`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.toggleResumenDisplayMode()
+        viewModel.onSelectPeriodo(PeriodoInicioFiltro.DIA, hoy)
+
+        assertEquals(ResumenDisplayMode.NUMERO, viewModel.resumenDisplayMode.value)
+    }
+
     private fun operacion(dateTime: Long, resultInR: Float?) = Operation(
         dateTime = dateTime,
         assetId = 1L,

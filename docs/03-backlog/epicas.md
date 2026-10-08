@@ -138,8 +138,12 @@
 - Gráfica de línea de R acumulado y gráfica de barras de distribución de resultados.
 - Ranking de emociones y errores más frecuentes en el periodo seleccionado.
 - Filtro de periodo predefinido y personalizado, persistido entre sesiones (DataStore Preferences).
+
+> OpenSpec change: `inicio-grafica-interactiva-y-alternador-resumen` (HU-037, HU-038).
 - Codificación por color de valores positivos/negativos (verde/rojo) consistente con el resto de la app.
 - Estado vacío en Inicio cuando no hay operaciones en el periodo.
+- Exploración táctil (tap + arrastre) sobre la gráfica de R acumulado, mostrando fecha y valor de R del punto más cercano.
+- Alternancia entre porcentaje y número absoluto de operaciones por categoría, en tarjetas de resumen y gráfica de barras.
 
 **Historias previstas**:
 - HU-026 — Ver resumen numérico y gráficas de R acumulado / distribución de resultados
@@ -148,6 +152,10 @@
 - HU-029 — Filtrar métricas por rango personalizado
 - HU-030 — Persistir el filtro de periodo de Inicio entre sesiones
 - HU-031 — Ver estado vacío en Inicio sin operaciones en el periodo
+- HU-037 — Explorar la gráfica de R acumulado tocando y arrastrando sobre un punto
+- HU-038 — Alternar entre porcentaje y número absoluto en el resumen de Inicio
+
+> Nota: HU-037 y HU-038 se agregaron post-lanzamiento (2026-10-06) a petición directa del usuario. HU-037 extiende la gráfica de línea de HU-026 (Escenario 2) con interacción de tap+arrastre (fecha + R del punto más cercano). HU-038 agrega un alternador %/número absoluto sobre las tarjetas de resumen y la gráfica de barras de HU-026. Ver `docs/04-historias/HU-037-grafica-r-acumulado-interactiva.md` y `docs/04-historias/HU-038-alternar-porcentaje-numero-resumen.md`.
 
 **Métrica de éxito de la épica**: el ranking de emociones/errores se recalcula correctamente para cualquier periodo seleccionado (predefinido o personalizado), sin intervención manual del usuario.
 
@@ -187,3 +195,4 @@
 - **Gap de cobertura resuelto**: el visor de imagen a pantalla completa (zoom, navegación entre imágenes, rotación) no tenía historia propia pese a estar completamente especificado en la spec y referenciado por EP-005. Se agregó **HU-019** en EP-003.
 - **Backlog completo**: las 35 historias previstas (HU-001 a HU-035) tienen archivo propio en `docs/04-historias/`, con AC en Given/When/Then y `estado: lista` (pasaron las 6 letras INVEST). 5 historias originales se dividieron en 10 tras fallar el criterio **S** durante `/trycore:invest` (ver notas en cada épica): HU-001→HU-001/002/003, HU-006→HU-006/007, HU-010→HU-010/011, HU-015→HU-015/016, HU-022→HU-022/023. Próximo paso natural: `/trycore:backlog` para consolidar, o `/trycore:mapa` para el User Story Map.
 - **Post-`/trycore:revisar` (2026-07-27)**: se detectó y corrigió un gap de trazabilidad — Riesgo (%), Resultado en R y los 3 motivos en texto libre (`emotionBeforeReason`/`emotionAfterReason`/`errorReason`) eran consumidos por AC de HU-004/015/017/023/026 sin que ninguna historia los creara. Se extendieron HU-001 (Riesgo %, Resultado en R) y HU-002 (los 3 motivos) para cubrirlos. También se subieron HU-006/HU-007 a Must (única implementación del objetivo #5 del PRD) — ver `docs/05-priorizacion/moscow-2026-07-27.md`. Detalle completo en `docs/.reviews/20260727-2138-global.md`.
+- **Mejora post-construcción (2026-10-06)**: se agregaron **HU-037** y **HU-038** a EP-004 — exploración táctil de la gráfica de R acumulado y alternancia porcentaje/número absoluto en el resumen de Inicio, ambas extensiones de HU-026 pedidas por el usuario sobre el producto ya construido. El backlog pasa de 35 a 37 historias.

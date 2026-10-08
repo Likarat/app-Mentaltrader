@@ -2,17 +2,17 @@
 
 > El orden de las filas **es** la priorización. Priorizado con MoSCoW el 2026-07-27 (ver `docs/05-priorizacion/moscow-2026-07-27.md`); dentro de cada categoría, el orden respeta las dependencias documentadas en "Notas". Actualizado el mismo día tras `/trycore:revisar`: HU-006/HU-007 subieron de Should/Could a Must (ver nota de priorización) y se corrigieron referencias de ID y conteos.
 
-**Última actualización**: 2026-07-27
+**Última actualización**: 2026-10-07 (consolidación de HU-037/HU-038, sin re-priorizar — ver nota abajo)
 **Framework activo**: MoSCoW
 
 ## Resumen
 
-- Total historias: 35
-- En estado `lista`: 35
+- Total historias: 37
+- En estado `lista`: 37
 - En estado `en-curso`: 0
 - En estado `hecha`: 0
-- Por prioridad (MoSCoW): Must 16 (46%), Should 11 (31%), Could 8 (23%), Won't 0
-- Por complejidad: S 26, M 9, L 0
+- Por prioridad (MoSCoW): Must 16 (43%), Should 13 (35%), Could 8 (22%), Won't 0
+- Por complejidad: S 26, M 11, L 0
 
 ## Tabla priorizada
 
@@ -53,18 +53,20 @@
 | 33 | HU-029 | Filtrar métricas por rango personalizado | EP-004 | Could | S | lista | 3 | depende de HU-028 |
 | 34 | HU-030 | Persistir el filtro de periodo de Inicio entre sesiones | EP-004 | Could | S | lista | 3 | depende de HU-028/029 |
 | 35 | HU-034 | Mantener orientación vertical en el resto de la app | EP-005 | Could | S | lista | 2 | depende de HU-019 (excepción); declarar orden HU-019 → HU-034 |
+| 36 | HU-037 | Explorar la gráfica de R acumulado tocando y arrastrando sobre un punto | EP-004 | Should | M | lista | 5 | depende de HU-026; mejora post-construcción (2026-10-06), pendiente de pasada formal de priorización MoSCoW |
+| 37 | HU-038 | Alternar entre porcentaje y número absoluto en el resumen de Inicio | EP-004 | Should | M | lista | 4 | depende de HU-026; mejora post-construcción (2026-10-06), pendiente de pasada formal de priorización MoSCoW |
 
 ## Trazabilidad rápida (épica → historias)
 
 - **EP-001 — Registro rápido de operaciones**: HU-001, HU-002, HU-003, HU-004, HU-005, HU-006, HU-007, HU-008, HU-009
 - **EP-002 — Gestión de catálogos (Etiquetas)**: HU-010, HU-011, HU-012, HU-013, HU-014
 - **EP-003 — Historial y estudio de operaciones**: HU-015, HU-016, HU-017, HU-018, HU-019, HU-020, HU-021, HU-022, HU-023, HU-024, HU-025
-- **EP-004 — Métricas y detección de patrones (Inicio)**: HU-026, HU-027, HU-028, HU-029, HU-030, HU-031
+- **EP-004 — Métricas y detección de patrones (Inicio)**: HU-026, HU-027, HU-028, HU-029, HU-030, HU-031, HU-037, HU-038
 - **EP-005 — Plataforma base: navegación, tema y almacenamiento offline**: HU-032, HU-033, HU-034, HU-035
 
 ## Items pendientes de definir
 
-- Ninguno. Las 35 historias previstas en `docs/03-backlog/epicas.md` tienen archivo propio en `docs/04-historias/`, con AC y `estado: lista`.
+- Ninguno. Las 37 historias previstas en `docs/03-backlog/epicas.md` tienen archivo propio en `docs/04-historias/`, con AC y `estado: lista`. HU-037/HU-038 (agregadas 2026-10-06) están consolidadas aquí pero **no pasaron una sesión formal de priorización MoSCoW** — su prioridad (Should) viene de su propio frontmatter, no de un framework aplicado sobre el backlog completo; su posición en la tabla (filas 36-37) es de inserción, no de prioridad relativa a las demás filas Should.
 
 ## Notas de consistencia detectadas al construir este backlog
 
