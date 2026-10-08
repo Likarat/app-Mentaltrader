@@ -4,7 +4,7 @@
       `metricsSummary()` es agregación SQL real (Room) — este proyecto NO tiene Robolectric/Room-en-JVM
       (ver KDoc de `FakeOperationDao.metricsSummary`, ya lanzaba `UnsupportedOperationException` antes
       de este change). La verificación de `winCount`/`lossCount`/`breakEvenCount` por SQL real queda
-      en 1.1-bis, instrumentada, PENDIENTE de dispositivo/emulador conectado.
+      en **1.5-bis** (instrumentada, ver más abajo) — ya ejecutada y verde.
 - [x] 1.2 Ampliar el SQL de `metricsSummary()` con las 3 columnas de conteo (mismo patrón
       `CASE WHEN`/`COALESCE` ya usado) (green, compila).
 - [x] 1.3 Ampliar `OperationMetricsSummary` (data class) con los 3 campos nuevos.
@@ -51,10 +51,10 @@
       resaltado, actualizado en cada evento de arrastre (Escenarios 1 y 2) — por lectura de código;
       verificación visual real diferida a 4.2 (requiere dispositivo).
 - [x] 3.4 El indicador permanece fijo tras soltar el dedo (no hay `onDragEnd` que lo limpie,
-      Escenario 3) hasta un nuevo arrastre o un toque simple sobre el propio Canvas
-      (`detectTapGestures`) — nota: "tocar FUERA de la gráfica" (en otra parte de la pantalla) NO
-      quedó cableado, solo el toque simple dentro del propio Canvas; declarado como desviación menor
-      del AC, a decidir si se amplía o se acepta así en el Release Gate.
+      Escenario 3) hasta un nuevo arrastre o un toque simple DENTRO del propio Canvas
+      (`detectTapGestures`) — alcance YA DECIDIDO y confirmado con el usuario (2026-10-07): el AC y
+      el spec se reescribieron para reflejar esto ("toque dentro de la gráfica", no "fuera de la
+      pantalla"); ver nota de alcance en HU-037 Escenario 3 y en `specs/inicio-grafica-r-interactiva/spec.md`.
 - [x] 3.5 Clamping en los bordes cubierto por `RAcumuladoHitTest.nearestIndex` (coerceIn), mismo
       código que dibuja la polilínea real — verificación del gesto real (no solo de la función pura)
       diferida al instrumentado (4.3).

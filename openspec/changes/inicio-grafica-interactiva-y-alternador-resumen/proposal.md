@@ -11,7 +11,9 @@ brecha de exploración de datos sin salir de Inicio.
 
 - Tocar y arrastrar sobre la gráfica de R acumulado (Canvas) muestra la fecha y el valor de R del
   punto más cercano al dedo, con un indicador visual (línea/punto resaltado) que sigue el gesto.
-- Al soltar el gesto, el indicador desaparece y la gráfica vuelve a su estado normal.
+- Al soltar el gesto, el indicador permanece fijo en el último punto tocado hasta un nuevo arrastre
+  o un toque simple dentro de la propia gráfica (decisión confirmada con el usuario, 2026-10-07: no
+  desaparece solo, ver HU-037 Escenario 3).
 - Un único control de modo (Porcentaje ↔ Número) alterna simultáneamente las tarjetas de resumen y
   la gráfica de barras de distribución de resultados entre porcentaje y conteo absoluto de
   operaciones por categoría (Ganadas/Perdidas/BE).

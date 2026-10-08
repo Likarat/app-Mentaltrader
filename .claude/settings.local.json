@@ -345,7 +345,8 @@
       "Bash(timeout 120 ./gradlew.bat connectedDebugAndroidTest --console=plain -Pandroid.testInstrumentationRunnerArguments.class=com.miguel.mentaltrader.EtiquetasCatalogManagementTest)",
       "Bash(./gradlew testDebugUnitTest --tests \"com.miguel.mentaltrader.feature.inicio.*\" --console=plain)",
       "Bash(./gradlew testDebugUnitTest --console=plain)",
-      "Bash(echo \"exit=$?\")"
+      "Bash(echo \"exit=$?\")",
+      "Bash(timeout 120 ./gradlew.bat connectedDebugAndroidTest --console=plain -Pandroid.testInstrumentationRunnerArguments.class=com.miguel.mentaltrader.feature.inicio.InicioFiltroFechaEdicionParcialTest)"
     ]
   }
 }
